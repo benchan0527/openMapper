@@ -409,14 +409,13 @@ egui 用 `unicode-linebreak`，中文可以逐字斷行，唔使特殊處理；�
 
 ### Phase 6 — 地圖描述 + 雜項（0.5 天）
 - [x] `src/descriptions.rs` `LANGS` 加 `ZHT`。
-- [x] 驗證 `global_ZHT.dsc` 寫出後 openOMSI launcher 讀到。
+- [x] 驗證：`global_ZHT.dsc` 寫出後 openOMSI launcher 讀到。（未做：要裝 openOMSI 實測，見 §13）
 
 ### Phase 7 — 收尾驗證（1 天）
 - [x] `cargo build --release`、全套 `cargo test`。
 - [x] 中文模式逐個面板行一遍，截圖對照。
 - [x] `cargo build` + 執行 + 寫 `CHANGELOG` 條目。
 - [ ] 打包試 `tools/package-windows.ps1`（確認 NSIS 中文語言檔、字型有入包）。
-- [ ] 逐個面板肉眼校對譯文（§6 詞彙表），特別係教學長文（4f）。
 
 ---
 
@@ -489,6 +488,7 @@ egui 用 `unicode-linebreak`，中文可以逐字斷行，唔使特殊處理；�
 | `tools/check-i18n.py` | 新增 | 一次過跑齊所有檢查 |
 | `tools/fetch-chars.py` | 新增 | 拉常用繁中字符表（粵語 + HKSCS） |
 | `tools/subset-cjk.py` | 新增 | 字型子集化 |
+| `tools/show-lang.py` | 新增 | 隨機抽睇譯文（校對用） |
 | `.github/workflows/ci.yml` | 現有 | `i18n` job：跑 `tools/check-i18n.py` |
 
 ---
@@ -506,17 +506,22 @@ egui 用 `unicode-linebreak`，中文可以逐字斷行，唔使特殊處理；�
 
 ## 十三、工作記錄（2026-10-25）
 
-**已完成**：
+**已完成**（commit `305a4e5`，branch `feat/i18n-zh-hk`）：
 
 - 全部 2,109 句 `tr()` 文字已有繁中譯文，`tools/check-i18n.py` 全綠。
-- 字型已子集化（735 kB），`src/lang/mod.rs` 嘅測試確認每個譯文字符都有字形。
-- 指令面板 77 條命令都有中文搜尋詞（三語測試通過）。
+- 字型已子集化（735 kB）：`src/lang/mod.rs` 有三個測試——
+  - `the_font_file_is_read_as_it_should`（字型讀得到）、
+  - `the_chinese_font_has_every_character_of_the_translations`（每個譯文字符都有字形）、
+  - `egui_shows_every_character_of_the_translations`（**經 egui 嘅 fallback 鏈**，中文真係畫得出，冇豆腐格）。
+- 指令面板 77 條命令都有中文搜尋詞（三語測試通過）；語言切換命令而家會輪轉英文→俄文→繁中。
 - `cargo build` 無警告；`cargo test` 307 passed / 7 failed（7 個係上游缺地圖資料嘅既有失敗，改動前基線一樣失敗）。
-- `CHANGELOG.md` 已加條目；CI 加咗 `i18n` job。
+- `CHANGELOG.md` 已加條目；CI 加咗 `i18n` job；NSIS 加咗 `TradChinese`；macOS `Info.plist` 加咗 `zh-HK`。
+- 程式啟動時會檢查字型覆蓋，有漏字會寫入 log（`missing_glyphs()`）。
 
 **未完成（下次繼續）**：
 
-1. 肉眼校對譯文（特別係教學長文 `ui_guide.rs`），對住 §6 詞彙表逐句睇。
-2. `tools/package-windows.ps1` 打包試：確認字型入咗 package、NSIS 語言檔。
-3. 檢查 `src/ui_palette.rs` 語言切換命令（目前只喺英文／俄文之間切，中文模式下無「切換語言」命令）。
+1. 肉眼校對譯文（用 `python tools/show-lang.py --count 30` 抽睇），特別係教學長文 `ui_guide.rs`。
+2. `tools/package-windows.ps1` 打包試（本機冇 NSIS，睇 CI 嘅 `Installer installs and uninstalls` job）：確認字型入咗 package。
+3. `global_ZHT.dsc` 寫出後，用 openOMSI launcher 讀返確認（要裝 openOMSI）。
 4. 考慮上游提案：`src/lang/` 呢套「翻譯表 + 查表」設計。
+
