@@ -15,15 +15,15 @@ type Run = fn(&mut UiState, &mut Editor, &mut Vec<Action>);
 struct Command {
     icon: Icon,
     name: &'static str,
-    /// Other words it is found by (both languages).
-    words: &'static str,
+    /// Other words it is found by (in every language).
+    words: String,
     key: &'static str,
     run: Run,
 }
 
 macro_rules! cmd {
     ($icon:expr_2021, $en:literal, $ru:literal, $words:literal, $key:literal, $run:expr_2021) => {
-        Command { icon: $icon, name: tr($en, $ru), words: concat!($en, " ", $ru, " ", $words), key: $key, run: $run }
+        Command { icon: $icon, name: tr($en, $ru), words: crate::i18n::tr_words($en, $ru, $words), key: $key, run: $run }
     };
 }
 
@@ -101,8 +101,13 @@ fn commands() -> Vec<Command> {
         // Help
         cmd!(Icon::CheckCircle, "Getting started", "С чего начать", "guide tutorial help учебник помощь", "", |_, _, a| a.push(Action::Guide)),
         cmd!(Icon::Help, "Controls", "Управление", "keys mouse shortcuts клавиши мышь", "", |st, _, _| st.help_open = true),
-        cmd!(Icon::Settings, "Русский язык", "English language", "language interface язык интерфейс", "", |_, _, a| {
-            let other = if crate::i18n::get() == crate::i18n::Lang::Ru { crate::i18n::Lang::En } else { crate::i18n::Lang::Ru };
+        cmd!(Icon::Settings, "Language", "Язык", "language interface язык 語言 介面 切换 切換", "", |_, _, a| {
+            // (the next language: English, then Russian, then Chinese, and round again)
+            let other = match crate::i18n::get() {
+                crate::i18n::Lang::En => crate::i18n::Lang::Ru,
+                crate::i18n::Lang::Ru => crate::i18n::Lang::ZhHk,
+                crate::i18n::Lang::ZhHk => crate::i18n::Lang::En,
+            };
             a.push(Action::SetLang(other))
         }),
         // where features live
@@ -333,8 +338,17 @@ pub fn window(ctx: &egui::Context, st: &mut UiState, ed: &mut Editor, actions: &
 mod tests {
     use super::*;
 
+    /// The language is a global: the tests that read the names take the lock, so they do
+    /// not see the language another test set.
+    fn lock() -> std::sync::MutexGuard<'static, ()> {
+        crate::i18n::tests::LANG_LOCK.lock().unwrap_or_else(|e| e.into_inner())
+    }
+
     #[test]
     fn commands_are_found_by_their_names_and_words_in_either_language() {
+        let _g = lock();
+        // (the names are the English ones in English)
+        crate::i18n::set(crate::i18n::Lang::En);
         let mut p = Palette::default();
         p.query = "time".into();
         assert_eq!(p.found()[0], "Time of day and season");
@@ -353,5 +367,22 @@ mod tests {
         p.recent = vec!["Check map…"];
         assert_eq!(p.found()[0], "Check map…");
         assert_eq!(p.found().len(), commands().len());
+    }
+
+    #[test]
+    fn a_command_is_found_by_its_chinese_name_and_words() {
+        let _g = lock();
+        crate::i18n::set(crate::i18n::Lang::ZhHk);
+        let mut p = Palette::default();
+        // (the Chinese name)
+        p.query = "時刻表".into();
+        assert!(!p.found().is_empty(), "the Chinese name finds nothing");
+        // (the Chinese words beside it)
+        p.query = "斑馬線".into();
+        assert!(!p.found().is_empty(), "the Chinese words find nothing");
+        // (the English still works)
+        p.query = "timetable".into();
+        assert!(!p.found().is_empty(), "the English finds nothing in Chinese");
+        crate::i18n::set(crate::i18n::Lang::En);
     }
 }

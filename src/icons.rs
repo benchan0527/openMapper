@@ -1,10 +1,19 @@
 //! Icons: Google's Material Symbols (Rounded), from a small font in the repository
 //! (`assets/fonts/MaterialSymbolsSubset.ttf`, made by `tools/subset-icons.py` from the
 //! full font kept beside it). Nothing is fetched at run time.
+//!
+//! The Chinese font is Noto Sans CJK TC (SIL OFL), in a subset made by
+//! `tools/subset-cjk.py` out of the full font kept beside it: the full font is 16 MB,
+//! the subset has the characters the program shows and the common ones of a Chinese
+//! text.
 
 use egui::{FontData, FontDefinitions, FontFamily, RichText};
 
 pub const FAMILY: &str = "material-symbols";
+
+/// The Chinese font (Noto Sans CJK TC), for the texts in Chinese: egui's own fonts have
+/// no Chinese glyphs.
+pub const CJK: &str = "noto-sans-cjk-tc";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Icon {
@@ -152,15 +161,22 @@ impl Icon {
 }
 
 /// egui's fonts plus the icon font (as its own family, and behind the text fonts so an
-/// icon may also sit inside a label).
+/// icon may also sit inside a label) and the Chinese font (for the texts in Chinese).
 pub fn fonts() -> FontDefinitions {
     let mut f = FontDefinitions::default();
     f.font_data.insert(FAMILY.into(), std::sync::Arc::new(FontData::from_static(include_bytes!("../assets/fonts/MaterialSymbolsSubset.ttf"))));
+    // (the Chinese font: egui's own fonts have no Chinese glyphs, so the text would be
+    // squares without it)
+    f.font_data.insert(CJK.into(), std::sync::Arc::new(FontData::from_static(include_bytes!("../assets/fonts/NotoSansCJKtc-Subset.otf"))));
     // (a text font behind the icons: egui wants its replacement character in every family)
     let text = f.families.get(&FontFamily::Proportional).cloned().unwrap_or_default();
     f.families.insert(FontFamily::Name(FAMILY.into()), std::iter::once(FAMILY.to_string()).chain(text).collect());
     for fam in [FontFamily::Proportional, FontFamily::Monospace] {
-        f.families.entry(fam).or_default().push(FAMILY.into());
+        let list = f.families.entry(fam).or_default();
+        // (the Chinese font behind the text fonts, which have no Chinese glyphs, and
+        // before the icons, so an icon may still sit inside a label)
+        let icons = list.iter().position(|n| n == FAMILY).unwrap_or(list.len());
+        list.insert(icons, CJK.into());
     }
     f
 }

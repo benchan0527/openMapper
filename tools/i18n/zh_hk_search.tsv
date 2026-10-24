@@ -1,0 +1,85 @@
+# The Chinese words a command is found by, besides its Chinese name.
+#
+# The command panel (Ctrl+K) looks for what is typed in the names of the commands and
+# the words beside them. A user types Chinese, so every command needs Chinese words of
+# its own to be found by.
+#
+# One pair a line: english, a tab, the Chinese words (separated by spaces).
+
+New map…	新地圖 新建 開新 空白地圖
+Open map…	開啟地圖 載入 讀取 開檔
+Save	儲存 存檔 保存 寫出
+Export map for sharing…	匯出地圖 分享 打包 壓縮 zip 上傳
+Export a plan of the map…	匯出地圖平面圖 路線圖 圖片 列印 網絡圖 svg
+Import assets…	匯入資源 素材 模型 模型檔 mod
+Earlier versions…	舊版本 備份 還原 回復 版本
+Undo	撤銷 還原
+Redo	重做 重複
+Copy	複製 拷貝
+Paste	貼上 貼
+Duplicate	複製 複本 重複
+Select all	全選 全部選取
+Edit history…	編輯記錄 歷史 復原
+Groups…	群組 預製 樣板
+Find in map…	尋找 搜尋 搜尋地圖 替換 停止站
+Make the junctions again	重建交叉路口 重新生成路口
+Objects on the map by folder	地圖物件 資料夾 樹狀 清單 層級
+Select	選擇 選取 工具
+Roads	道路 街道 軌道 工具 畫
+Objects	物件 建築物 房子 工具 放置
+Game logic	遊戲邏輯 工具
+Terrain	地形 起伏 山丘 工具 抬高 降低
+Paint	上色 油漆 地面 貼圖 工具
+Tiles	圖塊 工具 新增 刪除 擴展
+Road types and junctions…	道路類型 交叉路口 車道 闊度
+PBR maps for a picture…	PBR貼圖 法線 粗糙度
+Knife: cut roads	刀 切開道路 分割
+Ruler	間尺 標尺 量度 距離 斜度
+Map settings…	地圖設定 錢 車票 車廠 年份 季節
+Calendar and place…	日曆 地點 假期 時區 夏季 車牌
+Signal routes…	訊號路線 鐵路 紅燈 號誌
+Chrono scenarios…	時空場景 年代 歷史
+Check map…	檢查地圖 錯誤 問題 驗證
+Lines and timetable…	路線 時刻表 班次 巴士
+Traffic and AI…	交通 人工智能 車流 密度 車廠
+Depot files (destinations)…	車廠檔案 終點站 路線 站牌
+Satellite and terrain…	衛星影像 地形 高度 世界
+From OpenStreetMap…	開放街圖 實地 街道 建築物
+GPS tracks to trace…	GPS軌跡 描繪 gpx 路線 記錄
+Tiles from another map…	合併圖塊 匯入 結合
+Check in openOMSI…	在openOMSI檢查 驗證 遊戲
+Test drive in openOMSI	試駕 測試 行車 遊玩
+Test drive in OMSI 2 (the original)	試駕原版OMSI 2
+Test drive from the start point nearest the view	從最近起點試駕
+See this view in openOMSI	在openOMSI查看視角 自由視角
+Saved views…	已儲存視角 書籤 相機
+Go to selection	前往選取 跳至
+Overview map	總覽圖 小地圖
+Assets	資源 目錄 瀏覽
+Tile grid	圖塊網格 顯示
+What the game does not show	遊戲看不到的 技術輔助
+AI lanes	AI車道 路線 箭嘴
+Save a picture of the view	儲存畫面截圖 圖片
+Import the map's thumbnail	匯入地圖縮圖 封面
+Getting started	開始使用 教學 指南 說明
+Controls	操作 鍵盤 滑鼠 快捷鍵
+Place a bus stop	放置巴士站 站牌
+Place a start point	放置起點 出生點
+Car parks	停車場 泊車
+AI paths	AI路徑 車道 行人
+Plant trees with a brush	用畫筆種樹 森林 植物
+Plant a wood or a park	種植樹林或公園 範圍
+Roundabout	圓環 環形交通
+Height profile of a road	道路高度剖面 斜度 高度 圖表
+Traffic lights and zebra crossings	交通燈 斑馬線 過馬路
+Link a signal head to its crossing	連結訊號燈頭 過馬路
+Objects along a road	沿路物件 燈柱 圍欄 支柱
+Overhead wire along a track	架空電線 電車 接觸網
+Parallel copy of a road	道路平行複製 第二車道
+Paint the ground along a road	沿路塗地面 路肩 碎石
+Water, lake, river	水 湖 河 海
+Ramp in the ground	地面斜坡 堆土 斜坡
+Height map import or export	高度圖 匯入 匯出 地形圖
+Paint by slope and height	按斜度高度上色 岩石 雪 沙
+Time of day and season	時間 季節 夜晚 冬天 雪 秋天
+Language	語言 介面 切換

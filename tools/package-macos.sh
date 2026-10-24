@@ -35,6 +35,12 @@ cat > "$APP/Contents/Info.plist" <<PLIST
   <key>CFBundlePackageType</key><string>APPL</string>
   <key>LSMinimumSystemVersion</key><string>11.0</string>
   <key>NSHighResolutionCapable</key><true/>
+  <key>CFBundleLocalizations</key>
+  <array>
+    <string>en</string>
+    <string>ru</string>
+    <string>zh-HK</string>
+  </array>
 </dict>
 </plist>
 PLIST

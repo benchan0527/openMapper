@@ -1,0 +1,264 @@
+# The Chinese (Hong Kong) translations of openMapper's texts.
+# The English is the key: it is the text the program shows in English.
+# One pair a line: english, a tab, chinese. A line with no Chinese is not translated yet.
+#
+# Hong Kong wording (選單, 儲存, 資料夾, 滑鼠, 螢幕 …), not the mainland's.
+
+# -- the menu bar and the most used commands
+File	檔案
+Edit	編輯
+View	檢視
+Tools	工具
+Map	地圖
+Help	說明
+Save	儲存
+Undo	撤銷
+Redo	重做
+Copy	複製
+Paste	貼上
+Delete	刪除
+Language	語言
+Interface size	介面大小
+Cancel	取消
+OK	確定
+Close	關閉
+Add	新增
+Remove	移除
+Apply	套用
+Reset	重設
+None	無
+Yes	是
+No	否
+Error	錯誤
+Warning	警告
+Settings	設定
+Properties	屬性
+Name	名稱
+Type	類型
+Value	數值
+New map…	新地圖…
+Open map…	開啟地圖…
+Controls…	操作說明…
+Select all	全選
+New map…	新地圖…
+Open map…	開啟地圖…
+Controls…	操作說明…
+Import assets…	匯入資源…
+Multiplayer…	多人遊戲…
+OMSI 2 folder…	OMSI 2 資料夾…
+Quit	離開
+Updates…	更新…
+About openMapper	關於 openMapper
+Map editor for openOMSI	openOMSI 地圖編輯器
+Maps	地圖
+Open	開啟
+Make a copy	建立副本
+Show in the file manager	在檔案總管中顯示
+Recent maps	最近使用的地圖
+(none)	（無）
+Save	儲存
+Cut	剪下
+Deselect	取消選取
+Groups for other maps…	其他地圖的群組…
+Find in map…	在地圖中尋找…
+Search for a command…	搜尋指令…
+Show	顯示
+Names of stops and start points	站名與起點名稱
+Camera	相機
+Time of day	時間
+Plain day (as the game by day)	日間（與遊戲日間相同）
+At an hour	於指定時間
+Season	季節
+Summer	夏季
+Dry summer	旱季
+Spring	春季
+Autumn	秋季
+Winter	冬季
+Snow	雪
+Graphics quality	圖像品質
+Road types and junctions…	道路類型與交叉路口…
+PBR maps for a picture…	圖片的 PBR 貼圖…
+Map settings…	地圖設定…
+Calendar and place…	日曆與地點…
+Signal routes…	訊號路線…
+Chrono scenarios…	時空場景…
+Ground textures…	地面貼圖…
+Check map…	檢查地圖…
+Junctions made again:	已重建路口：
+Lines and timetable…	路線與時刻表…
+Traffic and AI…	交通與 AI…
+Depot files (destinations)…	車廠檔案（終點站）…
+Satellite and terrain…	衛星影像與地形…
+From OpenStreetMap…	從 OpenStreetMap…
+GPS tracks to trace…	GPS 軌跡描繪…
+Tiles from another map…	從另一地圖合併圖塊…
+Test drive in openOMSI	在 openOMSI 試駕
+Test drive in OMSI 2 (the original)?	在 OMSI 2（正版）試駕
+Check in openOMSI…	在 openOMSI 檢查…
+Getting started	開始使用
+New map	新地圖
+Open a map	開啟地圖
+Save (Ctrl+S)	儲存（Ctrl+S）
+Save (Ctrl+S): there are unsaved changes	儲存（Ctrl+S）：有未儲存的變更
+Undo	撤銷
+Redo (Ctrl+Shift+Z)	重做（Ctrl+Shift+Z）
+Tile grid (G)	圖塊網格（G）
+Assets: every object and road type, with pictures (B)	資源：所有物件與道路類型，附圖片（B）
+Test drive	試駕
+Test drive from the start point nearest the view	從最接近畫面的起點試駕
+See this view in openOMSI	在 openOMSI 檢視此畫面
+loading	載入中
+tiles	圖塊
+splines	樣條線
+objects	物件
+tile	圖塊
+Edit mesh	編輯網格
+Shapes and lamps	形狀與燈具
+Tiles	圖塊
+Area	範圍
+Tools	工具
+Objects	物件
+Everything on the map, grouped by the folders its files lie in	地圖上的一切，按檔案所在的資料夾分組
+Search	搜尋
+Show	顯示
+Everything	全部
+Shape the ground under the road	塑造道路下方的地面
+Building with:	以以下方式建造：
+nothing chosen	未選擇任何項目
+About	關於
+Size	大小
+Apart	間距
+Mix (picked at random):	混合（隨機選取）：
+reading OMSI 2…	正在讀取 OMSI 2…
+items	項目
+Nothing found	找不到任何項目
+right-click: star it	右鍵：加入星號
+Take out of the plant mix	從種植組合移除
+Add to the plant mix	加入種植組合
+Remove from favourites	從收藏移除
+Add to favourites	加入收藏
+Favourites	收藏
+Recently used	最近使用
+(not in a folder)	（不在資料夾內）
+Strength	強度
+Mode	模式
+To a height	至指定高度
+Depth	深度
+Brush	畫筆
+Ground layers	地面圖層
+base ground	底層地面
+layer	圖層
+Add…	新增…
+Remove	移除
+Texture	貼圖
+Detail texture	細節貼圖
+Click to choose another	點擊選擇其他
+Repeats per tile	每圖塊重複次數
+Detail repeats	細節重複
+Paint detail	塗抹細節
+Edit ground texture	編輯地面貼圖
+Paint	塗抹
+Erase	擦除
+Remove ground texture	移除地面貼圖
+Tile	圖塊
+Water	水
+Paint detail	塗抹細節
+Lamps light the ground at night	燈具在夜間照亮地面
+Edit history	編輯記錄
+Opened	開啟於
+Configure PBR	設定 PBR
+Create PBR	建立 PBR
+Location	位置
+East	東
+North	北
+Height above sea level	海拔高度
+Rotation	旋轉
+Tilt forward (pitch)	前傾（俯仰）
+Bank to the side (roll)	側傾（滾轉）
+Heading	朝向
+Turn it the way the nearest road runs beside it	令它朝向旁邊最近道路的方向
+Stand it upright again	重新直立
+Scale	縮放
+Start point	起點
+Picture	圖片
+Height	高度
+Ratio	比例
+Stop name	站名
+This tree	此樹木
+Texts	文字
+Text	文字
+Model	模型
+Triangles	三角形
+Parts	部件
+Part	部件
+triangles	三角形
+colour only	只有顏色
+opaque	不透明
+cut out	裁切
+blended	混合
+Textures	貼圖
+Length	長度
+Radius	半徑
+right	右
+left	左
+straight	直行
+Linked	已連結
+start	起點
+end	終點
+Mirrored	鏡像
+Skew	斜切
+Ground	地面
+as it is	保持原樣
+cut away under it	下方挖空
+cut, held at the end	切開，固定於終點
+cut, held at the start	切開，固定於起點
+cut, held at both ends	切開，兩端固定
+Lay on the ground	貼地放置
+Reverse direction	反向
+Select the whole road	選取整條道路
+Join with the next piece	與下一段接合
+Replace with	取代為
+Go to	前往
+Level ground	平整地面
+All like it	全部同類
+Delete	刪除
+Selected:	已選取：
+Map	地圖
+Name	名稱
+Folder	資料夾
+Traffic	交通
+left-hand	靠左
+Start points	起點
+Area	範圍
+tiles	圖塊
+Roads	道路
+Tracks	軌道
+Objects	物件
+stops	站
+Picture	圖片
+Import your thumbnail	匯入你的縮圖
+Open the map with this view	以此畫面開啟地圖
+Saved to	已儲存至
+Edit map	編輯地圖
+Add ground texture	新增地面貼圖
+Change the layer's texture	更改圖層貼圖
+Change the layer's detail texture	更改圖層細節貼圖
+Search	搜尋
+Controls	操作說明
+Keyboard	鍵盤
+Click a key, then press the new one (Esc: leave it). A key already in use is taken from its command.	點擊一個鍵，再按新的鍵（Esc：離開）。已在使用的鍵會從其指令取走。
+press a key…	請按鍵…
+Also:	另外：
+Back to the default key	回復預設鍵
+Reset all keys	重設所有鍵
+Mouse	滑鼠
+Right button held	按住右鍵
+Middle drag	中鍵拖曳
+Wheel	滾輪
+Trackpad	觸控板
+Two fingers	雙指
+Fixed keys	固定鍵
+Arrow keys	方向鍵
+Unsaved changes	未儲存的變更
+The map has changes that are not saved. Save them first?	地圖有未儲存的變更。要先儲存嗎？
+Don't save	不要儲存

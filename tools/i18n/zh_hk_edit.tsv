@@ -1,0 +1,181 @@
+# The Chinese (Hong Kong) translations: the road editing (src/ui_edit.rs).
+
+# -- the tools' settings
+Knife (K): a click on a road cuts it there, as often as you like; the pieces' lengths shown at the cursor, on whole grid steps with grid snapping on — right-click or Esc: off	刀（K）：點擊道路即可在該處切開，次數不限；游標處顯示各段長度，開啟網格吸附時以整數格為準 — 右鍵或 Esc：關閉
+The angle step: what snapping comes to and what R turns by	角度步進：吸附的角度，以及 R 鍵的旋轉角度
+Angle	角度
+Snap headings to the angle step	將朝向吸附至角度步進
+Grid	網格
+Snap positions to the grid	將位置吸附至網格
+Knife	刀
+Ruler	間尺
+Click two points to measure the distance and gradient between them (U) — right-click: off	點擊兩點以量度其間的距離與斜度（U） — 右鍵：關閉
+Auto-Terrain	自動地形
+What you build follows the ground: roads, paths and tracks take its height (off: they run level from where they start). Only what is built from now on; nothing already there changes	你建造的東西會貼合地形：道路、小徑與軌道會取得其高度（關閉：從起點起保持水平）。只影響之後建造的東西，已有部分不變
+Auto-Switch	自動道岔
+Branching a track off another makes a switch there	從另一條軌道分支時會在該處產生道岔
+Auto-Junction	自動路口
+Make junctions where roads meet	在道路交會處建立路口
+Auto-Align	自動對齊
+Line objects up with the nearest road (Shift: put it freely)	令物件與最近的道路對齊（Shift：自由放置）
+
+# -- the selection
+Selection	選取
+Selected:	已選取：
+objects	物件
+splines	樣條線
+Group	群組
+Ungroup	取消群組
+A click on one of it selects all of it, Ctrl + click one alone	點擊其中一項即選取全部，Ctrl + 點擊則只選取該項
+Keep these together: a click on one selects all, a drag moves all (Ctrl+G)	將它們綑在一起：點擊其中一項即選取全部，拖曳即可移動全部（Ctrl+G）
+Move	移動
+Apply	套用
+Height	高度
+Turn	旋轉
+Level the ground under them	平整它們下方的地面
+Each one's outline made level with its foot, blending into the ground 3 m round it	令每個物件的底面與地面齊平，並在周圍 3 米內與地面融合
+Make every object	統一所有物件
+The object chosen in the Objects tool's catalogue	在「物件」工具的目錄中所選的物件
+Random headings	隨機朝向
+Every selected object turned its own random way (trees, bushes, rocks)	每個已選取物件各自隨機轉向（樹木、灌木、岩石）
+Along the road	沿路方向
+Each turned the way the nearest road runs beside it	各自朝向旁邊最近道路的方向
+Turned:	已旋轉：
+All like this one	全部與此相同
+Every selected object takes the heading of the one in the properties	每個已選取物件都採用屬性中顯示那個的朝向
+Lean with the ground	隨地形傾斜
+Stand upright	直立
+Make every road	統一所有道路
+The road type chosen in the Roads tool's catalogue	在「道路」工具的目錄中所選的道路類型
+Lay them on the ground	貼地放置
+Reverse their direction	反向
+Even slope along them	沿線等斜
+One chain of roads: from the height at one end to that at the other, evenly (a bridge, a ramp)	一條連續道路：由一端的高度到另一端的高度等分（橋樑、斜坡）
+Edit its AI lanes	編輯其 AI 車道
+Its lanes become AI paths of their own (the same lines, the same way) that the Logic tool's Edit existing bends, moves and deletes. The road keeps its look.	其車道成為獨立的 AI 路徑（相同的線、相同的方向），可用「邏輯」工具的「編輯現有路徑」彎曲、移動及刪除。道路外觀不變
+Copy	複製
+Duplicate	複製
+Delete	刪除
+Deselect	取消選取
+
+# -- the road's ends
+Ends (joined roads follow)	端點（已接合的道路會跟隨）
+height	高度
+gradient	斜度
+cant	橫傾角
+Banking across the road, %: positive lowers its right side (into a right bend)	道路橫向傾斜（%）：正值令右側降低（形成右彎）
+Start	起點
+End	終點
+Even slope end to end	首尾等斜
+Both gradients to the straight climb between the ends' heights	兩端斜度按端點高度之間的直線上升調整
+Speed limit, km/h	限速（公里／小時）
+Traffic density ?	交通密度？
+Priority	優先權
+Trucks (0: none)	貨車（0：無）
+No cars	無汽車
+Buses only	只限巴士
+Other	其他
+
+# -- the path rules
+Path rules	路徑規則
+For the AI and the player on one path (lane) of it, counted from 0: the view shows their numbers	供 AI 與玩家在其某一條路徑（車道）上使用，從 0 開始編號：畫面中會顯示其數字
+Path (lane) number	路徑（車道）編號
+Add a rule	新增規則
+Hanging on it	懸掛於其上
+Points to hang objects on:	懸掛物件的錨點：
+Select it	選取
+Hang	懸掛
+
+# -- copying in a row
+Copies in a row	連續複製
+A fence, a row of houses, an avenue: the selection copied again and again, a step on each time	圍欄、一排房屋、林蔭道：選取部分會不斷複製，每次前進一步
+Copies	副本數
+Step	間距
+Turn each	各自旋轉
+Rows	列數
+More than one: a grid (an orchard, a car park), each row a row step on	多於一列：形成格狀（果園、停車場），每列按列間距前進
+Row step	列間距
+Make	建立
+Tilted to the ground under it, the way it slopes forward and to the side (a fence, a bench or a shed on a hillside)	隨下方地形的傾斜而向前的側傾（斜坡上的圍欄、長椅或小屋）
+Heights along the ground again, smoothed so it climbs a hill rather than every bump (after shaping the ground or laying a height map over it); where a road not selected joins, its height is kept	重新依循地面高度，並平滑化使其順著山丘起伏而非每個小凸起（在塑造地形或鋪上高度圖之後）；與未選取道路接合之處則保留其高度
+Each starts where it ended: the traffic on it goes the other way (a one-way street, a track's direction), the road itself stays where it is	各自從上一個的終點開始：其上的交通方向相反（單行道、軌道方向），但道路本身位置不變
+Parallel copy	平行複製
+A second track or the other carriageway: the selected splines copied alongside, bends kept exact, linked as they are	第二條軌道或另一條車行道：沿旁複製選取的樣條線，彎曲完全保留，並照樣連結
+To the left	向左
+To the right	向右
+Left and right of the way the road runs (its arrows with AI lanes shown)	道路行進方向的左側與右側（顯示其箭嘴與 AI 車道）
+Overhead wire	架空電線
+For trams and electric trains: a wire spline laid on the selected track, piece for piece and linked (its height is the wire spline's own); the masts go in with Objects along the road	供電車及電力列車使用：在選取的軌道上一段接一段鋪設電線樣條線並連結（其高度為電線樣條線本身的高度）；電線桿以「沿路物件」加入
+No wire spline installed (one whose name says Fahrdraht, Oberleitung or wire)	未安裝電線樣條線（名稱含 Fahrdraht、Oberleitung 或 wire 者）
+Lay it	鋪設
+Wire pieces laid:	已鋪設電線段：
+Paint the ground along it	塗抹沿線地面
+Add a ground texture in the Paint tool first: the base ground is under everything	先在「塗抹」工具中新增地面貼圖：底層地面位於所有圖層之下
+Layer	圖層
+Where	位置
+beside it	在其旁邊
+under it too	其下方亦然
+Out from its edge	自其邊緣向外
+Soft edge	柔和邊緣
+Paint	塗抹
+A gravel verge, dirt by a track, grass along a path: the brush of the Paint tool touches it up afterwards	碎石路肩、軌道旁的泥地、小徑旁的草地：之後可用「塗抹」工具的畫筆修飾
+Objects along the road	沿路物件
+Every	每
+Beside	旁邊
+Height	高度
+Turn	旋轉
+Lean with the road	隨道路傾斜
+Each object leans with the road's gradient and banking (bays and arrows on the road); off, it stands upright	每個物件隨道路的斜度與橫傾而傾斜（路上的停車位與箭嘴）；關閉時則直立
+Texts	文字
+Text	文字
+A text the row's objects show (@ starts a new line)	該列物件所顯示的文字（@ 開始新的一行）
+Replace with	取代為
+Remove	移除
+Object:	物件：
+Pick an object (a lamp, a tree, a bollard) in the Objects tool's catalogue	在「物件」工具的目錄中選擇一個物件（燈柱、樹木、護柱）
+Right of the road's direction; negative: left	道路方向的右側；負值為左側
+Free at start / end	起點／終點自由擺放
+Both sides	兩側
+Place along the road	沿路放置
+Remove all rows	移除所有列
+Roundabout: click the centre, then the ring	圓環：先點擊中心，再點擊圓環
+A one-way ring of the chosen road type (pick a one-way road); roads inside are cut back to it and joined with junctions	以所選道路類型構成的單向圓環（請選擇單行道）；內部的道路會被切回至圓環，並以路口接合
+Keep the height (bridge, embankment)	保持高度（橋樑、路堤）
+An even gradient from end to end, the ground left as it is; the rise to the end can be typed while drawing. Pillars: select the road and put them along it as objects.	首尾等斜，地面保持原樣；可於繪製時輸入升至終點的高度。橋墩：選取道路後以物件方式沿路放置
+Length	長度
+Radius	半徑
+straight	直行
+Heading	朝向
+Rise	升幅
+Clear	清除
+Shift: straight — Enter: build	Shift：直行 — Enter：建造
+
+# -- the junction
+Junction	路口
+Traffic lights	交通燈
+Lights need three roads or more	燈號需要三條或以上的道路
+Main road green	主路綠燈
+Side roads green	支路綠燈
+The main road is the pair of roads most in line; red-yellow 2 s, yellow 3 s, 2 s all red between	主路是最為平行的兩條道路；紅黃燈 2 秒，黃燈 3 秒，全紅 2 秒
+Zebra crossings	斑馬線
+Road	道路
+Build it again	重建
+Makes the plate, its kerbs and lanes again for the roads as they are now	按目前道路形狀重新產生路面板、路緣與車道
+
+# -- linked objects
+Linked objects	連結物件
+An object can take its state from another ([varparent]): a signal head shows a light of its crossing's program, a stop's display its stop.	物件可從另一物件取得狀態（[varparent]）：訊號燈頭顯示其路口程式的燈號，站牌的顯示屏顯示該站
+Takes its state from	狀態取自
+Select it: IDCode	選取它：IDCode
+Takes its state from an object that is gone: IDCode	狀態取自已刪除的物件：IDCode
+Takes its state from nothing	狀態不取自任何物件
+Light	燈光
+Its light is not one of the crossing's: it stays dark	其燈光不屬於該路口的燈號：因此保持熄滅
+That object runs no traffic lights: link the head to a crossing with a light program	該物件沒有交通燈：請將燈頭連結至有燈光程式的路口
+A signal head: link it to its crossing to have it light	訊號燈頭：連結至其路口才會亮起
+Click the object in the view…(Esc)	點擊畫面中的物件…（Esc）
+Link to another…	連結至其他物件…
+Link to an object…	連結至物件…
+Then click the object it is to take its state from (a crossing for a signal head)	然後點擊它要從中取得狀態的物件（訊號燈頭則是路口）
+Unlink	解除連結
+Taking their state from it:	從它取得狀態的：

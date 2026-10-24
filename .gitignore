@@ -3,3 +3,5 @@ target/
 .DS_Store
 .claude/
 __pycache__/
+# The full Chinese font (16 MB): tools/subset-cjk.py fetches it and keeps the subset
+assets/fonts/NotoSansCJKtc-Regular.otf

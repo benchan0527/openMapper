@@ -33,6 +33,7 @@ mod hot;
 mod hof;
 mod i18n;
 mod icons;
+mod lang;
 mod import;
 mod import_image;
 mod install;

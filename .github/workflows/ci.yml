@@ -37,6 +37,19 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - run: cargo check --release --locked
 
+  # The Chinese (Hong Kong) translation: every text is translated, the table is clean and
+  # the font has the characters of the texts.
+  i18n:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - run: pip install fonttools brotli
+      - name: The Chinese translation is in order
+        run: python tools/check-i18n.py
+
   files:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest

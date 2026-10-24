@@ -1,0 +1,21 @@
+# The Chinese (Hong Kong) translations: the last texts, whose English holds characters
+# that the console shows as something else (arrows, multiplication signs, ellipses).
+
+ · own	 · 自備
+(▼ 0: one-way)	（▼ 0：單行道）
+× rounder	× 更圓滑
+…or choose a mod folder	…或選擇一個 mod 資料夾
+at	於
+Scale ×2	縮放 ×2
+Traffic density ×	交通密度 ×
+Flip ↔	左右翻轉 ↔
+Flip ↕	上下翻轉 ↕
+Splines (roads, tracks…)	樣條線（道路、軌道…）
+Add the folder of the object chosen in the catalogue (Buildings_MC, …)	新增目錄中所選物件的資料夾（Buildings_MC、…）
+Click the object in the view… (Esc)	點擊畫面中的物件…（Esc）
+Find a place: a town, a street, an address… (Enter)	尋找地點：市鎮、街道、地址…（Enter）
+Joining… (a big map takes a while to come)	加入中…（大地圖需時較久）
+Opening the Cloudflare tunnel… (fetched the first time)	正在開啟 Cloudflare 隧道…（首次使用時會下載）
+Place the map on the Earth first (Satellite and terrain…)	請先將地圖定位到地球（衛星與地形…）
+Places of the map to come back to: Ctrl+1…9 goes to the first nine, Ctrl+Shift+1…9 keeps the view there	地圖中可返回的地點：Ctrl+1…9 前往首九個，Ctrl+Shift+1…9 將視角保存在該處
+Lines window > Tours and times: New tour, then Fill from … to … .	「路線」視窗 > 行車周期與時間：新增行車周期，然後「由…填入」至「…」。

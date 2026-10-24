@@ -6,6 +6,9 @@ version from this file.
 
 ## Unreleased
 
+### Added
+- **Traditional Chinese (Hong Kong)**: the whole interface is now in 繁體中文（香港）, chosen in the menu (Language) or taken from the system (`zh-HK`, `zh-TW`, `zh-Hant`); a text without a translation is shown in English. The Chinese font (Noto Sans CJK TC) is in the program, so no squares are shown; the command panel (Ctrl+K) is found by Chinese words too, and a map's description may be written in Chinese (`global_ZHT.dsc`).
+
 ## 0.1.5 - 2026-10-24
 
 ### Changed

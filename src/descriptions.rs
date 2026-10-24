@@ -12,7 +12,7 @@ use crate::doc::safe::Op;
 use crate::i18n::tr;
 
 /// The languages offered (OMSI's codes) and their names.
-pub const LANGS: &[(&str, &str)] = &[("ENG", "English"), ("DEU", "Deutsch"), ("FRA", "Français"), ("RUS", "Русский"), ("UKR", "Українська"), ("POL", "Polski"), ("CZE", "Čeština"), ("ITA", "Italiano"), ("ESP", "Español"), ("NLD", "Nederlands"), ("HUN", "Magyar")];
+pub const LANGS: &[(&str, &str)] = &[("ENG", "English"), ("DEU", "Deutsch"), ("FRA", "Français"), ("RUS", "Русский"), ("ZHT", "繁體中文"), ("UKR", "Українська"), ("POL", "Polski"), ("CZE", "Čeština"), ("ITA", "Italiano"), ("ESP", "Español"), ("NLD", "Nederlands"), ("HUN", "Magyar")];
 
 #[derive(Debug, Clone, Default, PartialEq)]
 pub struct Descriptions {

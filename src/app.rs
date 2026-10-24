@@ -153,8 +153,14 @@ pub struct App {
 impl App {
     pub fn new(open: Option<PathBuf>) -> App {
         let prefs = Prefs::load();
-        // (OPENMAPPER_LANG=en|ru: checks of either language without a person at the screen)
+        // (OPENMAPPER_LANG=en|ru|zh-HK: checks of any language without a person at the screen)
         i18n::set(i18n::from_code(&std::env::var("OPENMAPPER_LANG").unwrap_or_else(|_| prefs.language.clone())));
+        // (the Chinese font is a subset: a text may hold a character it has not, and the
+        // text would show a square)
+        let missing = crate::lang::missing_glyphs(i18n::get());
+        if !missing.is_empty() {
+            log::warn!("the Chinese font has not {} characters: {}", missing.len(), missing.iter().collect::<String>());
+        }
         let mut app = App {
             gfx: None,
             prefs,
