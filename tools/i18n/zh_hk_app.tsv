@@ -6,7 +6,7 @@
 
 # -- the app
 Could not open the map	無法開啟地圖
-The next 100 tiles are loaded, the others are hidden	已載入下 100 個圖塊，其餘隱藏
+The next 100 tiles are loaded, the others are hidden	已載入下 100 個 Tile，其餘隱藏
 Find the place in the window and build from it	在視窗中找出位置並從那裡開始建造
 Your map is ready. Start with a road!	你的地圖已準備好。從一條道路開始吧！
 Export the map for sharing	匯出地圖以供分享
@@ -26,7 +26,7 @@ openOMSI was not found	找不到 openOMSI
 From the start point	從起點
 The map has no start point: place one with Game logic > Start points	地圖沒有起點：用「遊戲邏輯 > 起點」放置一個
 Starting openOMSI…	正在啟動 openOMSI…
-To drive the map in OMSI 2 itself it has to be copied into the OMSI 2 folder (Maps, and the objects, roads and textures made for it). Nothing that is there is replaced except earlier copies of this map. Copy it there?	要在 OMSI 2 本身駕駛此地圖，必須把它複製到 OMSI 2 資料夾（Maps，以及為它製作的物件、道路與貼圖）。除此地圖的舊有副本外，該處的內容不會被取代。要複製到那裡嗎？
+To drive the map in OMSI 2 itself it has to be copied into the OMSI 2 folder (Maps, and the objects, roads and textures made for it). Nothing that is there is replaced except earlier copies of this map. Copy it there?	要在 OMSI 2 本身駕駛此地圖，必須把它複製到 OMSI 2 資料夾（Maps，以及為它製作的物件、道路與 Texture）。除此地圖的舊有副本外，該處的內容不會被取代。要複製到那裡嗎？
 Starting OMSI 2: choose the map	啟動 OMSI 2：選擇地圖
 The map is copied into the OMSI 2 folder; OMSI 2 itself runs on Windows only:	地圖已複製到 OMSI 2 資料夾；OMSI 2 本身只於 Windows 執行：
 Could not copy the map into OMSI 2	無法將地圖複製到 OMSI 2
@@ -43,24 +43,24 @@ Click on the map to put it there	點擊地圖以放在該處
 Could not make the shape	無法建立形狀
 Choose the OMSI 2 folder	選擇 OMSI 2 資料夾
 That is not an OMSI 2 folder (Omsi.exe, maps and Vehicles must be in it)	那不是 OMSI 2 資料夾（其中須有 Omsi.exe、Maps 及 Vehicles）
-This object has no textures to make PBR maps of	此物件沒有可用來製作 PBR 貼圖的貼圖
+This object has no textures to make PBR maps of	此物件沒有 Texture，無法製作 PBR Texture
 Could not copy the map	無法複製地圖
 Could not move the map	無法移動地圖
-Terrain flattened; splines laid on it:	地形已平整；樣條線已鋪於其上：
-This road type has no textures to make PBR maps of	此道路類型沒有可用來製作 PBR 貼圖的貼圖
+Terrain flattened; splines laid on it:	地形已平整；Spline 已鋪於其上：
+This road type has no textures to make PBR maps of	此道路類型沒有 Texture，無法製作 PBR Texture
 Pictures	圖片
-Only 100 tiles round the camera are loaded; click on the empty zone to load the next 100	相機周圍只載入了 100 個圖塊；點擊空白區域以載入下 100 個
-All tiles are loaded	所有圖塊已載入
+Only 100 tiles round the camera are loaded; click on the empty zone to load the next 100	相機周圍只載入了 100 個 Tile；點擊空白區域以載入下 100 個
+All tiles are loaded	所有 Tile 已載入
 Import the map's thumbnail	匯入地圖縮圖
 The map's thumbnail is set: openOMSI shows it where maps are chosen.	地圖縮圖已設定：openOMSI 會在選擇地圖時顯示它。
 Could not use the picture	無法使用該圖片
 Map camera	地圖相機
 The map opens with this view from now on.	由現在起，地圖會以此畫面開啟。
-Add ground texture	新增地面貼圖
-View kept as	視角已保存為
-No view kept as	未有保存為任何視角
+Add ground texture	新增地面 Texture
+View kept as	視角已儲存為
+No view kept as	未儲存任何視角
 Files changed on disk: the catalogue and models are updated	磁碟上的檔案已變更：目錄與模型已更新
-The track does not run over the map's tiles	該軌道並未經過地圖的圖塊
+The track does not run over the map's tiles	該軌道並未經過地圖的 Tile
 Road along a GPS track	沿 GPS 軌跡的道路
 Roads built:	已建道路：
 junctions:	個路口：
@@ -76,25 +76,25 @@ a start point	一個起點
 From OpenStreetMap	從 OpenStreetMap
 Picture saved:	圖片已儲存：
 Could not save the picture	無法儲存圖片
-The graphics could not be started.	無法啟動圖像。
+The graphics could not be started.	無法啟動圖形。
 Flying speed	飛行速度
 copy	副本
 Only maps of the content folder can be moved	只有內容資料夾中的地圖可以移動
 Only assets of the content folder can be deleted	只有內容資料夾中的資源可以刪除
 
 # -- the multiplayer
-A host on the internet needs a password of at least	在網際網絡上主辦需要至少
+A host on the internet needs a password of at least	在互聯網上主辦，密碼至少需要
 Type a password, or choose explicitly to host without one	輸入密碼，或明確選擇不設密碼主辦
-Could not listen on port	無法在該端口監聽
+Could not listen on port	無法在連接埠上監聽
 The way in for the tunnel could not be opened	無法開啟隧道的入口
 Hosting this map: others can join it now	正在主辦此地圖：其他人現在可以加入
 Multiplayer ended: another map was opened	多人遊戲結束：已開啟另一地圖
 Somebody changed this first: your edit was put back	有人先行修改：你的編輯已還原
 The host takes no more: the edit is too big, or the session holds as much as it may. Your edit was put back	主機無法再接受：編輯太大，或工作階段已達上限。你的編輯已還原
 That lies too far from the map for this session: your edit was put back	該內容離地圖太遠，超出此工作階段的範圍：你的編輯已還原
-tiles	圖塊
+tiles	Tile
 changed what you were editing: it is as they left it	修改了你正在編輯的內容：已回復為他們留下的狀態
-The timetable, the traffic and the descriptions are the host's in multiplayer: your change was put back	在多人遊戲中，時刻表、交通與描述皆屬主機：你的改動已還原
+The timetable, the traffic and the descriptions are the host's in multiplayer: your change was put back	在多人遊戲中，時間表、交通與描述皆屬主機：你的改動已還原
 Your conflicting edit was kept	你那份衝突的編輯已保留
 Could not keep your conflicting edit; multiplayer stopped	無法保留你那份衝突的編輯；多人遊戲已停止
 Too much of the others' work came in while your edit was held open: multiplayer stopped. The map stays open; it can be saved as a copy.	在你保持編輯期間湧入太多其他人的工作：多人遊戲已停止。地圖仍然開啟，可另存副本。
@@ -112,18 +112,18 @@ Multiplayer	多人遊戲
 Joining…(a big map takes a while to come)	加入中…（大地圖需時較久）
 Cancel	取消
 Recover a conflicting edit…	復原衝突的編輯…
-Recovered your edit; undo is available	已復原你的編輯；可使用撤銷
-Edit one map together: one of you hosts it, the others join. Roads, objects, ground and paint are shared as they are made; the timetable, the traffic and the descriptions stay the host's, and the host saves the map. Everybody needs the same objects and splines installed.	一起編輯同一地圖：其中一人主辦，其他人加入。道路、物件、地面與塗抹內容會即時共享；時刻表、交通與描述則留給主機，並由主機儲存地圖。每位參與者都須安裝相同的物件與樣條線。
+Recovered your edit; undo is available	已復原你的編輯；仍可復原
+Edit one map together: one of you hosts it, the others join. Roads, objects, ground and paint are shared as they are made; the timetable, the traffic and the descriptions stay the host's, and the host saves the map. Everybody needs the same objects and splines installed.	一起編輯同一地圖：其中一人主辦，其他人加入。道路、物件、地面與塗抹內容會即時共享；時間表、交通與描述則留給主機，並由主機儲存地圖。每位參與者都須安裝相同的物件與 Spline。
 Your name	你的名稱
 Password	密碼
 Host this map	主辦此地圖
 Others on this network can join	本網絡上的其他人可以加入
 Others anywhere can join (a free Cloudflare tunnel, nothing to set up on the router)	任何地方的人都可以加入（免費的 Cloudflare 隧道，路由器無需設定）
-Port	端口
-Over the internet the password must have at least this many letters:	在網際網絡上，密碼必須至少有這麼多個字母：
-No password: anybody who reaches this computer's port can join and change the whole map.	沒有密碼：任何連到這部電腦端口的人都可以加入並更改整個地圖。
+Port	連接埠
+Over the internet the password must have at least this many letters:	在互聯網上，密碼必須至少有這麼多個字母：
+No password: anybody who reaches this computer's port can join and change the whole map.	沒有密碼：任何連上這部電腦連接埠的人都可以加入並更改整個地圖。
 Ask for a password after all	還是要求密碼吧
-Host without a password? Anybody on this network who finds the port can join and change the whole map.	不設密碼主辦？本網絡上任何找到該端口的人都可以加入並更改整個地圖。
+Host without a password? Anybody on this network who finds the port can join and change the whole map.	不設密碼主辦？本網絡上任何找到該連接埠的人都可以加入並更改整個地圖。
 Yes, without a password	是，不設密碼
 No	否
 Type a password the others will need.	輸入其他人需要的密碼。
@@ -132,7 +132,7 @@ Host	主辦
 Open a map, type a name and a password first	請先開啟地圖、輸入名稱與密碼
 Join a map	加入地圖
 The map open now has unsaved changes: joining closes it. Save it first.	目前開啟的地圖有未儲存的變更：加入會關閉它。請先儲存。
-You host this map. Give the others one of these:	你主辦此地圖。將以下其中一個給其他人：On this network the connection is not encrypted: somebody listening in can see the map, and from what they catch try passwords on their own computer. Use a long password, or the internet tunnel (encrypted).	在本網絡上連線未經加密：竊聽者可看到地圖，並據此在自己的電腦上嘗試密碼。請使用較長的密碼，或使用互聯網隧道（已加密）。
+You host this map. Give the others one of these:	你主辦此地圖。將以下其中一個給其他人：
 Everybody who joins can change the whole map.	每個加入的人都可以更改整個地圖。
 Opening the Cloudflare tunnel…(fetched the first time)	正在開啟 Cloudflare 隧道…（首次使用時會下載）
 internet	互聯網
@@ -152,7 +152,7 @@ Assets	資源
 Search	搜尋
 All	全部
 Objects	物件
-Roads and splines	道路與樣條線
+Roads and splines	道路與 Spline
 Picture size	圖片大小
 Import…	匯入…
 Shapes…	形狀…
@@ -160,7 +160,7 @@ Close (B)	關閉（B）
 Everything	全部
 Favourites	收藏
 Scenery objects	景物物件
-Splines (roads, tracks…	樣條線（道路、軌道…
+Splines (roads, tracks…	Spline（道路、軌道…
 items	項目
 Favourite on / off	收藏開／關
 Show in the file manager	在檔案總管中顯示
@@ -176,13 +176,13 @@ Show in the file manager	在檔案總管中顯示
 Delete…	刪除…
 Not seen in the game (a helper).	在遊戲中不會出現（輔助物件）。
 Delete the asset?	刪除該資源？
-Its folder goes into openMapper's bin in the content folder (openMapper\bin), from where it can be put back by hand. Maps that use it show it missing.	其資料夾會移入內容資料夾的 openMapper\bin（openMapper\bin），可從該處手動放回。使用它的地圖會顯示為缺失。
+Its folder goes into openMapper's bin in the content folder (openMapper\bin), from where it can be put back by hand. Maps that use it show it missing.	其資料夾會移入內容資料夾的 openMapper\bin，可從該處手動放回。使用它的地圖會顯示為缺失。
 Delete	刪除
 Cancel	取消
 
 # -- the UV editor
 UV editor	UV 編輯器
-Smart unwrap	智慧展開
+Smart unwrap	智能展開
 Every flat side apart in the picture, no faces on top of one another (all faces if none is selected)	在圖片中將每個平面分開，面與面不重疊（未選取時為全部面）
 Box unwrap	方盒展開
 The six sides of a box apart in the picture	在圖片中將方盒的六面分開
@@ -200,24 +200,24 @@ PBR material	PBR 材質
 none	無
 Own picture…	自備圖片…
 Pictures	圖片
-Choose a texture of the object, or a picture of your own.	選擇物件的貼圖，或你自己的圖片。
+Choose a texture of the object, or a picture of your own.	選擇物件的 Texture，或你自己的圖片。
 Colour	顏色
 Normals (_nn)	法線（_nn）
 Roughness	粗糙度
 Shadow in hollows	凹陷處的陰影
 Bumps	凹凸
-Only big shapes	只要大的形狀
+Only big shapes	只保留大的形狀
 Dark parts stand out (not sink in)	深色的部分突出（不會陷入）
 Bright parts smoother	淺色的部分更平滑
 Metal	金屬
 Back to the defaults	回復預設值
-This texture has PBR maps of its own already: new ones made here are taken instead of them.	此貼圖已有自己的 PBR 貼圖：在此製作的新貼圖會取代它們。
+This texture has PBR maps of its own already: new ones made here are taken instead of them.	此 Texture 已有自己的 PBR Texture：在此製作的新 Texture 會取代它們。
 Written as:	寫出為：
 Apply	套用
 Create PBR	建立 PBR
-PBR maps made	PBR 貼圖已製作
+PBR maps made	PBR Texture 已製作
 Delete the PBR material	刪除 PBR 材質
-PBR maps taken away	PBR 貼圖已移除
+PBR maps taken away	PBR Texture 已移除
 
 # -- the updater
 Updates	更新
@@ -243,13 +243,13 @@ No automatic updates for this system.	此系統不支援自動更新。
 No connection to GitHub: are you online?	無法連到 GitHub：你是否已上網？
 The release has no SHA256SUMS: not installed.	此版本沒有 SHA256SUMS：未安裝。
 The package is not in SHA256SUMS: not installed.	套件不在 SHA256SUMS 內：未安裝。
-The download does not match its checksum: not installed.	下載的內容與其校驗和不符：未安裝。
+The download does not match its checksum: not installed.	下載的內容與其校驗碼不符：未安裝。
 Could not replace the program	無法取代程式
 The package has no program in it.	套件內沒有程式。
 
 # -- the mesh editing in the app
 Could not write the object	無法寫出物件
-Select an object to edit its mesh	選取一個物件以編輯其網格
+Select an object to edit its mesh	選取一個物件以編輯其 Mesh
 A copy of its own was made: the original type is unchanged	已複製一份：原本的類型不變
 Cannot edit this object	無法編輯此物件
 Point at an edge to cut across its ring of faces	指向一條邊以切開其面環
@@ -262,26 +262,26 @@ Export the selection	匯出選取
 unknown format	未知格式
 the models are still loading: try again in a moment	模型仍在載入：請稍後再試
 Exported:	已匯出：
-this material has no texture	此材質沒有貼圖
+this material has no texture	此材質沒有 Texture
 cannot read	無法讀取
-Export the texture	匯出貼圖
-Texture saved:	貼圖已儲存：
+Export the texture	匯出 Texture
+Texture saved:	Texture 已儲存：
 Choose a picture	選擇圖片
-give the material a texture first: its maps go beside it	請先為材質指定貼圖：其貼圖會放在旁邊
-Import materials (an .mtl, a model, or the pictures of one PBR material)	匯入材質（.mtl、模型，或單一 PBR 材質的貼圖）
+give the material a texture first: its maps go beside it	請先為材質指定 Texture：其產生的 Texture 會放在旁邊
+Import materials (an .mtl, a model, or the pictures of one PBR material)	匯入材質（.mtl、模型，或單一 PBR 材質的 Texture）
 Materials and pictures	材質與圖片
 no materials found there	該處找不到材質
 Materials added:	已新增材質：
 nothing to bake	沒有可烘焙的內容
 the object has no lamps to bake the night light of	此物件沒有可烘焙夜間光照的燈具
 Baked into	已烘焙至
-select a road or spline first	請先選取一條道路或樣條線
+select a road or spline first	請先選取一條道路或 Spline
 the road's type is still loading: try again in a moment	該道路的類型仍在載入：請稍後再試
-these splines have no shape to see	這些樣條線沒有形狀可看
+these splines have no shape to see	這些 Spline 沒有形狀可看
 Replace by an object	以物件取代
-Made into an object: Tab edits its mesh	已製作成物件：按 Tab 編輯其網格
+Made into an object: Tab edits its mesh	已製作成物件：按 Tab 編輯其 Mesh
 Signal head made: click where it stands (near a crossing with a light program it links to it)	訊號燈頭已建立：點擊其所在位置（靠近有燈光程式的路口，它會連結至該路口）
-Choose a picture or a texture	選擇圖片或貼圖
+Choose a picture or a texture	選擇圖片或 Texture
 cannot read the picture	無法讀取圖片
 Picture made: click where it goes (it can be moved, turned and scaled after)	圖片已建立：點擊其放置位置（之後可移動、旋轉及縮放）
 Light made: click where it shines	燈光已建立：點擊其照射位置
@@ -352,8 +352,8 @@ Stops and start points	車站與起點
 Junctions	路口
 Roads	道路
 Tracks	軌道
-Footpaths	小徑
-Fences, walls, kerbs	圍欄、牆壁、路緣
+Footpaths	行人路
+Fences, walls, kerbs	圍欄、牆壁、路壆
 Technical (AI, helpers)	技術性（AI、輔助物件）
 
 # -- the mesh operations
@@ -377,12 +377,12 @@ nothing is left: the objects do not overlap that way	沒有剩下任何內容：
 
 # -- the models
 The file has no scene	此檔案沒有場景
-The FBX file has no meshes	此 FBX 檔案沒有網格
+The FBX file has no meshes	此 FBX 檔案沒有 Mesh
 
 # -- the parallel copy
 Give a distance	給定距離
 The bend is too tight for that distance on its inner side	該彎位在內側太急，不足以容納該距離
-The copy leaves the map: add tiles there first	副本超出地圖範圍：請先在該處新增圖塊
+The copy leaves the map: add tiles there first	副本超出地圖範圍：請先在該處新增 Tile
 
 # -- the reshape
 This end belongs to a junction: select the junction and move it, the road follows	此端屬於某個路口：選取該路口並移動它，道路會跟隨
@@ -401,7 +401,7 @@ Streets	街道
 Service roads	服務道路
 Tram tracks	電車軌道
 Railway tracks	鐵路軌道
-motorway, trunk, primary, secondary	高速公路、主幹道、次幹道
+motorway, trunk, primary, secondary	高速公路、幹道、主要道路、次要道路
 tertiary, residential, unclassified	次要道路、住宅區、未分類
 yards, car parks, depots	車廠區、停車場、車廠
 each track on its own; branches are joined with switches by hand	每條軌道各自獨立；分支須以人手用道岔接合
@@ -433,16 +433,16 @@ Yellow	黃
 Green	綠
 file not found	找不到檔案
 this object takes its model from a model file and cannot be edited here	此物件的模型來自模型檔案，無法在此編輯
-the object has no mesh to edit	此物件沒有可編輯的網格
+the object has no mesh to edit	此物件沒有可編輯的 Mesh
 cannot read the object	無法讀取物件
 
 # -- the docs
 Nothing comes after it to join	其後沒有可接合的內容
 The next piece runs the other way: reverse it first	下一段方向相反：請先反向
-The next piece lies on another tile	下一段位於另一個圖塊
+The next piece lies on another tile	下一段位於另一個 Tile
 The two pieces are of different road types	兩段的道路類型不同
 The two pieces have different settings (path rules, ground, skew)	兩段的設定不同（路徑規則、地面、斜切）
-A row of objects comes onto the next piece from another tile	一列物件由另一個圖塊接到下一段
+A row of objects comes onto the next piece from another tile	一列物件由另一個 Tile 接到下一段
 The two pieces do not bend, climb or bank alike: joined they would change shape	兩段的彎折、上升或橫傾不一致：接合後會改變形狀
 Earlier versions	較早版本
 Before every save, the files it replaces are kept (the last 10 saves). Going back puts the map as it was before that save; later changes go.	每次儲存前，被取代的檔案都會保留（最近 10 次儲存）。返回會令地圖回復到該次儲存前的狀態；其後的變更則會遺失。

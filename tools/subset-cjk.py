@@ -42,7 +42,11 @@ FULL_URL = "https://github.com/notofonts/noto-cjk/raw/main/Sans/OTF/TraditionalC
 
 # How many of the common characters to keep besides the ones of the translations: the
 # more, the bigger the font and the more of a text written by hand it shows.
-COMMON_COUNT = 800
+# (1400 is the most that fits: the subset is then 996600 bytes, just under the megabyte
+# the CI keeps out of the repository, so a few more characters of new translations still
+# fit. The full list of tools/i18n/chars.txt has 6298 characters, so a bigger subset has
+# to be made another way: a handful of more characters need COMMON_COUNT brought down.)
+COMMON_COUNT = 1400
 
 # The Latin letters, the digits, the punctuation and the symbols the program uses.
 ASCII = "".join(chr(c) for c in range(0x20, 0x7F))
@@ -58,6 +62,18 @@ EXTRA = (
     "０１２３４５６７８９"
 )
 
+# The symbols of EXTRA that Noto Sans CJK TC has no glyph for: egui shows them with
+# another of its fonts (its emoji one), so they are not asked of the subset.
+FONT_LACKS = "‟ℹ✔✕✘"
+
+# The ranges a Chinese text is written with (the ideographs and the CJK punctuation):
+# the characters outside them are the Latin of the code and of the tests, not the text.
+CJK_RANGES = ((0x3400, 0x4DBF), (0x4E00, 0x9FFF), (0x3000, 0x303F), (0xFF00, 0xFFEF))
+
+
+def is_cjk(c: str) -> bool:
+    return any(lo <= ord(c) <= hi for lo, hi in CJK_RANGES)
+
 
 def chinese_of_the_texts() -> str:
     """The characters of the Chinese translations and of the search words."""
@@ -68,10 +84,12 @@ def chinese_of_the_texts() -> str:
                 continue
             _en, zh = line.split("\t", 1)
             chars.update(zh)
-    # (the Rust file too: some texts are not in a table row)
+    # (the Rust file too: a few texts are built from `tools/generate-lang.py` instead of a
+    # table row, and are only in the file it makes. Only its Chinese is taken: the Latin of
+    # the code beside it is not text, and the line breaks are not characters.)
     rust = SRC / "lang" / "zh_hk.rs"
     if rust.exists():
-        chars.update(rust.read_text(encoding="utf-8"))
+        chars.update(c for c in rust.read_text(encoding="utf-8") if is_cjk(c))
     return "".join(sorted(chars))
 
 
@@ -86,8 +104,57 @@ def common() -> list[str]:
 def wanted() -> set[str]:
     chars = set(chinese_of_the_texts()) | set(ASCII) | set(EXTRA)
     chars.update(common()[:COMMON_COUNT])
+    chars -= set(FONT_LACKS)
     # (only the characters of the Basic Multilingual Plane: the font has the others too)
     return {c for c in chars if ord(c) < 0x10000}
+
+
+def characters_of(font_bytes: bytes) -> set[str]:
+    """The characters a font file has, from its cmap (no font library needed).
+
+    Only the segments of the format 4 subtable are read: the characters of a font made
+    by `fontTools.subset` are all in them, and a check has to run on a machine without
+    `fonttools` installed.
+    """
+    def u16(b: bytes, i: int) -> int:
+        return int.from_bytes(b[i : i + 2], "big")
+
+    def u32(b: bytes, i: int) -> int:
+        return int.from_bytes(b[i : i + 4], "big")
+
+    out: set[str] = set()
+    if len(font_bytes) < 12:
+        return out
+    for t in range(u16(font_bytes, 4)):
+        rec = 12 + t * 16
+        if rec + 16 > len(font_bytes):
+            break
+        if font_bytes[rec : rec + 4] != b"cmap":
+            continue
+        table = u32(font_bytes, rec + 8)
+        if table + 4 > len(font_bytes):
+            continue
+        for s in range(u16(font_bytes, table + 2)):
+            sub = table + 4 + s * 8
+            if sub + 8 > len(font_bytes):
+                break
+            offset = table + u32(font_bytes, sub + 4)
+            if offset + 2 > len(font_bytes) or u16(font_bytes, offset) != 4:
+                continue
+            seg_x2 = u16(font_bytes, offset + 6)
+            ends = offset + 14
+            starts = ends + seg_x2 + 2
+            for seg in range(seg_x2 // 2):
+                if starts + seg * 2 + 2 > len(font_bytes):
+                    break
+                start = u16(font_bytes, starts + seg * 2)
+                end = u16(font_bytes, ends + seg * 2)
+                if start == 0xFFFF:
+                    continue
+                for code in range(start, end + 1):
+                    if (ch := chr(code)) not in ("\ufffe", "\uffff"):
+                        out.add(ch)
+    return out
 
 
 def in_the_full_font(chars: set[str]) -> set[str]:
@@ -116,6 +183,22 @@ def main() -> int:
     ap.add_argument("--check", action="store_true", help="only the exit code (0: the subset is current)")
     args = ap.parse_args()
 
+    chars = wanted()
+
+    if args.check:
+        # (a check needs neither the full font nor fonttools: it reads the subset itself)
+        if not SUBSET.exists():
+            print(f"{SUBSET.relative_to(ROOT)} is missing: run tools/subset-cjk.py")
+            return 1
+        have = characters_of(SUBSET.read_bytes())
+        missing = sorted(c for c in chars if c not in have)
+        if missing:
+            print(f"the subset is missing {len(missing)} characters: {''.join(missing[:40])}")
+            print("run tools/subset-cjk.py to make it again")
+            return 1
+        print(f"the subset has every character it needs ({len(chars)} characters).")
+        return 0
+
     if not FULL.exists():
         print(f"{FULL.relative_to(ROOT)} is missing: fetching it", file=sys.stderr)
         try:
@@ -125,26 +208,9 @@ def main() -> int:
             print("download it by hand: " + FULL_URL, file=sys.stderr)
             return 1
 
-    chars = wanted()
     # (the characters the full font does not have are egui's own: they are not needed)
     chars = in_the_full_font(chars)
     unicodes = sorted({ord(c) for c in chars})
-
-    if args.check:
-        if not SUBSET.exists():
-            print(f"{SUBSET.relative_to(ROOT)} is missing: run tools/subset-cjk.py")
-            return 1
-        from fontTools.ttLib import TTFont
-
-        font = TTFont(SUBSET, lazy=True)
-        have = set(font.getBestCmap())
-        font.close()
-        missing = sorted(c for c in chars if ord(c) not in have)
-        if missing:
-            print(f"the subset is missing {len(missing)} characters: {''.join(missing[:40])}")
-            return 1
-        print(f"the subset has every character it needs ({len(chars)} characters).")
-        return 0
 
     from fontTools import subset as ftsubset  # (only needed when the subset is written)
 

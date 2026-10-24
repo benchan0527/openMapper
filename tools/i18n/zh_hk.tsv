@@ -12,7 +12,7 @@ Tools	工具
 Map	地圖
 Help	說明
 Save	儲存
-Undo	撤銷
+Undo	復原
 Redo	重做
 Copy	複製
 Paste	貼上
@@ -75,23 +75,23 @@ Spring	春季
 Autumn	秋季
 Winter	冬季
 Snow	雪
-Graphics quality	圖像品質
-Road types and junctions…	道路類型與交叉路口…
-PBR maps for a picture…	圖片的 PBR 貼圖…
+Graphics quality	圖形品質
+Road types and junctions…	道路類型與路口…
+PBR maps for a picture…	圖片的 PBR Texture…
 Map settings…	地圖設定…
 Calendar and place…	日曆與地點…
 Signal routes…	訊號路線…
 Chrono scenarios…	時空場景…
-Ground textures…	地面貼圖…
+Ground textures…	地面 Texture…
 Check map…	檢查地圖…
 Junctions made again:	已重建路口：
-Lines and timetable…	路線與時刻表…
+Lines and timetable…	路線與時間表…
 Traffic and AI…	交通與 AI…
 Depot files (destinations)…	車廠檔案（終點站）…
 Satellite and terrain…	衛星影像與地形…
 From OpenStreetMap…	從 OpenStreetMap…
 GPS tracks to trace…	GPS 軌跡描繪…
-Tiles from another map…	從另一地圖合併圖塊…
+Tiles from another map…	從另一地圖合併 Tile…
 Test drive in openOMSI	在 openOMSI 試駕
 Test drive in OMSI 2 (the original)?	在 OMSI 2（正版）試駕
 Check in openOMSI…	在 openOMSI 檢查…
@@ -100,21 +100,21 @@ New map	新地圖
 Open a map	開啟地圖
 Save (Ctrl+S)	儲存（Ctrl+S）
 Save (Ctrl+S): there are unsaved changes	儲存（Ctrl+S）：有未儲存的變更
-Undo	撤銷
+Undo	復原
 Redo (Ctrl+Shift+Z)	重做（Ctrl+Shift+Z）
-Tile grid (G)	圖塊網格（G）
+Tile grid (G)	Tile 網格（G）
 Assets: every object and road type, with pictures (B)	資源：所有物件與道路類型，附圖片（B）
 Test drive	試駕
 Test drive from the start point nearest the view	從最接近畫面的起點試駕
 See this view in openOMSI	在 openOMSI 檢視此畫面
 loading	載入中
-tiles	圖塊
-splines	樣條線
+tiles	Tile
+splines	Spline
 objects	物件
-tile	圖塊
-Edit mesh	編輯網格
+tile	Tile
+Edit mesh	編輯 Mesh
 Shapes and lamps	形狀與燈具
-Tiles	圖塊
+Tiles	Tile
 Area	範圍
 Tools	工具
 Objects	物件
@@ -150,17 +150,17 @@ base ground	底層地面
 layer	圖層
 Add…	新增…
 Remove	移除
-Texture	貼圖
-Detail texture	細節貼圖
+Texture	Texture
+Detail texture	細節 Texture
 Click to choose another	點擊選擇其他
-Repeats per tile	每圖塊重複次數
+Repeats per tile	每 Tile 重複次數
 Detail repeats	細節重複
 Paint detail	塗抹細節
-Edit ground texture	編輯地面貼圖
+Edit ground texture	編輯地面 Texture
 Paint	塗抹
 Erase	擦除
-Remove ground texture	移除地面貼圖
-Tile	圖塊
+Remove ground texture	移除地面 Texture
+Tile	Tile
 Water	水
 Paint detail	塗抹細節
 Lamps light the ground at night	燈具在夜間照亮地面
@@ -196,7 +196,7 @@ colour only	只有顏色
 opaque	不透明
 cut out	裁切
 blended	混合
-Textures	貼圖
+Textures	Texture
 Length	長度
 Radius	半徑
 right	右
@@ -230,7 +230,7 @@ Traffic	交通
 left-hand	靠左
 Start points	起點
 Area	範圍
-tiles	圖塊
+tiles	Tile
 Roads	道路
 Tracks	軌道
 Objects	物件
@@ -240,9 +240,9 @@ Import your thumbnail	匯入你的縮圖
 Open the map with this view	以此畫面開啟地圖
 Saved to	已儲存至
 Edit map	編輯地圖
-Add ground texture	新增地面貼圖
-Change the layer's texture	更改圖層貼圖
-Change the layer's detail texture	更改圖層細節貼圖
+Add ground texture	新增地面 Texture
+Change the layer's texture	更改圖層 Texture
+Change the layer's detail texture	更改圖層細節 Texture
 Search	搜尋
 Controls	操作說明
 Keyboard	鍵盤

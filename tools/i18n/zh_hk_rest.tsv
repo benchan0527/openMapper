@@ -18,8 +18,8 @@ Look straight down, north up	垂直向下看，正面朝北
 2D plan view on / off (3D: tilt and turn again)	2D 平面圖開／關（3D：再次傾斜及旋轉）
 Catalogue on / off	目錄開／關
 Overview map on / off	總覽圖開／關
-Tile grid on / off	圖塊網格開／關
-Tile grid on / off	圖塊網格開／關
+Tile grid on / off	Tile 網格開／關
+Tile grid on / off	Tile 網格開／關
 Smaller brush	較小的畫筆
 Larger brush	較大的畫筆
 Select all like it	全選同類
@@ -30,7 +30,7 @@ Keep for other maps…	保留給其他地圖…
 Cut the road here	在此切開道路
 Build the planned road	建造規劃中的道路
 Join the selected objects into one	將選取的物件接合為一個
-Edit the mesh (vertices, edges, faces)	編輯網格（頂點、邊、面）
+Edit the mesh (vertices, edges, faces)	編輯 Mesh（頂點、邊、面）
 Overview: click or drag to move there · double-click: larger / smaller · M: hide	總覽：點擊或拖曳以移動至該處 · 雙擊：放大／縮小 · M：隱藏
 
 # -- the tools
@@ -40,25 +40,25 @@ Tool: Objects	工具：物件
 Tool: Game logic	工具：遊戲邏輯
 Tool: Terrain	工具：地形
 Tool: Paint	工具：塗抹
-Tool: Tiles	工具：圖塊
+Tool: Tiles	工具：Tile
 
 # -- the getting started guide
 Ground	地面
-The map's tiles: 300 m squares. Add more beside them with the Tiles tool.	地圖的圖塊：300 米見方。用「圖塊」工具在旁邊新增更多。
+The map's tiles: 300 m squares. Add more beside them with the Tiles tool.	地圖的 Tile：300 米見方。用「Tile」工具在旁邊新增更多。
 A road	一條道路
 Roads tool: click where it starts, then where it ends. Click on a road's end to go on from it.	「道路」工具：點擊起點，再點擊終點。點擊道路的終點即可從那裡繼續。
 A bus stop by the road	路旁的巴士站
-Game logic > Bus stops: put one at the kerb, on the side the doors open. Name it on the right.	「遊戲邏輯 > 巴士站」：放在路緣旁、門開啟的一側。在右側為它命名。
+Game logic > Bus stops: put one at the kerb, on the side the doors open. Name it on the right.	「遊戲邏輯 > 巴士站」：放在路壆旁、門開啟的一側。在右側為它命名。
 A start point	一個起點
 Game logic > Start points: where your bus appears, on a road, facing the way to drive.	「遊戲邏輯 > 起點」：巴士現身的位置，在道路上，面向行駛方向。
 A line with a trip	一條有班次的路線
 Lines window: New line, New trip, then click the stops in order. The way is found along the roads.	「路線」視窗：新增路線、新增班次，然後依序點擊車站。路徑沿道路尋找。
-A tour with departures	一個有出發時間的行車周期
-Lines window > Tours and times: New tour, then Fill from …to ….	「路線」視窗 > 行車周期與時間：新增行車周期，然後「由…填入」至「…」。
-Buses for the tours	行車周期的巴士
-A depot the tours take their buses from (Tours: Add a depot, or Traffic and AI).	行車周期取用巴士的車廠（行車周期：新增車廠，或「交通與 AI」）。
+A tour with departures	一個有出發時間的行車週期
+Lines window > Tours and times: New tour, then Fill from …to ….	「路線」視窗 > 行車週期與時間：新增行車週期，然後「由…填入」至「…」。
+Buses for the tours	行車週期的巴士
+A depot the tours take their buses from (Tours: Add a depot, or Traffic and AI).	行車週期取用巴士的車廠（行車週期：新增車廠，或「交通與 AI」）。
 Checked	已檢查
-Map > Check map: what would go wrong in the game, most of it put right with one click.	「地圖 > 檢查地圖」：在遊戲中會出甚麼問題，大部分可一 click 修正。
+Map > Check map: what would go wrong in the game, most of it put right with one click.	「地圖 > 檢查地圖」：在遊戲中會出甚麼問題，大部分按一下即可修正。
 Saved	已儲存
 Ctrl+S. Maps are saved into openOMSI's content folder.	Ctrl+S。地圖會儲存到 openOMSI 的內容資料夾。
 A test drive	一次試駕
@@ -66,16 +66,16 @@ F5 saves and starts openOMSI on the map: pick line 1 and drive.	F5 會儲存並�
 Getting started	開始使用
 A map you can drive in service:	一張可以投入服務行駛的地圖：
 Show me	顯示給我
-Your stops stand away from the roads: a bus serves a stop within 15 m of its lane.	你的車站遠離道路：巴士會服務距離其車道 15 米內的車站。
+Your stops stand away from the roads: a bus serves a stop within 15 m of its lane.	你的車站遠離道路：巴士會服務距離其行車線 15 米內的車站。
 A real place? Put the map on the Earth (Map > Satellite and terrain), then Map > From OpenStreetMap brings its streets, stops, lines and trees.	真實地點？將地圖定位到地球（「地圖 > 衛星與地形」），然後「地圖 > 從 OpenStreetMap」會帶來其街道、車站、路線與樹木。
 Show this for new maps	為新地圖顯示此內容
 
 # -- the depot files' texts
-IBIS and roller blind	IBIS 與遮陽簾
+IBIS and roller blind	IBIS 與布牌
 Front sign, line 1	前牌，第 1 行
 Front sign, line 2	前牌，第 2 行
 Side sign	側牌
-Roller blind texture	遮陽簾貼圖
+Roller blind texture	布牌 Texture
 IBIS 2 (20 letters)	IBIS 2（20 個字母）
 Extra sign	額外標誌
 Krüger picture	Krüger 圖片
@@ -92,12 +92,12 @@ Blank	空白
 openOMSI stopped with an error	openOMSI 因錯誤而停止
 Check in openOMSI	在 openOMSI 檢查
 The saved map run by the game itself, unseen, with its own checks; the picture is the game's, from your view	由遊戲本身（無人看見）以自己的檢查方式執行已儲存的地圖；圖片由遊戲以你的視角繪成
-Every tile (slower on a big map)	每個圖塊（大地圖上較慢）
+Every tile (slower on a big map)	每個 Tile（大地圖上較慢）
 Run again	重新執行
 openOMSI is loading the map…	openOMSI 正在載入地圖…
 Nothing wrong found	找不到任何問題
 Problems found:	發現問題：
-of the places named lie at the map's edge or a road's dead end (greyed): the game measures a lane's last point on the road's very edge, and a bus at the end stands over it; nothing to mend	所命名地點之中有部分位於地圖邊緣或道路的死路（以灰色顯示）：遊戲會量度車道最後一點至道路最邊緣的距離，而末站的巴士會停在該處之上；無須修正
+of the places named lie at the map's edge or a road's dead end (greyed): the game measures a lane's last point on the road's very edge, and a bus at the end stands over it; nothing to mend	所命名地點之中有部分位於地圖邊緣或道路的死路（以灰色顯示）：遊戲會量度行車線最後一點至道路最邊緣的距離，而末站的巴士會停在該處之上；無須修正
 The game said nothing about the map	遊戲對此地圖沒有任何說明
 The game's whole output	遊戲的完整輸出
 
@@ -108,7 +108,7 @@ No road near	附近沒有道路
 from the road	距道路
 The point	該點
 Go to	前往
-Spline	樣條線
+Spline	Spline
 Object	物件
 Nothing on the map has this IDCode.	地圖上沒有內容具有此 IDCode。
 kinds	種類
@@ -165,8 +165,8 @@ No connection to the server: are you online?	無法連到伺服器：你是否�
 On this network the connection is not encrypted: somebody listening in can see the map, and from what they catch try passwords on their own computer. Use a long password, or the internet tunnel (encrypted).	在本網絡上連線未經加密：竊聽者可看到地圖，並據此在自己的電腦上嘗試密碼。請使用較長的密碼，或使用互聯網隧道（已加密）。
 
 # -- the small ones
-· own	 · 自備
-(…0: one-way)	（…0：單行道）
+· own	· 自備
+(…0: one-way)	（…0：單程路）
 Add the folder of the object chosen in the catalogue (Buildings_MC, …	新增目錄中所選物件的資料夾（Buildings_MC、…
 Add a stop…	新增車站…
 Add a type of bus…	新增巴士類型…
@@ -182,12 +182,12 @@ Choose OMSI 2 folder…	選擇 OMSI 2 資料夾…
 Choose a map…	選擇地圖…
 Choose an object in the Objects catalogue first	請先在「物件」目錄中選擇一個物件
 Choose…	選擇…
-Click on the map where the orange tile goes…	點擊地圖上橙色圖塊應放置的位置…
+Click on the map where the orange tile goes…	點擊地圖上橙色 Tile 應放置的位置…
 Click stops on the map (they are marked orange)…	點擊地圖上的車站（以橙色標示）…
 Click the object in the view…(Esc)	點擊畫面中的物件…（Esc）
 Click the object it takes its state from	點擊它要從中取得狀態的物件
-Click two points to measure the distance and gradient between them (U) · right-click: off	點擊兩點以量度其間的距離與斜度（U） · 右鍵：關閉
-Click: a face (Shift adds) · drag: move the selected · wheel: zoom · right button: pan	點擊：選擇一個面（Shift 加選） · 拖曳：移動選取項 · 滾輪：縮放 · 右鍵：平移
+Click two points to measure the distance and gradient between them (U) · right-click: off	點擊兩點以量度其間的距離與斜度（U）· 右鍵：關閉
+Click: a face (Shift adds) · drag: move the selected · wheel: zoom · right button: pan	點擊：選擇一個面（Shift 加選）· 拖曳：移動選取項 · 滾輪：縮放 · 右鍵：平移
 Click: go there in the view · drag a dot (a joint) up or down: its height	點擊：在畫面中前往 · 拖曳圓點（接合點）上下移動：其高度
 Ctrl+S. Maps are saved into openOMSI's content folder.	Ctrl+S。地圖會儲存到 openOMSI 的內容資料夾。
 Delete the selection	刪除選取
@@ -210,15 +210,15 @@ Flip …	翻轉…
 Front sign, line 1	前牌，第 1 行
 Front sign, line 2	前牌，第 2 行
 Full name (20 letters)	全名（20 個字母）
-Game logic > Bus stops: put one at the kerb, on the side the doors open. Name it on the right.	「遊戲邏輯 > 巴士站」：放在路緣旁、門開啟的一側。在右側為它命名。
+Game logic > Bus stops: put one at the kerb, on the side the doors open. Name it on the right.	「遊戲邏輯 > 巴士站」：放在路壆旁、門開啟的一側。在右側為它命名。
 Game logic > Start points: where your bus appears, on a road, facing the way to drive.	「遊戲邏輯 > 起點」：巴士現身的位置，在道路上，面向行駛方向。
 Go to the selection	前往選取
-Grey: this map · orange: the tiles to add (click to take one or leave it) · red: on a tile of this map, left out	灰色：此地圖 · 橙色：要新增的圖塊（點擊選取或略過） · 紅色：位於此地圖某圖塊上，未包括
+Grey: this map · orange: the tiles to add (click to take one or leave it) · red: on a tile of this map, left out	灰色：此地圖 · 橙色：要新增的 Tile（點擊選取或略過）· 紅色：位於此地圖某 Tile 上，未包括
 Group the selection	將選取組成群組
 Host without a password…	不設密碼主辦？…
 IBIS (16 letters)	IBIS（16 個字母）
 IBIS 2 (20 letters)	IBIS 2（20 個字母）
-IBIS and roller blind	IBIS 與遮陽簾
+IBIS and roller blind	IBIS 與布牌
 Import assets…	匯入資源…
 Import materials…	匯入材質…
 Import…	匯入…
@@ -228,18 +228,18 @@ Keep proportions	保持比例
 Knife (K): a click on a road cuts it there, as often as you like; the pieces' lengths shown at the cursor, on whole grid steps with grid snapping on · right-click or Esc: off	刀（K）：點擊道路即可在該處切開，次數不限；游標處顯示各段長度，開啟網格吸附時以整數格為準 · 右鍵或 Esc：關閉
 Krüger picture	Krüger 圖片
 Larger brush	較大的畫筆
-Lines window > Tours and times: New tour, then Fill from …to ….	「路線」視窗 > 行車周期與時間：新增行車周期，然後「由…填入」至「…」。
+Lines window > Tours and times: New tour, then Fill from …to ….	「路線」視窗 > 行車週期與時間：新增行車週期，然後「由…填入」至「…」。
 Lines window: New line, New trip, then click the stops in order. The way is found along the roads.	「路線」視窗：新增路線、新增班次，然後依序點擊車站。路徑沿道路尋找。
 Link to an object…	連結至物件…
 Link to another…	連結至其他物件…
 
 Load a file…	載入檔案…
-Load image file over these tiles…	在這些圖塊上載入圖片檔…
+Load image file over these tiles…	在這些 Tile 上載入圖片檔…
 Load image file…	載入圖片檔…
 Look straight down, north up	垂直向下看，正面朝北
 Looking for a new version…	正在尋找新版本…
 Make a new road type…	建立新道路類型…
-Map > Check map: what would go wrong in the game, most of it put right with one click.	「地圖 > 檢查地圖」：在遊戲中會出甚麼問題，大部分可一 click 修正。
+Map > Check map: what would go wrong in the game, most of it put right with one click.	「地圖 > 檢查地圖」：在遊戲中會出甚麼問題，大部分按一下即可修正。
 Mo–Fr	一至五
 Multiplayer…	多人遊戲…
 No connection to the server: are you online?	無法連到伺服器：你是否已上網？
@@ -261,13 +261,13 @@ Paste here	在此貼上
 
 Picture / pattern…	圖片／圖案…
 Place the map on the Earth first (Satellite and terrain…	請先將地圖定位到地球（衛星與地形…
-Places of the map to come back to: Ctrl+1… goes to the first nine, Ctrl+Shift+1… keeps the view there	地圖中可返回的地點：Ctrl+1… 前往首九個，Ctrl+Shift+1… 將視角保存在該處
+Places of the map to come back to: Ctrl+1… goes to the first nine, Ctrl+Shift+1… keeps the view there	地圖中可返回的地點：Ctrl+1… 前往首九個，Ctrl+Shift+1… 將視角儲存在該處
 Problems found:	發現問題：
 Ramp:	斜坡：
 Recover a conflicting edit…	復原衝突的編輯…
 Roads are not scaled: change their length and width in their properties	道路不會被縮放：請在其屬性中更改長度及闊度
 Roads tool: click where it starts, then where it ends. Click on a road's end to go on from it.	「道路」工具：點擊起點，再點擊終點。點擊道路的終點即可從那裡繼續。
-Roller blind texture	遮陽簾貼圖
+Roller blind texture	布牌 Texture
 Rotate handles	旋轉控制點
 Run again	重新執行
 Satellite and terrain	衛星與地形
@@ -293,7 +293,7 @@ Side sign	側牌
 Smaller brush	較小的畫筆
 Sound source…	聲源…
 Special trip	特別班次
-Splines (roads, tracks…	樣條線（道路、軌道…
+Splines (roads, tracks…	Spline（道路、軌道…
 Starting openOMSI…	正在啟動 openOMSI…
 Stopped by an internal error (see the log)	因內部錯誤而停止（見記錄）
 Test drive in OMSI 2 (the original)…	在 OMSI 2（正版）試駕…
@@ -302,18 +302,18 @@ The area is too large for this zoom	該範圍對此縮放層級而言太大
 The game said nothing about the map	遊戲對此地圖沒有任何說明
 The game's whole output	遊戲的完整輸出
 The ground under it made level with its foot, blending in 3 m round it (a house on a slope)	將其下方地面與其底面齊平，並在周圍 3 米內與地面融合（斜坡上的房屋）
-The map's tiles: 300 m squares. Add more beside them with the Tiles tool.	地圖的圖塊：300 米見方。用「圖塊」工具在旁邊新增更多。
+The map's tiles: 300 m squares. Add more beside them with the Tiles tool.	地圖的 Tile：300 米見方。用「Tile」工具在旁邊新增更多。
 The saved map run by the game itself, unseen, with its own checks; the picture is the game's, from your view	由遊戲本身（無人看見）以自己的檢查方式執行已儲存的地圖；圖片由遊戲以你的視角繪成
-This map lies on the world's grid ([worldcoordinates]): its tiles cannot be taken yet	此地圖位於世界座標網格（[worldcoordinates]）：其圖塊暫時無法取用
-This map lies on the world's grid ([worldcoordinates]): tiles cannot be added from another yet	此地圖位於世界座標網格（[worldcoordinates]）：暫時無法從其他地圖加入圖塊
-Tile grid on / off	圖塊網格開／關
+This map lies on the world's grid ([worldcoordinates]): its tiles cannot be taken yet	此地圖位於世界座標網格（[worldcoordinates]）：其 Tile 暫時無法取用
+This map lies on the world's grid ([worldcoordinates]): tiles cannot be added from another yet	此地圖位於世界座標網格（[worldcoordinates]）：暫時無法從其他地圖加入 Tile
+Tile grid on / off	Tile 網格開／關
 Tool: Game logic	工具：遊戲邏輯
 Tool: Objects	工具：物件
 Tool: Paint	工具：塗抹
 Tool: Roads	工具：道路
 Tool: Select	工具：選取
 Tool: Terrain	工具：地形
-Tool: Tiles	工具：圖塊
+Tool: Tiles	工具：Tile
 Traffic density ?	交通密度？
 Turn the camera left	相機向左轉
 Turn the camera right	相機向右轉
@@ -322,7 +322,7 @@ Typical day…	典型日子…
 Updates…	更新…
 Waiting for Cloudflare's address…	等待 Cloudflare 的位址…
 What the signal shows when this route is clear: 1 proceed, 2 proceed slowly (with a speed limit)…	該路線暢通時訊號的顯示：1 通行，2 慢速通行（附限速）…
-Your stops stand away from the roads: a bus serves a stop within 15 m of its lane.	你的車站遠離道路：巴士會服務距離其車道 15 米內的車站。
+Your stops stand away from the roads: a bus serves a stop within 15 m of its lane.	你的車站遠離道路：巴士會服務距離其行車線 15 米內的車站。
 at 	於
 checking…	檢查中…
 cm a pixel	厘米／像素
@@ -334,7 +334,7 @@ no key needed	無需金鑰
 no road beside	旁邊沒有道路
 no way	無路徑
 no way found	找不到路徑
-of the places named lie at the map's edge or a road's dead end (greyed): the game measures a lane's last point on the road's very edge, and a bus at the end stands over it; nothing to mend	所命名地點之中有部分位於地圖邊緣或道路的死路（以灰色顯示）：遊戲會量度車道最後一點至道路最邊緣的距離，而末站的巴士會停在該處之上；無須修正
+of the places named lie at the map's edge or a road's dead end (greyed): the game measures a lane's last point on the road's very edge, and a bus at the end stands over it; nothing to mend	所命名地點之中有部分位於地圖邊緣或道路的死路（以灰色顯示）：遊戲會量度行車線最後一點至道路最邊緣的距離，而末站的巴士會停在該處之上；無須修正
 openOMSI is loading the map…	openOMSI 正在載入地圖…
 openOMSI stopped with an error	openOMSI 因錯誤而停止
 press a key…	請按鍵…

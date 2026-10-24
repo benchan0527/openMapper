@@ -174,11 +174,11 @@ MULTILINE: list[tuple[str, str]] = [
     ),
     (
         "Load a big map 100 tiles at a time, as OMSI 2's own editor does?\n\nOnly the 100 tiles round the camera are kept in graphics memory; the others are hidden until you click on the empty zone, where the next 100 are loaded. It keeps very big maps light. You can change it any time in View > Load 100 tiles at a time.",
-        "像 OMSI 2 自身的編輯器那樣，每次載入 100 個圖塊來載入大地圖？\n\n只有相機周圍的 100 個圖塊會留在圖形記憶體中；其餘會隱藏，直到你點擊空白區域，那時會載入下 100 個。這令非常大的地圖保持輕快。你隨時可在「檢視 > 每次載入 100 個圖塊」更改。",
+        "像 OMSI 2 自身的編輯器那樣，每次載入 100 個 Tile 來載入大地圖？\n\n只有相機周圍的 100 個 Tile 會留在圖形記憶體中；其餘會隱藏，直到你點擊空白區域，那時會載入下 100 個。這令非常大的地圖保持輕快。你隨時可在「檢視 > 每次載入 100 個 Tile」更改。",
     ),
     (
         "Pick a line on the left, or make a new one.\n\nA line has trips (a way from stop to stop) and tours (one bus's day: which trip it drives when).",
-        "在左側選擇一條路線，或新增一條。\n\n路線有班次（由站到站的路徑）及行車周期（一架巴士的一天：何時執行哪個班次）。",
+        "在左側選擇一條路線，或新增一條。\n\n路線有班次（由站到站的路徑）及行車週期（一架巴士的一天：何時執行哪個班次）。",
     ),
 ]
 

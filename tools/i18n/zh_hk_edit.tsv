@@ -23,7 +23,7 @@ Line objects up with the nearest road (Shift: put it freely)	令物件與最近�
 Selection	選取
 Selected:	已選取：
 objects	物件
-splines	樣條線
+splines	Spline
 Group	群組
 Ungroup	取消群組
 A click on one of it selects all of it, Ctrl + click one alone	點擊其中一項即選取全部，Ctrl + 點擊則只選取該項
@@ -51,8 +51,8 @@ Lay them on the ground	貼地放置
 Reverse their direction	反向
 Even slope along them	沿線等斜
 One chain of roads: from the height at one end to that at the other, evenly (a bridge, a ramp)	一條連續道路：由一端的高度到另一端的高度等分（橋樑、斜坡）
-Edit its AI lanes	編輯其 AI 車道
-Its lanes become AI paths of their own (the same lines, the same way) that the Logic tool's Edit existing bends, moves and deletes. The road keeps its look.	其車道成為獨立的 AI 路徑（相同的線、相同的方向），可用「邏輯」工具的「編輯現有路徑」彎曲、移動及刪除。道路外觀不變
+Edit its AI lanes	編輯其 AI 行車線
+Its lanes become AI paths of their own (the same lines, the same way) that the Logic tool's Edit existing bends, moves and deletes. The road keeps its look.	其行車線成為獨立的 AI 路徑（相同的線、相同的方向），可用「邏輯」工具的「編輯現有路徑」彎曲、移動及刪除。道路外觀不變
 Copy	複製
 Duplicate	複製
 Delete	刪除
@@ -78,8 +78,8 @@ Other	其他
 
 # -- the path rules
 Path rules	路徑規則
-For the AI and the player on one path (lane) of it, counted from 0: the view shows their numbers	供 AI 與玩家在其某一條路徑（車道）上使用，從 0 開始編號：畫面中會顯示其數字
-Path (lane) number	路徑（車道）編號
+For the AI and the player on one path (lane) of it, counted from 0: the view shows their numbers	供 AI 與玩家在其某一條路徑（行車線）上使用，從 0 開始編號：畫面中會顯示其數字
+Path (lane) number	路徑（行車線）編號
 Add a rule	新增規則
 Hanging on it	懸掛於其上
 Points to hang objects on:	懸掛物件的錨點：
@@ -98,19 +98,19 @@ Row step	列間距
 Make	建立
 Tilted to the ground under it, the way it slopes forward and to the side (a fence, a bench or a shed on a hillside)	隨下方地形的傾斜而向前的側傾（斜坡上的圍欄、長椅或小屋）
 Heights along the ground again, smoothed so it climbs a hill rather than every bump (after shaping the ground or laying a height map over it); where a road not selected joins, its height is kept	重新依循地面高度，並平滑化使其順著山丘起伏而非每個小凸起（在塑造地形或鋪上高度圖之後）；與未選取道路接合之處則保留其高度
-Each starts where it ended: the traffic on it goes the other way (a one-way street, a track's direction), the road itself stays where it is	各自從上一個的終點開始：其上的交通方向相反（單行道、軌道方向），但道路本身位置不變
+Each starts where it ended: the traffic on it goes the other way (a one-way street, a track's direction), the road itself stays where it is	各自從上一個的終點開始：其上的交通方向相反（單程路、軌道方向），但道路本身位置不變
 Parallel copy	平行複製
-A second track or the other carriageway: the selected splines copied alongside, bends kept exact, linked as they are	第二條軌道或另一條車行道：沿旁複製選取的樣條線，彎曲完全保留，並照樣連結
+A second track or the other carriageway: the selected splines copied alongside, bends kept exact, linked as they are	第二條軌道或另一條車行道：沿旁複製選取的 Spline，彎曲完全保留，並照樣連結
 To the left	向左
 To the right	向右
-Left and right of the way the road runs (its arrows with AI lanes shown)	道路行進方向的左側與右側（顯示其箭嘴與 AI 車道）
+Left and right of the way the road runs (its arrows with AI lanes shown)	道路行進方向的左側與右側（顯示其箭嘴與 AI 行車線）
 Overhead wire	架空電線
-For trams and electric trains: a wire spline laid on the selected track, piece for piece and linked (its height is the wire spline's own); the masts go in with Objects along the road	供電車及電力列車使用：在選取的軌道上一段接一段鋪設電線樣條線並連結（其高度為電線樣條線本身的高度）；電線桿以「沿路物件」加入
-No wire spline installed (one whose name says Fahrdraht, Oberleitung or wire)	未安裝電線樣條線（名稱含 Fahrdraht、Oberleitung 或 wire 者）
+For trams and electric trains: a wire spline laid on the selected track, piece for piece and linked (its height is the wire spline's own); the masts go in with Objects along the road	供電車及電力列車使用：在選取的軌道上一段接一段鋪設電線 Spline 並連結（其高度為電線 Spline 本身的高度）；電線桿以「沿路物件」加入
+No wire spline installed (one whose name says Fahrdraht, Oberleitung or wire)	未安裝電線 Spline（名稱含 Fahrdraht、Oberleitung 或 wire 者）
 Lay it	鋪設
 Wire pieces laid:	已鋪設電線段：
 Paint the ground along it	塗抹沿線地面
-Add a ground texture in the Paint tool first: the base ground is under everything	先在「塗抹」工具中新增地面貼圖：底層地面位於所有圖層之下
+Add a ground texture in the Paint tool first: the base ground is under everything	先在「塗抹」工具中新增地面 Texture：底層地面位於所有圖層之下
 Layer	圖層
 Where	位置
 beside it	在其旁邊
@@ -138,8 +138,8 @@ Free at start / end	起點／終點自由擺放
 Both sides	兩側
 Place along the road	沿路放置
 Remove all rows	移除所有列
-Roundabout: click the centre, then the ring	圓環：先點擊中心，再點擊圓環
-A one-way ring of the chosen road type (pick a one-way road); roads inside are cut back to it and joined with junctions	以所選道路類型構成的單向圓環（請選擇單行道）；內部的道路會被切回至圓環，並以路口接合
+Roundabout: click the centre, then the ring	迴旋處：先點擊中心，再點擊外環
+A one-way ring of the chosen road type (pick a one-way road); roads inside are cut back to it and joined with junctions	以所選道路類型構成的單向迴旋處（請選擇單程路）；內部的道路會被切回至迴旋處，並以路口接合
 Keep the height (bridge, embankment)	保持高度（橋樑、路堤）
 An even gradient from end to end, the ground left as it is; the rise to the end can be typed while drawing. Pillars: select the road and put them along it as objects.	首尾等斜，地面保持原樣；可於繪製時輸入升至終點的高度。橋墩：選取道路後以物件方式沿路放置
 Length	長度
@@ -160,7 +160,7 @@ The main road is the pair of roads most in line; red-yellow 2 s, yellow 3 s, 2 s
 Zebra crossings	斑馬線
 Road	道路
 Build it again	重建
-Makes the plate, its kerbs and lanes again for the roads as they are now	按目前道路形狀重新產生路面板、路緣與車道
+Makes the plate, its kerbs and lanes again for the roads as they are now	按目前道路形狀重新產生路面板、路壆與行車線
 
 # -- linked objects
 Linked objects	連結物件

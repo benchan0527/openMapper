@@ -2,8 +2,8 @@
 # satellite pictures (src/ui_timetable.rs, src/ui_traffic.rs, src/ui_hof.rs, src/ui_geo.rs).
 
 # -- the lines and the timetable
-Lines and timetable	路線與時刻表
-Edit timetable	編輯時刻表
+Lines and timetable	路線與時間表
+Edit timetable	編輯時間表
 No bus stop there: click one of the orange marks	該處沒有巴士站：點擊其中一個橙色標記
 The roads can't be read without the OMSI 2 folder.	沒有 OMSI 2 資料夾就無法讀取道路。
 A line needs at least two bus stops on the map: place them with Game logic > Bus stops, beside a road.	一條路線至少需要地圖上兩個巴士站：用「遊戲邏輯 > 巴士站」在路邊放置。
@@ -11,15 +11,15 @@ Lines	路線
 No lines yet.	尚未有路線。
 New line	新增路線
 Pick a line on the left, or make a new one.	在左側選擇一條路線，或新增一條。
-A line has trips (a way from stop to stop) and tours (one bus's day: which trip it drives when).	路線有班次（由站到站的路徑）及行車周期（一架巴士的一天：何時執行哪個班次）。
+A line has trips (a way from stop to stop) and tours (one bus's day: which trip it drives when).	路線有班次（由站到站的路徑）及行車週期（一架巴士的一天：何時執行哪個班次）。
 Line	路線
 That name is taken or can't be a file name	該名稱已被使用或不能作為檔名
-A copy of the line with its trips and tours (a variant to change)	複製該路線及其班次與行車周期（以改動的變體）
+A copy of the line with its trips and tours (a variant to change)	複製該路線及其班次與行車週期（以改動的變體）
 Delete the line and its trips	刪除路線及其班次
 Players can drive it	玩家可駕駛
 Trips	班次
-Tours and times	行車周期與時間
-A tour is one bus's day: the trips it drives, one after the other, and when each leaves.	行車周期是一架巴士的一天：它依次執行哪些班次，以及每班何時出發。
+Tours and times	行車週期與時間
+A tour is one bus's day: the trips it drives, one after the other, and when each leaves.	行車週期是一架巴士的一天：它依次執行哪些班次，以及每班何時出發。
 A trip is one way along the line: its stops in order. Most lines have two, there and back.	班次是沿路線的一程：依序經過各站。大多數路線有兩程，去程與回程。
 stops	站
 New trip	新增班次
@@ -45,12 +45,12 @@ Add two stops or more: the way between them is found along the roads.	新增兩�
 Finding the way…	正在尋找路徑…
 Route found:	已找到路徑：
 km along the roads (blue in the view)	公里（沿道路，於畫面中以藍色顯示）
-the way drives a one-way lane against its direction; is a path drawn the wrong way round?	該路徑逆行駛於單向車道；該路徑是否畫反了方向？
+the way drives a one-way lane against its direction; is a path drawn the wrong way round?	該路徑在單程路上逆行；該路徑是否畫反了方向？
 Stop	站
 is not on the map	不在地圖上
 no road with car lanes within 15 m	15 米內沒有可行車的道路
 No way	無路徑
-the roads are not joined, or run the other way (see View > AI lanes)	道路未接合，或方向相反（見「檢視 > AI 車道」）
+the roads are not joined, or run the other way (see View > AI lanes)	道路未接合，或方向相反（見「檢視 > AI 行車線」）
 The trip is saved, but its way is not until this is mended	班次已儲存，但其路徑要待此問題修正後才會生效
 Trip time	班次時間
  min	分鐘
@@ -61,7 +61,7 @@ Minutes after the trip leaves. They follow the distance between the stops; fix o
 fixed	固定
 Spread all by distance	按距離平均分配
 Holidays and school holidays	公眾假期與學校假期
-On a public holiday only the tours with Holidays ticked run; school holidays pick the tours for school holidays or school days.	公眾假期只行駛勾選了「假期」的行車周期；學校假期則選取學校假期或上課日的行車周期。
+On a public holiday only the tours with Holidays ticked run; school holidays pick the tours for school holidays or school days.	公眾假期只行駛勾選了「假期」的行車週期；學校假期則選取學校假期或上課日的行車週期。
 Year	年份
 Public holidays	公眾假期
 Take out	移除
@@ -69,18 +69,18 @@ Holiday	假期
 School holidays	學校假期
 Summer	夏季
 Copy to	複製至
-The same days a year later (feasts that move, like Easter, are to be set by hand)	一年後的相同日子（ movable 的節日如復活節須人手設定）
-The map has no depot (ailists.cfg): only you drive these tours, no AI buses.	地圖沒有車廠（ailists.cfg）：這些行車周期只有你可駕駛，沒有 AI 巴士。
+The same days a year later (feasts that move, like Easter, are to be set by hand)	一年後的相同日子（會移動的節日如復活節須人手設定）
+The map has no depot (ailists.cfg): only you drive these tours, no AI buses.	地圖沒有車廠（ailists.cfg）：這些行車週期只有你可駕駛，沒有 AI 巴士。
 Add a depot with OMSI 2's MAN buses	新增載有 OMSI 2 MAN 巴士的車廠
-Its buses run the tours (Map > Traffic and AI shows it)	其巴士執行行車周期（見「地圖 > 交通與 AI」）
-Tour	行車周期
-New tour	新增行車周期
-Pick a tour to see its departures.	選擇一個行車周期以查看其出發時間。
+Its buses run the tours (Map > Traffic and AI shows it)	其巴士執行行車週期（見「地圖 > 交通與 AI」）
+Tour	行車週期
+New tour	新增行車週期
+Pick a tour to see its departures.	選擇一個行車週期以查看其出發時間。
 Make a trip first.	請先建立班次。
 Number	編號
 Buses from	巴士來自
 (none)	（無）
-Delete the tour	刪除行車周期
+Delete the tour	刪除行車週期
 Runs on	行駛日
 Mo	一
 Tu	二
@@ -101,7 +101,7 @@ Fill from	由…填入
 to	至
 break	休息
 Fill	填滿
-Replace the tour's departures: the line's trips one after the other, a break after each	取代行車周期的出發時間：依序填入路線的各班次，每班之後休息
+Replace the tour's departures: the line's trips one after the other, a break after each	取代行車週期的出發時間：依序填入路線的各班次，每班之後休息
 No departures yet: add them above.	尚未有出發時間：請在上方新增。
 Delete the departure	刪除出發時間
 
@@ -112,7 +112,7 @@ Over the day	全日
 Vehicle groups	車輛群組
 Parked cars and people	停放的汽車與行人
 Depot files	車廠檔案
-The AI's vehicles come in groups. A car group drives about on the roads; a depot sends out the buses of the timetable's tours.	AI 的車輛以群組形式出現。汽車群組在道路上遊走；車廠則派出時刻表行車周期的巴士。
+The AI's vehicles come in groups. A car group drives about on the roads; a depot sends out the buses of the timetable's tours.	AI 的車輛以群組形式出現。汽車群組在道路上遊走；車廠則派出時間表內行車週期的巴士。
 (This map's ailists.cfg is in OMSI 2's first format: it is written in the second one when changed.)	（此地圖的 ailists.cfg 為 OMSI 2 的第一種格式：變更後會以第二種格式寫出。）
 is to drive about, but there is no such group.	打算遊走，但並無此群組。
 Make it with OMSI 2's vehicles	以 OMSI 2 的車輛建立
@@ -123,9 +123,9 @@ New depot	新增車廠
 Depot	車廠
 Pick a group on the left.	在左側選擇一個群組。
 Name	名稱
-Delete the group (tours still take their buses from it)	刪除群組（行車周期仍從中取用巴士）
+Delete the group (tours still take their buses from it)	刪除群組（行車週期仍從中取用巴士）
 Delete the group	刪除群組
-Tours that take their buses from here:	從此處取用巴士的行車周期：
+Tours that take their buses from here:	從此處取用巴士的行車週期：
 Drives about on its own	自行遊走
 as many:	數量：
 Times the traffic over the day	全日交通的時間分佈
@@ -169,7 +169,7 @@ Point	點
 # -- the depot files
 The map has no depot file.	地圖沒有車廠檔案。
 Make one from the lines	由路線建立一個
-The map has no trips yet (Map > Lines and timetable)	地圖尚未有班次（「地圖 > 路線與時刻表」）
+The map has no trips yet (Map > Lines and timetable)	地圖尚未有班次（「地圖 > 路線與時間表」）
 Empty one	空白檔案
 New	新增
 A new depot file from the map's lines	由地圖路線建立的新車廠檔案
@@ -195,12 +195,12 @@ Routes	路線
 nobody gets on	無人上車
 Code	代碼
 another destination has this code	另一個終點已有此代碼
-As a trip's terminus is named in the timetable: the stop where everybody gets off	如班次終點在時刻表中所命名：所有乘客下車的車站
+As a trip's terminus is named in the timetable: the stop where everybody gets off	如班次終點在時間表中所命名：所有乘客下車的車站
 Nobody gets on (service trip, empty sign)	無人上車（服務班次，顯示牌空白）
 Delete destination	刪除終點
 Add destination	新增終點
 New destination	新終點
-As the timetable names the stop	如時刻表所命名的車站
+As the timetable names the stop	如時間表所命名的車站
 Delete stop	刪除車站
 Add stop	新增車站
 New stop	新車站
@@ -220,14 +220,14 @@ No routes: the IBIS knows the destinations' codes only. Add them from the lines 
 # -- the satellite pictures and the terrain
 Satellite overlay	衛星圖層
 Satellite and own pictures	衛星影像與自備圖片
-Click a tile to see its overlay here.	點擊圖塊以在此顯示其圖層。
+Click a tile to see its overlay here.	點擊 Tile 以在此顯示其圖層。
 Load satellite imagery	載入衛星影像
 Place the map on the Earth first (Satellite and terrain…	請先將地圖定位到地球（衛星與地形…
 Load image file…	載入圖片檔…
-Your own picture for this tile (a scan, a screenshot): or drop it on the window	此圖塊的自備圖片（掃描件、螢幕截圖）：或直接拖放到視窗上
+Your own picture for this tile (a scan, a screenshot): or drop it on the window	此 Tile 的自備圖片（掃描件、螢幕截圖）：或直接拖放到視窗上
 Load the OpenStreetMap map	載入 OpenStreetMap 地圖
-OpenStreetMap map for all tiles	所有圖塊的 OpenStreetMap 地圖
-The map as openstreetmap.org draws it (streets with their names, houses, water, green, stop signs), drawn sharp from OpenStreetMap data and laid on the tile in place of a satellite picture: to build roads and houses over by eye. Nothing is generated from it.	如 openstreetmap.org 所繪的地圖（附名稱的街道、房屋、水域、綠地、停車標誌），由 OpenStreetMap 資料清晰繪製，鋪在圖塊上取代衛星圖片：以便憑肉眼在其上建造道路與房屋。它不會由此產生任何內容。
+OpenStreetMap map for all tiles	所有 Tile 的 OpenStreetMap 地圖
+The map as openstreetmap.org draws it (streets with their names, houses, water, green, stop signs), drawn sharp from OpenStreetMap data and laid on the tile in place of a satellite picture: to build roads and houses over by eye. Nothing is generated from it.	如 openstreetmap.org 所繪的地圖（附名稱的街道、房屋、水域、綠地、停車標誌），由 OpenStreetMap 資料清晰繪製，鋪在 Tile 上取代衛星圖片：以便憑肉眼在其上建造道路與房屋。它不會由此產生任何內容。
 Place the map on the Earth first.	請先將地圖定位到地球。
 own picture	自備圖片
 for an earlier placement	為較早的定位
@@ -236,26 +236,26 @@ not kept with the map	不隨地圖儲存
 nothing	沒有
 Load terrain heights	載入地形高度
 Done:	完成：
-tiles	圖塊
+tiles	Tile
 with problems	有問題
-A picture for the tiles	圖塊用的圖片
+A picture for the tiles	Tile 用的圖片
 Could not read the picture	無法讀取圖片
 Could not copy the picture	無法複製圖片
-The picture is on the tiles: line it up in Satellite and terrain, Own pictures.	圖片已在圖塊上：在「衛星與地形 > 自備圖片」中對齊。
+The picture is on the tiles: line it up in Satellite and terrain, Own pictures.	圖片已在 Tile 上：在「衛星與地形 > 自備圖片」中對齊。
 Nothing found by that name.	找不到該名稱的項目。
-Some tiles had Google imagery: enter your Google key to see it again (it is not kept with the map).	部分圖塊有 Google 影像：輸入你的 Google 金鑰即可再次查看（不隨地圖儲存）。
+Some tiles had Google imagery: enter your Google key to see it again (it is not kept with the map).	部分 Tile 有 Google 影像：輸入你的 Google 金鑰即可再次查看（不隨地圖儲存）。
 Find a place: a town, a street, an address…(Enter)	尋找地點：市鎮、街道、地址…（Enter）
 Searching…	搜尋中…
 Search — OpenStreetMap contributors	搜尋 — OpenStreetMap 貢獻者
-This map has world coordinates ([worldcoordinates]): it lies on the Earth by itself, its tiles are Web Mercator tiles.	此地圖具有世界座標（[worldcoordinates]）：它自行定位於地球，其圖塊為 Web Mercator 圖塊。
-Click on the map where the orange tile goes…	點擊地圖上橙色圖塊應放置的位置…
+This map has world coordinates ([worldcoordinates]): it lies on the Earth by itself, its tiles are Web Mercator tiles.	此地圖具有世界座標（[worldcoordinates]）：它自行定位於地球，其 Tile 為 Web Mercator Tile。
+Click on the map where the orange tile goes…	點擊地圖上橙色 Tile 應放置的位置…
 Place the map here	將地圖放在此處
-Then click on the map: the middle of the orange tile goes there	然後點擊地圖：橙色圖塊的中間會置於該處
+Then click on the map: the middle of the orange tile goes there	然後點擊地圖：橙色 Tile 的中間會置於該處
 At the view's middle	在畫面中央
 North turned	北方已旋轉
-Orange tile	橙色圖塊
+Orange tile	橙色 Tile
 click the map to fly there in the view	點擊地圖以在畫面中飛往該處
-1. Find the place.  2. Press "Place the map here" and click on the map: the orange tile (the map's middle) goes there.	1. 尋找地點。 2. 按「將地圖放在此處」並點擊地圖：橙色圖塊（地圖的中間）會置於該處。
+1. Find the place.  2. Press "Place the map here" and click on the map: the orange tile (the map's middle) goes there.	1. 尋找地點。 2. 按「將地圖放在此處」並點擊地圖：橙色 Tile（地圖的中間）會置於該處。
 Imagery	影像
 The sharpest here	此處最清晰
 cm a pixel here	此處每像素為 厘米
@@ -264,23 +264,23 @@ Sharper imagery may be had here with your own free key for Mapbox, MapTiler or G
 Terms of use	使用條款
 Zoom	縮放
 the finest here	此處最精細
-Picture of a tile	圖塊的圖片
+Picture of a tile	Tile 的圖片
 every pixel of the source (up to 4096)	來源的所有像素（最多 4096）
 Loaded at	載入解析度
 Also load terrain heights	同時載入地形高度
-New tiles get imagery by themselves	新圖塊會自動取得影像
-Load for all tiles	為所有圖塊載入
-For the selected tile	為選取的圖塊
-Click a tile with the Tiles tool (7)	用「圖塊」工具（7）點擊一個圖塊
-Terrain heights only	只要地形高度
+New tiles get imagery by themselves	新 Tile 會自動取得影像
+Load for all tiles	為所有 Tile 載入
+For the selected tile	為選取的 Tile
+Click a tile with the Tiles tool (7)	用「Tile」工具（7）點擊一個 Tile
+Terrain heights only	只載入地形高度
 of	當中
 Cancel	取消
-tiles beside the loaded heights were not loaded: the ground steps at their edge.	已載入高度旁的圖塊未有載入：地面在其邊緣出現落差。
+tiles beside the loaded heights were not loaded: the ground steps at their edge.	已載入高度旁的 Tile 未有載入：地面在其邊緣出現落差。
 Fit their edges	對齊其邊緣
-Their edge takes the loaded heights, fading out 60 m into the tile	其邊緣採用已載入的高度，向圖塊內 60 米漸變消失
+Their edge takes the loaded heights, fading out 60 m into the tile	其邊緣採用已載入的高度，向 Tile 內 60 米漸變消失
 Leave them	保持原樣
 Terrain heights	地形高度
-Relative: the orange tile's mean height is 0 m	相對：橙色圖塊的平均高度為 0 米
+Relative: the orange tile's mean height is 0 m	相對：橙色 Tile 的平均高度為 0 米
 Raise everything by	整體抬高
 Smoothing	平滑化
 Taken off:	已移除：
@@ -290,27 +290,27 @@ Overlay on the ground	疊加於地面
 Show	顯示
 opacity	不透明度
 Put the imagery into maps exported for sharing (check its licence first)	將影像放入匯出分享的地圖（請先確認其授權條款）
-Fit tile edges	對齊圖塊邊緣
+Fit tile edges	對齊 Tile 邊緣
 Keys for more sources (optional)	更多來源的金鑰（選用）
 Everything works without a key. With your own free key these may be sharper in some places; the key stays on this computer.	沒有金鑰一切照常。使用你自己的免費金鑰，部分地方可能更清晰；金鑰只儲存在這部電腦上。
 Google satellite (needs your API key)	Google 衛星影像（需要你的 API 金鑰）
 get a key	取得金鑰
 In Google Cloud: make a project, enable the Map Tiles API, create an API key, paste it here. Google bills by use above its free amount.	在 Google Cloud：建立專案、啟用 Map Tiles API、建立 API 金鑰並貼到這裡。Google 按超出免費額度的用量收費。
 key	金鑰
-Your own tile server	你自己的圖塊伺服器
+Your own tile server	你自己的 Tile 伺服器
 URL	網址
 Attribution	來源標註
 Finest zoom	最精細縮放
 Kind	種類
-XYZ / WMTS tiles	XYZ / WMTS 圖塊
+XYZ / WMTS tiles	XYZ / WMTS Tile
 Terrarium heights	Terrarium 高度
 {z} {x} {y} are filled in; a WMS gets {bbox} (EPSG:3857) and {width} {height}; {key} is your key.	會填入 {z} {x} {y}；WMS 會得到 {bbox}（EPSG:3857）及 {width} {height}；{key} 為你的金鑰。
 Add	新增
 Own pictures	自備圖片
-A scan, a screenshot, an old plan: laid on tiles and lined up by eye. No place on the Earth needed.	掃描件、螢幕截圖、舊圖：鋪在圖塊上並憑眼對齊。無需在地球上定位。
-Tiles from	圖塊來自
+A scan, a screenshot, an old plan: laid on tiles and lined up by eye. No place on the Earth needed.	掃描件、螢幕截圖、舊圖：鋪在 Tile 上並憑眼對齊。無需在地球上定位。
+Tiles from	Tile 由
 to	至
-Load image file over these tiles…	在這些圖塊上載入圖片檔…
+Load image file over these tiles…	在這些 Tile 上載入圖片檔…
 Turn left 90°	左轉 90°
 Turn right 90°	右轉 90°
 mirror left-right	左右鏡像
@@ -320,6 +320,6 @@ Size	大小
 Reset	重設
 Remove	移除
 Your own pictures	你的自備圖片
-of these tiles have your own pictures. Replace them with satellite imagery?	中的圖塊有自備圖片。要以衛星影像取代嗎？
+of these tiles have your own pictures. Replace them with satellite imagery?	中的 Tile 有自備圖片。要以衛星影像取代嗎？
 Replace them	取代它們
 Keep my pictures	保留我的圖片

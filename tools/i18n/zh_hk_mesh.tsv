@@ -54,7 +54,7 @@ Angle	角度
 Levels	層數
 Smooth (Catmull-Clark)	平滑（Catmull-Clark）
 Ratio	比例
-Factor	系數
+Factor	係數
 Repeat	重複
 Strength	強度
 Size	大小
@@ -80,12 +80,12 @@ Above the ground	高於地面
 Every vertex follows the terrain under it (in the editor's view and the written files at the place it stands)	每個頂點都貼合其下的地形（在編輯器畫面及寫出的檔案中皆依其所處位置）
 
 # -- the object
-Mesh (openMapper object)	網格（openMapper 物件）
+Mesh (openMapper object)	Mesh（openMapper 物件）
 Shared by	共用於
 objects on the map: changes apply to all	地圖上的物件：變更會套用至全部
 Make this one single	將此設為獨立物件
 Leave the edit mode (Tab)	離開編輯模式（Tab）
-Edit the mesh (Tab)	編輯網格（Tab）
+Edit the mesh (Tab)	編輯 Mesh（Tab）
 Export…	匯出…
 Write it as OBJ, glTF / GLB, FBX, Collada, USD, STL, PLY, 3MF, OFF, X or O3D	寫出為 OBJ、glTF / GLB、FBX、Collada、USD、STL、PLY、3MF、OFF、X 或 O3D
 Name	名稱
@@ -105,14 +105,14 @@ Shape	形狀
 Modifiers	修改器
 Remove	移除
 Apply	套用
-Make it part of the mesh	將其納入網格
+Make it part of the mesh	將其納入 Mesh
 Add a modifier	新增修改器
 Materials	材質
-Colour (multiplies the texture)	顏色（與貼圖相乘）
+Colour (multiplies the texture)	顏色（與 Texture 相乘）
 Assign to selected faces	指派給已選取的面
-Texture	貼圖
+Texture	Texture
 Choose…	選擇…
-No texture	無貼圖
+No texture	無 Texture
 Save as…	儲存為…
 PNG, JPEG, BMP, TGA, TIFF, WebP or DDS	PNG、JPEG、BMP、TGA、TIFF、WebP 或 DDS
 Transparency	透明度
@@ -122,15 +122,15 @@ Blended	混合
 Glows	發光
 Light of its own: black for none	自帶光源：黑色代表沒有
 Shine	光澤
-Normal map	法線貼圖
-ORM map	ORM 貼圖
-Night texture	夜間貼圖
-Light map	光照貼圖
+Normal map	法線 Texture
+ORM map	ORM Texture
+Night texture	夜間 Texture
+Light map	光照 Texture
 Choose a picture	選擇圖片
 Remove the material	移除材質
 Add a material	新增材質
 Import materials…	匯入材質…
-From an .mtl, a glTF / GLB / FBX, or the pictures of one PBR material (base colour, normal, roughness, metal, AO...)	來自 .mtl、glTF / GLB / FBX，或單一 PBR 材質的貼圖（基礎色、法線、粗糙度、金屬、AO…）
+From an .mtl, a glTF / GLB / FBX, or the pictures of one PBR material (base colour, normal, roughness, metal, AO...)	來自 .mtl、glTF / GLB / FBX，或單一 PBR 材質的 Texture（基礎色、法線、粗糙度、金屬、AO…）
 
 # -- the lamps
 Lamps	燈具
@@ -155,11 +155,11 @@ The pool of light a street lamp throws at night	街燈在夜間投下的光池
 Signal head, lamps	訊號燈頭、燈具
 Put it within 40 m of a crossing with a light program: it takes its light from it (or link it in its properties)	把它放在有燈光程式的路口 40 米內：它會取用該路口的燈光（或在屬性中連結）
 Bake	烘焙
-Its textures and colours painted into one picture on a new UV map (one material: fewer draws in the game), with its own shadows and its lamps' night light if chosen	將其貼圖與顏色繪入一張新 UV 貼圖上的單一圖片（單一材質：遊戲內繪製次數更少），並可選擇一併烘焙其陰影與燈具夜間光照
+Its textures and colours painted into one picture on a new UV map (one material: fewer draws in the game), with its own shadows and its lamps' night light if chosen	將其 Texture 與顏色繪入一張新 UV 圖上的單一圖片（單一材質：遊戲內繪製次數更少），並可選擇一併烘焙其陰影與燈具夜間光照
 Ambient occlusion	環境光遮蔽
 How far its shadows reach	其陰影的延伸範圍
-Lamps' light at night (light map)	燈具夜間光照（光照貼圖）
-Undo	撤銷
+Lamps' light at night (light map)	燈具夜間光照（光照 Texture）
+Undo	復原
 The object's last change (Ctrl+Z in the edit mode)	物件的最後一次變更（編輯模式中按 Ctrl+Z）
 Redo	重做
 
@@ -179,18 +179,18 @@ Outer radius	外半徑
 Inner radius	內半徑
 Opening	開口
 Wall	牆壁
-Mesh	網格
-A copy of this object's type of its own is made for it, with its meshes, materials and lamps to edit; the original stays as it is	會為它複製一份該物件類型，含其網格、材質與燈具供編輯；原本的維持不變
+Mesh	Mesh
+A copy of this object's type of its own is made for it, with its meshes, materials and lamps to edit; the original stays as it is	會為它複製一份該物件類型，含其 Mesh、材質與燈具供編輯；原本的維持不變
 Separate parts into objects	將部件分成獨立物件
-As a mesh	作為網格
+As a mesh	作為 Mesh
 Copy as an object	複製為物件
-An openMapper object of its shape beside it, to edit as a mesh (vertices, edges, faces)	在其旁建立同形狀的 openMapper 物件，以網格形式編輯（頂點、邊、面）
+An openMapper object of its shape beside it, to edit as a mesh (vertices, edges, faces)	在其旁建立同形狀的 openMapper 物件，以 Mesh 形式編輯（頂點、邊、面）
 Replace by an object	以物件取代
-The same, the spline taken away (its lanes go with it)	同上，但移除樣條線（其車道一併移除）
-Splines as a mesh	樣條線轉為網格
+The same, the spline taken away (its lanes go with it)	同上，但移除 Spline（其行車線一併移除）
+Splines as a mesh	Spline 轉為 Mesh
 Copy as one object	複製為單一物件
 Replace by one object	以單一物件取代
-As meshes	作為網格
+As meshes	作為 Mesh
 Join into one object (Ctrl+J)	接合為單一物件（Ctrl+J）
 All their parts in the one shown in the properties, the others gone	將它們的所有部件併入屬性中顯示的那一個，其餘消失
 Solid modelling (CSG): the object shown in the properties with the others	實體建模（CSG）：屬性中顯示的物件與其他物件
@@ -205,7 +205,7 @@ vertices	頂點
 edges	邊
 faces	面
 Selected	已選取
-X-ray: pick through the mesh	透視選取：可直接穿透網格選取
+X-ray: pick through the mesh	透視選取：可直接穿透 Mesh 選取
 Select	選取
 All (A)	全部（A）
 None (Alt+A)	無（Alt+A）
@@ -216,7 +216,7 @@ Less	更少
 Click, Shift + click to add, drag on nothing for a box, a second click or Alt + click for a loop	點擊選取，Shift + 點擊新增，在空白處拖曳框選，再次點擊或 Alt + 點擊選取環狀
 Change	變更
 Extrude (E)	擠出（E）
-Inset (I)	內插（I）
+Inset (I)	內縮（I）
 Bevel (Ctrl+B)	斜角（Ctrl+B）
 Loop cut (Ctrl+R)	環切（Ctrl+R）
 Point at an edge and press Ctrl+R	指向一條邊並按 Ctrl+R
@@ -258,15 +258,15 @@ Slide	滑動
 Cuts	切割數
 
 # -- the UV editor
-UV map	UV 貼圖
+UV map	UV 圖
 Unwrap	展開
 By seams (conformal)	按接縫展開（保形）
-Smart project	智慧投影
+Smart project	智能投影
 Cube projection (metres)	立方體投影（米）
 Cylinder projection	圓柱投影
 Sphere projection	球體投影
 Project from the view	從畫面投影
-Lightmap pack	光照貼圖打包
+Lightmap pack	Lightmap 打包
 Close the UV editor	關閉 UV 編輯器
 UV editor	UV 編輯器
 Faces of the selection (all, with none selected); mark seams on edges first for an unwrap by seams	選取部分的面（未選取時為全部）；要按接縫展開，請先在邊上標記接縫
@@ -279,7 +279,7 @@ A traffic light of the lamps below that a crossing's light program drives	下方
 Lamps:	燈具：
 Picture, light, sound	圖片、燈光、聲音
 Picture / pattern…	圖片／圖案…
-Choose a picture or a texture: it becomes an object you place, move, turn and scale like any other. Several repeats make a pattern	選擇圖片或貼圖：它會成為一個物件，可像其他物件一樣放置、移動、旋轉及縮放。多重複會組成圖案
+Choose a picture or a texture: it becomes an object you place, move, turn and scale like any other. Several repeats make a pattern	選擇圖片或 Texture：它會成為一個物件，可像其他物件一樣放置、移動、旋轉及縮放。多重複會組成圖案
 Light source	光源
 A lamp that glows and lights the ground round it	會發光並照亮周圍地面的燈具
 Sound source…	聲源…

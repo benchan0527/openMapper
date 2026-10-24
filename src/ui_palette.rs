@@ -375,8 +375,11 @@ mod tests {
         crate::i18n::set(crate::i18n::Lang::ZhHk);
         let mut p = Palette::default();
         // (the Chinese name)
-        p.query = "時刻表".into();
+        p.query = "時間表".into();
         assert!(!p.found().is_empty(), "the Chinese name finds nothing");
+        // (the older wording still finds it)
+        p.query = "時刻表".into();
+        assert!(!p.found().is_empty(), "the older wording finds nothing");
         // (the Chinese words beside it)
         p.query = "斑馬線".into();
         assert!(!p.found().is_empty(), "the Chinese words find nothing");

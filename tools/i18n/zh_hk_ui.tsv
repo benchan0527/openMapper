@@ -8,12 +8,12 @@ Paint	塗抹
 Roads	道路
 Objects	物件
 Game logic	遊戲邏輯
-Tiles	圖塊
+Tiles	Tile
 Raise	抬高
 Lower	降低
 Smooth	平滑
 Flatten	平整
-Roughen	弄粗
+Roughen	粗糙化
 Ramp	斜坡
 Lake / river	湖／河
 Start points	起點
@@ -22,18 +22,18 @@ Car parks	停車場
 AI paths	AI 路徑
 Other	其他
 Where the bus appears when a drive starts. Put it on a road or in the depot, facing the way to drive.	巴士在開始行駛時出現的位置。放在道路上或車廠內，並面向行駛方向。
-Where passengers wait. Put it beside the road at the kerb; name it on the right.	乘客等候的位置。放在路邊的路緣旁；在右側為它命名。
-Where parked cars stand. Click for one; with a row on, click the start and end of a row along the kerb.	停放汽車的位置。點擊放置一架；開啟「一排」時，點擊一排的起點與終點（沿路緣）。
-Lanes the AI's cars or people follow. Draw like a road: it snaps to lane ends (green: joined, red: dead end) and along lanes. A car path runs the way you draw it.	AI 車輛或行人行走的車道。像道路一樣繪製：會吸附至車道端點（綠色：已接合，紅色：死路）及沿車道。車輛路徑按你繪製的方向行駛。
+Where passengers wait. Put it beside the road at the kerb; name it on the right.	乘客等候的位置。放在路邊的路壆旁；在右側為它命名。
+Where parked cars stand. Click for one; with a row on, click the start and end of a row along the kerb.	停放汽車的位置。點擊放置一架；開啟「一排」時，點擊一排的起點與終點（沿路壆）。
+Lanes the AI's cars or people follow. Draw like a road: it snaps to lane ends (green: joined, red: dead end) and along lanes. A car path runs the way you draw it.	AI 車輛或行人行走的行車線。像道路一樣繪製：會吸附至行車線端點（綠色：已接合，紅色：死路）及沿行車線。車輛路徑按你繪製的方向行駛。
 Sound sources, help arrows and other helpers the game does not show.	聲源、指示箭嘴及其他遊戲不會顯示的輔助物件。
 
 # -- the move / rotate / scale
 Move (V): drag an arrow along X, Y or Z, a square in its plane, the circle over the ground	移動（V）：拖曳 X、Y 或 Z 軸的箭嘴、在其平面上的方框、或地面上的圓圈
 Rotate (C): drag a ring to turn about X, Y or Z	旋轉（C）：拖曳圓環繞 X、Y 或 Z 軸旋轉
 Scale (X): drag an arrow to scale along that axis, a square for two, the circle for all three	縮放（X）：拖曳箭嘴沿該軸縮放，拖曳方框縮放兩個軸，拖曳圓圈縮放三個軸
-These roads have no lanes of their own to take apart (rails stay as they are)	這些道路沒有自己的車道可拆解（軌道保持不變）
-Make the lanes editable	令車道可編輯
-Roads whose lanes are now editable:	車道現已可編輯的道路：
+These roads have no lanes of their own to take apart (rails stay as they are)	這些道路沒有自己的行車線可拆解（軌道保持不變）
+Make the lanes editable	令行車線可編輯
+Roads whose lanes are now editable:	行車線現已可編輯的道路：
 Flatten the terrain	平整地形
 Select two things or more to group them	選擇兩項或以上以組成群組
 Grouped:	已組成群組：
@@ -54,7 +54,7 @@ Delete object	刪除物件
 Delete road	刪除道路
 Delete selection	刪除選取
 Pick an object in the catalogue first	請先在目錄中選擇一個物件
-There is no tile here: add one with the Tiles tool	此處沒有圖塊：用「圖塊」工具新增一個
+There is no tile here: add one with the Tiles tool	此處沒有 Tile：用「Tile」工具新增一個
 Place object	放置物件
 New stop	新車站
 Start	起點
@@ -72,28 +72,28 @@ Pick a road type in the catalogue first	請先在目錄中選擇一個道路類�
 That bend is too sharp	該彎位太急
 Switch made	道岔已建立
 Junctions made:	已建立路口：
-The road leaves the map: add tiles there first	道路超出地圖範圍：請先在該處新增圖塊
+The road leaves the map: add tiles there first	道路超出地圖範圍：請先在該處新增 Tile
 Build road	建造道路
 Roads from OpenStreetMap	來自 OpenStreetMap 的道路
 Pick a tree in the catalogue (or add some to the mix) first	請先在目錄中選擇一棵樹（或加入種植組合）
-Right-click a tile to remove it	右鍵點擊圖塊以移除
-New tiles go next to the map	新圖塊會加在地圖旁邊
-Add tile	新增圖塊
+Right-click a tile to remove it	右鍵點擊 Tile 以移除
+New tiles go next to the map	新 Tile 會加在地圖旁邊
+Add tile	新增 Tile
 Water	水
 Paint detail	塗抹細節
 Ground layer order	地面圖層次序
-Detail texture	細節貼圖
-Ground texture	地面貼圖
+Detail texture	細節 Texture
+Ground texture	地面 Texture
 Lamp light on the ground	燈具在地面上的光照
-Add tiles	新增圖塊
-A map needs at least one tile	地圖至少需要一個圖塊
-Remove tile	移除圖塊
+Add tiles	新增 Tile
+A map needs at least one tile	地圖至少需要一個 Tile
+Remove tile	移除 Tile
 Pick a point (a dot at an end or where pieces meet) to take it out	選擇一個點（端點或接合處的圓點）以移除
 Remove a point of the path	移除路徑的一個點
 Point taken out	已移除該點
 A path of one piece: Del with nothing picked deletes it	只有一段的路徑：未選取任何項時按 Del 會刪除它
 Extrude	擠出
-Inset	內插
+Inset	內縮
 Bevel	斜角
 Loop cut	環切
 click: done, right click / Esc: cancel, wheel: segments	點擊：完成，右鍵／Esc：取消，滾輪：分段數
@@ -111,7 +111,7 @@ Level the ground	平整地面
 Turn objects	旋轉物件
 Copies in a row	連續複製
 Left out (off the map):	未包括（在地圖外）：
-There is no tile here: add one with the Tiles tool	此處沒有圖塊：用「圖塊」工具新增一個
+There is no tile here: add one with the Tiles tool	此處沒有 Tile：用「Tile」工具新增一個
 Pasted (the rest is off the map):	已貼上（其餘在地圖外）：
 Edit object	編輯物件
 Lean with the ground	隨地形傾斜
@@ -152,8 +152,8 @@ Rows of objects added:	已新增物件列：
 Edit row of objects	編輯物件列
 Remove row of objects	移除物件列
 Remove rows of objects	移除物件列
-Roundabout built; roads joined to it:	圓環已建；道路已接合至它：
-This road type carries traffic both ways: pick a one-way road for a proper roundabout	此道路類型容許雙向交通：要做出正確的圓環，請選擇單行道
+Roundabout built; roads joined to it:	迴旋處已建；道路已接合至它：
+This road type carries traffic both ways: pick a one-way road for a proper roundabout	此道路類型容許雙向交通：要做出正確的迴旋處，請選擇單程路
 Start point: where the bus appears in openOMSI	起點：巴士在 openOMSI 現身的位置
 Bus stop: name it in the panel on the right	巴士站：在右側面板為它命名
 
@@ -203,7 +203,7 @@ Multiplayer…	多人遊戲…
 Close map	關閉地圖
 Quit	離開
 Edit	編輯
-Undo	撤銷
+Undo	復原
 Redo	重做
 Cut	剪下
 Copy	複製
@@ -217,14 +217,14 @@ Select all	全選
 Delete	刪除
 Deselect	取消選取
 View	檢視
-Tile grid	圖塊網格
+Tile grid	Tile 網格
 What the game does not show	遊戲不會顯示的內容
-AI lanes	AI 車道
+AI lanes	AI 行車線
 Names of stops and start points	站名與起點名稱
 Show	顯示
 Trees	樹木
 Objects	物件
-Roads and splines	道路與樣條線
+Roads and splines	道路與 Spline
 Overview map (M)	總覽圖（M）
 Assets (B)	資源（B）
 Flatten the terrain (roads follow)	平整地形（道路會跟隨）
@@ -234,7 +234,7 @@ Save a picture of the view	儲存畫面截圖
 Camera	相機
 Unity: right button looks round and W A S D fly, middle pans, Alt orbits	Unity：按住右鍵環顧、W A S D 飛行，中鍵平移，Alt 旋轉
 Map editor: right button looks round and W A S D fly (Q down, E up), middle pans, the wheel zooms to the cursor, drag moves the map	地圖編輯器：按住右鍵環顧、W A S D 飛行（Q 下降、E 上升），中鍵平移，滾輪以游標為中心縮放，拖曳移動地圖
-Load 100 tiles at a time (like OMSI 2's editor)	每次載入 100 個圖塊（與 OMSI 2 編輯器相同）
+Load 100 tiles at a time (like OMSI 2's editor)	每次載入 100 個 Tile（與 OMSI 2 編輯器相同）
 Time of day	時間
 Plain day (as the game by day)	日間（與遊戲日間相同）
 At an hour	於指定時間
@@ -246,26 +246,26 @@ Spring	春季
 Autumn	秋季
 Winter	冬季
 Snow	雪
-Graphics quality	圖像品質
+Graphics quality	圖形品質
 Tools	工具
-Road types and junctions…	道路類型與交叉路口…
-PBR maps for a picture…	圖片的 PBR 貼圖…
+Road types and junctions…	道路類型與路口…
+PBR maps for a picture…	圖片的 PBR Texture…
 Map	地圖
 Map settings…	地圖設定…
 Calendar and place…	日曆與地點…
 Signal routes…	訊號路線…
 Chrono scenarios…	時空場景…
-Ground textures…	地面貼圖…
+Ground textures…	地面 Texture…
 Check map…	檢查地圖…
 Make the junctions again	重建所有路口
 Junctions made again:	已重建路口：
-Lines and timetable…	路線與時刻表…
+Lines and timetable…	路線與時間表…
 Traffic and AI…	交通與 AI…
 Depot files (destinations)…	車廠檔案（終點站）…
 Satellite and terrain…	衛星影像與地形…
 From OpenStreetMap…	從 OpenStreetMap…
 GPS tracks to trace…	GPS 軌跡描繪…
-Tiles from another map…	從另一地圖合併圖塊…
+Tiles from another map…	從另一地圖合併 Tile…
 Test drive in openOMSI	在 openOMSI 試駕
 Test drive in OMSI 2 (the original)…	在 OMSI 2（正版）試駕…
 Check in openOMSI…	在 openOMSI 檢查…
@@ -278,9 +278,9 @@ Open a map	開啟地圖
 Save (Ctrl+S): there are unsaved changes	儲存（Ctrl+S）：有未儲存的變更
 Save (Ctrl+S)	儲存（Ctrl+S）
 Import assets: a mod folder or .zip, a .obj / .x / .o3d model (or drop files on the window)	匯入資源：mod 資料夾或 .zip、.obj / .x / .o3d 模型（或將檔案拖放到視窗上）
-Undo	撤銷
+Undo	復原
 Redo (Ctrl+Shift+Z)	重做（Ctrl+Shift+Z）
-Tile grid (G)	圖塊網格（G）
+Tile grid (G)	Tile 網格（G）
 Assets: every object and road type, with pictures (B)	資源：所有物件與道路類型，附圖片（B）
 Test drive	試駕
 Save the map and drive it in openOMSI (F5)	儲存地圖並在 openOMSI 中駕駛（F5）
@@ -288,34 +288,34 @@ openOMSI was not found: install it to test maps	找不到 openOMSI：請先安�
 Test drive from the start point nearest the view	從最接近畫面的起點試駕
 See this view in openOMSI	在 openOMSI 檢視此畫面
 loading	載入中
-tiles	圖塊
-splines	樣條線
+tiles	Tile
+splines	Spline
 objects	物件
-tile	圖塊
-Edit mesh	編輯網格
+tile	Tile
+Edit mesh	編輯 Mesh
 Shapes and lamps	形狀與燈具
-Click beside the map to add a 300 × 300 m tile. Right-click a tile to remove it.	點擊地圖旁邊以新增一個 300 × 300 米的圖塊。右鍵點擊圖塊以移除。
-Tiles	圖塊
+Click beside the map to add a 300 × 300 m tile. Right-click a tile to remove it.	點擊地圖旁邊以新增一個 300 × 300 米的 Tile。右鍵點擊 Tile 以移除。
+Tiles	Tile
 Area	範圍
-A ring of tiles round the map	地圖周圍的一圈圖塊
-Every free place beside the map, corners too, gets a tile at the height of its neighbours	地圖旁邊每個空位（包括角落）都會獲得一個與鄰近同高的圖塊
-Tiles added:	已新增圖塊：
+A ring of tiles round the map	地圖周圍的一圈 Tile
+Every free place beside the map, corners too, gets a tile at the height of its neighbours	地圖旁邊每個空位（包括角落）都會獲得一個與鄰近同高的 Tile
+Tiles added:	已新增 Tile：
 Tools	工具
 Objects	物件
 Everything on the map, grouped by the folders its files lie in	地圖上的一切，按檔案所在的資料夾分組
 Click an object or a road in the view to see and change it on the right.	在畫面中點擊物件或道路，即可在右側查看及更改。
 Line up with the nearest road (Shift: put it freely)	與最近的道路對齊（Shift：自由放置）
 On both sides of the road	在道路兩側
-A stop of the same name also goes at the kerb across the road, facing the other way	同名車站亦會在對面路緣放置，面向相反方向
+A stop of the same name also goes at the kerb across the road, facing the other way	同名車站亦會在對面路壆放置，面向相反方向
 In a row along a line	沿路線成排放置
 Every	每
 Draw new	繪製新路徑
 Edit existing	編輯現有路徑
-Click a path to pick it: every point is a dot to drag (the small ones in the middle of a piece bend it). Double-click the path to put a point in. Click a dot, then Del, to take that point out; Del with no dot picked deletes the whole path (Ctrl+Z brings it back). Lanes of roads and junctions belong to their road type: use Edit its AI lanes on the road.	點擊路徑以選取：每個點都是可拖曳的圓點（位於一段中間的小圓點用來彎折該段）。雙擊路徑以加入一個點。點擊圓點後按 Del 可移除該點；未選取圓點時按 Del 會刪除整條路徑（Ctrl+Z 可復原）。道路與路口的車道屬於其道路類型：請在道路上使用「編輯其 AI 車道」。
+Click a path to pick it: every point is a dot to drag (the small ones in the middle of a piece bend it). Double-click the path to put a point in. Click a dot, then Del, to take that point out; Del with no dot picked deletes the whole path (Ctrl+Z brings it back). Lanes of roads and junctions belong to their road type: use Edit its AI lanes on the road.	點擊路徑以選取：每個點都是可拖曳的圓點（位於一段中間的小圓點用來彎折該段）。雙擊路徑以加入一個點。點擊圓點後按 Del 可移除該點；未選取圓點時按 Del 會刪除整條路徑（Ctrl+Z 可復原）。道路與路口的行車線屬於其道路類型：請在道路上使用「編輯其 AI 行車線」。
 Cars	汽車
 People	行人
 Show these in the other tools too	在其他工具中亦顯示這些
-Show the AI's lanes in the other tools too	在其他工具中亦顯示 AI 車道
+Show the AI's lanes in the other tools too	在其他工具中亦顯示 AI 行車線
 Show	顯示
 Everything	全部
 Search	搜尋
@@ -359,7 +359,7 @@ Softens bumps and edges	柔化起伏與邊緣
 Raises the ground under the brush	抬高畫筆下的地面
 Lowers the ground under the brush	降低畫筆下的地面
 Gives flat ground the rolls and dips of a natural field; hold longer for more	令平坦地面有如天然田野的起伏；按得愈久效果愈強
-Paint a lake or a river: the ground is dug to a bed under the water's level (where you start the stroke, or the tile's water) and the tile gets water at that level. Water in OMSI is one level for a whole tile: another low place on the same tile shows it too	塗抹湖泊或河流：地面會挖至水面以下（在你開始落筆之處，或該圖塊的水位），圖塊並在該高度加上水。OMSI 的水是整個圖塊一個水位：同一圖塊上其他低窪處也會顯示水面
+Paint a lake or a river: the ground is dug to a bed under the water's level (where you start the stroke, or the tile's water) and the tile gets water at that level. Water in OMSI is one level for a whole tile: another low place on the same tile shows it too	塗抹湖泊或河流：地面會挖至水面以下（在你開始落筆之處，或該 Tile 的水位），並在該高度為該 Tile 加上水。OMSI 的水是整個 Tile 一個水位：同一 Tile 上其他低窪處也會顯示水面
 Click where it starts, then where it ends: the ground between becomes one even slope as wide as the brush (an embankment, a ramp, a level bed)	先點擊起點，再點擊終點：兩者之間的地面會變成一幅與畫筆同闊的均勻斜坡（路堤、斜坡、平床）
 To a height	至指定高度
 Flatten to the height typed instead of the one where the drag starts (a level square, a platform)	平整至輸入的高度，而非開始拖曳處的高度（水平方塊、平台）
@@ -367,7 +367,7 @@ Depth	深度
 The water's level is set where a stroke starts: start at the bank.	水位在落筆之處決定：請從岸邊開始。
 Brush	畫筆
 Flatten the whole terrain	平整整個地形
-Every tile's ground levelled to the map's mean height; the roads, the AI paths and the junctions follow it. One undo step brings the relief back. (The satellite picture: View > Satellite overlay.)	每個圖塊的地面平整至地圖的平均高度；道路、AI 路徑與路口會跟隨。一步撤銷即可回復起伏。（衛星圖片：檢視 > 衛星圖層。）
+Every tile's ground levelled to the map's mean height; the roads, the AI paths and the junctions follow it. One undo step brings the relief back. (The satellite picture: View > Satellite overlay.)	每個 Tile 的地面平整至地圖的平均高度；道路、AI 路徑與路口會跟隨。一步復原即可回復起伏。（衛星圖片：檢視 > 衛星圖層。）
 Ground layers	地面圖層
 base ground	底層地面
 layer	圖層
@@ -375,34 +375,34 @@ Add…	新增…
 Remove	移除
 Up the list: drawn under the layers after it	在清單中上移：繪製於其後的圖層之下
 Down the list: drawn over the layers before it	在清單中下移：繪製於其前的圖層之上
-Texture	貼圖
+Texture	Texture
 The layer's picture; its painting stays	該圖層的圖片；其塗抹內容保留
-Detail texture	細節貼圖
-A fine grain laid over the texture, seen close up (OMSI's detail texture)	鋪在貼圖上的細緻顆粒，近看可見（OMSI 的細節貼圖）
+Detail texture	細節 Texture
+A fine grain laid over the texture, seen close up (OMSI's detail texture)	鋪在 Texture 上的細緻顆粒，近看可見（OMSI 的細節 Texture）
 Click to choose another	點擊選擇其他
-Repeats per tile	每圖塊重複次數
+Repeats per tile	每 Tile 重複次數
 Detail repeats	細節重複
 Paint detail	塗抹細節
-How finely this layer can be painted: texels across a tile (its masks are made again at the new size)	此圖層可塗抹的細緻程度：一個圖塊橫跨的紋素數（其遮罩會以新尺寸重新產生）
-Edit ground texture	編輯地面貼圖
+How finely this layer can be painted: texels across a tile (its masks are made again at the new size)	此圖層可塗抹的細緻程度：一個 Tile 橫跨的紋素數（其遮罩會以新尺寸重新產生）
+Edit ground texture	編輯地面 Texture
 Paint	塗抹
 Erase	擦除
-Remove ground texture	移除地面貼圖
-Tile	圖塊
+Remove ground texture	移除地面 Texture
+Tile	Tile
 Water	水
-A water surface over the whole tile: it shows where the ground lies below it (lower the ground with the Terrain tool for a lake or a river)	整個圖塊的水面：會顯示地面在其下的位置（要用「地形」工具降低地面以造出湖泊或河流）
+A water surface over the whole tile: it shows where the ground lies below it (lower the ground with the Terrain tool for a lake or a river)	整個 Tile 的水面：會顯示地面在其下的位置（要用「地形」工具降低地面以造出湖泊或河流）
 at 	於
 Lamps light the ground at night	燈具在夜間照亮地面
-The game works out the light pools of the street lamps on and round this tile when it loads it ([variable_terrainlightmap]); off, it shows the tile's light map file as it is	遊戲載入此圖塊時會計算其上及周邊街燈的光池（[variable_terrainlightmap]）；關閉時則如實顯示該圖塊的光照貼圖檔
+The game works out the light pools of the street lamps on and round this tile when it loads it ([variable_terrainlightmap]); off, it shows the tile's light map file as it is	遊戲載入此 Tile 時會計算其上及周邊街燈的光池（[variable_terrainlightmap]）；關閉時則如實顯示該 Tile 的光照 Texture 檔
 Edit history	編輯記錄
 Click a step to go back to just after it	點擊某一步以回到該步之後
 Opened	開啟於
 Properties	屬性
 Configure PBR	設定 PBR
 Create PBR	建立 PBR
-Normal, roughness, metal and shadow maps made from the object's textures, tuned and written as openOMSI reads them	由物件的貼圖產生法線、粗糙度、金屬及陰影貼圖，經調整後以 openOMSI 讀取的方式寫出
+Normal, roughness, metal and shadow maps made from the object's textures, tuned and written as openOMSI reads them	由物件的 Texture 產生法線、粗糙度、金屬及陰影 Texture，經調整後以 openOMSI 讀取的方式寫出
 Type	類型
-Tile	圖塊
+Tile	Tile
 Hangs on	懸掛於
 point	點
 Location	位置
@@ -437,11 +437,11 @@ colour only	只有顏色
 opaque	不透明
 cut out	裁切
 blended	混合
-How the texture's transparency is used: cut out for leaves and fences, blended for glass	貼圖透明度的用法：樹木與圍欄用裁切，玻璃用混合
-Textures	貼圖
+How the texture's transparency is used: cut out for leaves and fences, blended for glass	Texture 透明度的用法：樹木與圍欄用裁切，玻璃用混合
+Textures	Texture
 Configure PBR	設定 PBR
 Create PBR	建立 PBR
-Normal, roughness, metal and shadow maps made from the road type's textures	由道路類型的貼圖產生法線、粗糙度、金屬及陰影貼圖
+Normal, roughness, metal and shadow maps made from the road type's textures	由道路類型的 Texture 產生法線、粗糙度、金屬及陰影 Texture
 Length	長度
 Radius	半徑
 right	右
@@ -488,7 +488,7 @@ Traffic	交通
 left-hand	靠左
 Start points	起點
 Area	範圍
-tiles	圖塊
+tiles	Tile
 Roads	道路
 Tracks	軌道
 Objects	物件
@@ -502,9 +502,9 @@ Open the map with this view	以此畫面開啟地圖
 The camera as it is now is where the map opens (here and in OMSI 2's editor).	地圖會以目前的相機位置開啟（此處及 OMSI 2 編輯器皆然）。
 Saved to	已儲存至
 Edit map	編輯地圖
-Add ground texture	新增地面貼圖
-Change the layer's texture	更改圖層貼圖
-Change the layer's detail texture	更改圖層細節貼圖
+Add ground texture	新增地面 Texture
+Change the layer's texture	更改圖層 Texture
+Change the layer's detail texture	更改圖層細節 Texture
 Search	搜尋
 
 # -- the controls
@@ -559,7 +559,7 @@ Groups	群組
 Select the group and go there	選取群組並前往
 Selected:	已選取：
 Select everything in it	選取其中全部
-tile	圖塊
+tile	Tile
 Select it and go there	選取並前往
 more: narrow the search	更多：收窄搜尋範圍
 Select all of them	全選
@@ -569,7 +569,7 @@ Go to the first	前往第一個
 Junctions made again:	已重建路口：
 Pick a tree in the catalogue, then paint	在目錄中選擇一棵樹，然後塗抹
 Pick a tree in the catalogue, then click round the area	在目錄中選擇一棵樹，然後沿範圍點擊
-Pick a road type, click the centre, then the ring	選擇道路類型，點擊中心，再點擊圓環
+Pick a road type, click the centre, then the ring	選擇道路類型，點擊中心，再點擊外環
 Select a road (double-click: all of it): its properties show its height profile	選取一條道路（雙擊：選取全部）：其屬性會顯示高度剖面
 Select one of openMapper's junctions: its properties have Traffic lights and crossings	選取 openMapper 的其中一個路口：其屬性中有「交通燈」與「斑馬線」
 Select the signal head (or a display): Linked objects in its properties, then click its crossing	選取訊號燈頭（或顯示屏）：在其屬性中選擇「連結物件」，然後點擊其路口
@@ -577,7 +577,7 @@ Select a road, pick an object in the Objects catalogue: Objects along the road i
 Select a track (double-click: all of it): Overhead wire under Parallel copy in its properties	選取一條軌道（雙擊：選取全部）：在其屬性中選擇「平行複製」下的「架空電線」
 Select a road or a chain: Parallel copy in its properties	選取一條道路或一條鏈：在其屬性中選擇「平行複製」
 Select a road (double-click: all of it): Paint the ground along it in its properties	選取一條道路（雙擊：選取全部）：在其屬性中選擇「塗抹沿線地面」
-Click a tile: its water is in the panel; lower the ground under it with the Terrain tool	點擊一個圖塊：其水體在面板中；用「地形」工具降低其下方地面
+Click a tile: its water is in the panel; lower the ground under it with the Terrain tool	點擊一個 Tile：其水體在面板中；用「地形」工具降低其下方地面
 Height map: at the end of the Terrain panel	高度圖：在「地形」面板的最後
 By slope and height: at the end of the Paint panel	按斜度與高度：在「塗抹」面板的最後
 View menu: Time of day, Season	「檢視」選單：時間、季節

@@ -294,7 +294,7 @@ egui 用 `unicode-linebreak`，中文可以逐字斷行，唔使特殊處理；�
 |---|---|---|
 | Menu | 選單 | 菜单 |
 | Save | 儲存 | 保存 |
-| Save as | 另存為 | 另存为 |
+| Save as | 儲存為／另存新檔 | 另存为 |
 | File | 檔案 | 文件 |
 | Folder | 資料夾 | 文件夹 |
 | Software | 軟件／程式 | 软件 |
@@ -302,8 +302,8 @@ egui 用 `unicode-linebreak`，中文可以逐字斷行，唔使特殊處理；�
 | Screen | 螢幕 | 屏幕 |
 | Scroll | 捲動 | 滚动 |
 | Drag | 拖曳 | 拖拽 |
-| Checkbox | 核取方塊 | 复选框 |
-| Dialog | 對話方塊 | 对话框 |
+| Checkbox | 勾選框 | 复选框 |
+| Dialog | 對話框 | 对话框 |
 | Quality | 品質 | 质量 |
 | Information | 資訊 | 信息 |
 | Project | 專案 | 项目 |
@@ -315,17 +315,20 @@ egui 用 `unicode-linebreak`，中文可以逐字斷行，唔使特殊處理；�
 | Performance | 效能 | 性能 |
 | Default | 預設 | 默认 |
 | Error | 錯誤 | 错误 |
-| Crash | 當機／程式崩潰 | 崩溃 |
+| Crash | 程式無回應 | 崩溃 |
 | Lane | 行車線 | 车道 |
-| Kerb | 路緣石 | 路缘 |
+| Kerb | 路壆 | 路缘 |
 | Footpath | 行人路 | 人行道 |
 | Traffic light | 交通燈 | 红绿灯 |
 | Signal | 訊號 | 信号 |
-| Junction | 交叉路口 | 路口／交叉口 |
-| Tile | 圖塊（OMSI 社群常用 tile） | 图块 |
-| Texture | 貼圖 | 纹理 |
-| Mesh | 網格 | 网格 |
-| Spline | 樣條線 | 样条 |
+| Junction | 路口 | 交叉路口 |
+| Roundabout | 迴旋處 | 环岛／圓環 |
+| One-way street | 單程路 | 单行道 |
+| Tile | **Tile**（直接用英文） | 图块 |
+| Texture | **Texture**（直接用英文） | 纹理 |
+| Mesh | **Mesh**（直接用英文） | 网格 |
+| Spline | **Spline**（直接用英文） | 样条 |
+| Grid | 網格／格線 | 网格 |
 | Heightmap | 高度圖 | 高度图 |
 | Catalogue | 資源目錄 | 目录 |
 | Preview | 預覽 | 预览 |
@@ -333,14 +336,14 @@ egui 用 `unicode-linebreak`，中文可以逐字斷行，唔使特殊處理；�
 | Keyboard | 鍵盤 | 键盘 |
 | Coordinates | 座標 | 坐标 |
 | Latitude / Longitude | 緯度／經度 | 纬度／经度 |
-| Undo / Redo | 撤銷／重做 | 撤销／重做 |
+| Undo / Redo | 復原／重做 | 撤销／重做 |
 | Delete | 刪除 | 删除 |
 | Copy / Paste | 複製／貼上 | 复制／粘贴 |
 | Customise | 自訂 | 自定义 |
 | Layout | 佈局 | 布局 |
 | Layer | 圖層 | 层 |
 | Depot | 車廠 | 车场 |
-| Timetable | 時刻表 | 时刻表 |
+| Timetable | 時間表 | 时刻表 |
 | Video | 影片 | 视频 |
 | Import / Export | 匯入／匯出 | 导入／导出 |
 | Tooltip | 工具提示 | 工具提示 |
@@ -370,7 +373,7 @@ egui 用 `unicode-linebreak`，中文可以逐字斷行，唔使特殊處理；�
 - [x] 驗證：中文文字正常顯示、圖示正常、無豆腐格、Monospace 面板正常。
 - [x] **字型子集化**（`tools/subset-cjk.py`）：完整 Noto Sans CJK TC 係 16 MB，入唔到 repository（CI 擋 ≥ 1 MB 嘅檔）。
   - [x] `tools/fetch-chars.py` 拉常用繁中字符表（粵語常用字 + HKSCS 香港補充字符）→ `tools/i18n/chars.txt`。
-  - [x] 子集 = 全部譯文用嘅字符（1,048）＋ 常用字前 800 個 ＋ Latin／標點／符號 → **735 kB**（`assets/fonts/NotoSansCJKtc-Subset.otf`）。
+  - [x] 子集 = 全部譯文用嘅字符（1,061）＋ 常用字前 1,400 個 ＋ Latin／標點／符號 → **975 kB**（`assets/fonts/NotoSansCJKtc-Subset.otf`，1,791 字，999,004 bytes）。
   - [x] 完整字型唔入 repository（`.gitignore`），要時 `tools/subset-cjk.py` 會自動下載。
   - [x] `src/lang/mod.rs` 測試：讀字型嘅 cmap，確認**每個譯文字符都有字**（唔會出現豆腐格）。
 
@@ -447,8 +450,8 @@ egui 用 `unicode-linebreak`，中文可以逐字斷行，唔使特殊處理；�
 | 上游改 `i18n.rs` 結構 | 衝突 | 只改一個檔、diff 細；定期 `git merge upstream/main` 試撞 |
 | 翻譯風格不一致 | 品質下降 | §6 詞彙表 + 每批 review；`tools/check-lang.py` 檢查重複詞 |
 | 繁簡字形／港台用字爭議 | 觀感差 | 全程用繁體 + 香港用語；`香港補充字符` 由 HKSCS 清單覆蓋 |
-| 安裝包體積暴增 | 使用者不滿 | **已解決**：字型子集化（16 MB → 735 kB），完整字型唔入 package |
-| 字型子集漏咗用戶自己寫嘅字 | 手寫地圖名有豆腐格 | 子集含粵語常用字 800 個 + HKSCS；要更多就調 `tools/subset-cjk.py` 嘅 `COMMON_COUNT` |
+| 安裝包體積暴增 | 使用者不滿 | **已解決**：字型子集化（16 MB → 975 kB），完整字型唔入 package |
+| 字型子集漏咗用戶自己寫嘅字 | 手寫地圖名有豆腐格 | 子集含粵語常用字 1,400 個 + HKSCS；`COMMON_COUNT` 已經係上限（999,004 bytes，CI 擋 ≥ 1 MB），要更多字就要另想辦法（拆成多個子集／完整字型不入 repository） |
 | 翻譯量太大（1,974 句） | 進度慢 | 分批 + 檢查強迫補齊；每批可獨立交付（**已完成**） |
 
 ---
@@ -480,7 +483,7 @@ egui 用 `unicode-linebreak`，中文可以逐字斷行，唔使特殊處理；�
 | `src/geo/fetch.rs` | ~320 | Nominatim `accept-language`（自動變 `zh-HK`） |
 | `src/app.rs` | 3,175 | 語言套用（@157）、偏好寫入（@1246） |
 | `src/install.rs` | ~310 | `Prefs.language`（@48） |
-| `assets/fonts/NotoSansCJKtc-Subset.otf` | 新增 | 中文字型子集（735 kB） |
+| `assets/fonts/NotoSansCJKtc-Subset.otf` | 新增 | 中文字型子集（975 kB） |
 | `tools/i18n/zh_hk*.tsv` | 新增 | 譯文（英文<TAB>繁中），翻譯員改呢啲 |
 | `tools/extract-i18n.py` | 新增 | 抽 key、產生模板、查缺漏 |
 | `tools/generate-lang.py` | 新增 | 由 TSV 生成 `src/lang/zh_hk.rs` |
@@ -509,7 +512,7 @@ egui 用 `unicode-linebreak`，中文可以逐字斷行，唔使特殊處理；�
 **已完成**（commit `305a4e5`，branch `feat/i18n-zh-hk`）：
 
 - 全部 2,109 句 `tr()` 文字已有繁中譯文，`tools/check-i18n.py` 全綠。
-- 字型已子集化（735 kB）：`src/lang/mod.rs` 有三個測試——
+- 字型已子集化（975 kB）：`src/lang/mod.rs` 有三個測試——
   - `the_font_file_is_read_as_it_should`（字型讀得到）、
   - `the_chinese_font_has_every_character_of_the_translations`（每個譯文字符都有字形）、
   - `egui_shows_every_character_of_the_translations`（**經 egui 嘅 fallback 鏈**，中文真係畫得出，冇豆腐格）。
@@ -524,4 +527,75 @@ egui 用 `unicode-linebreak`，中文可以逐字斷行，唔使特殊處理；�
 2. `tools/package-windows.ps1` 打包試（本機冇 NSIS，睇 CI 嘅 `Installer installs and uninstalls` job）：確認字型入咗 package。
 3. `global_ZHT.dsc` 寫出後，用 openOMSI launcher 讀返確認（要裝 openOMSI）。
 4. 考慮上游提案：`src/lang/` 呢套「翻譯表 + 查表」設計。
+
+---
+
+## 十四、港式用語校對（2026-10-25 第二輪）
+
+逐個 `zh_hk*.tsv` 核對香港慣用語，改咗 142 行譯文：
+
+| 舊 | 新 | 原因 |
+|---|---|---|
+| 保存 | 儲存 | 大陸用語 |
+| 端口 | 連接埠 | 大陸用語 |
+| 網際網絡 | 互聯網 | 台灣用語（港用「互聯網」） |
+| 單行道 | 單程路 | 香港運輸署用語 |
+| 交叉路口 | 路口 | 大陸／台灣用語 |
+| 圓環（迴旋處） | 迴旋處 | 香港運輸署用語（幾何「圓環」保留） |
+| 車道 | 行車線 | 香港運輸署用語 |
+| 周期 | 週期 | 繁體正字 |
+| 時刻表 | 時間表 | 香港巴士／鐵路慣用語 |
+
+順手改正嘅誤譯：
+
+- `Takes off` 起飛 → **停用路線**（`deactivate_lines`，唔係飛機起飛）
+- `Roller blind` 遮陽簾 → **布牌**（巴士目的地布牌，唔係窗簾）
+- `Inset` 內插 → **內縮**（內插係 interpolation）
+- `Roughen` 弄粗 → **粗糙化**
+- `Smart unwrap / project` 智慧 → **智能**（香港用「智能」）
+- `Footpaths` 小徑 → **行人路**（`Category::Paths` 嘅俄文係 Тротуары）
+- `Factor` 系數 → **係數**
+- `圖像品質` → **圖形品質**；`校驗和` → **校驗碼**
+- `一 click 修正` → **按一下即可修正**
+- `motorway, trunk, primary, secondary` 少譯一項 → 補齊四個
+- `zh_hk_app.tsv` 有一行黏咗兩條英文（多人遊戲「On this network the connection…」）→ 拆返做獨立一列
+- `Its folder goes into … (openMapper\bin)` 括號重複 → 刪走重複
+
+指令面板嘅搜尋詞**刻意保留**舊詞（`保存`、`車道`、`時刻表`…）做同義詞，等用開舊詞嘅人都搵到；顯示文字則全部用港式。
+
+字型子集重做（新增「迴」「埠」）：1,790 字、996,600 bytes（仍然低於 CI 嘅 1 MB 上限）。
+
+驗證：`python tools/check-i18n.py` 全綠（缺譯 0、placeholder 0、亂碼 0、字型覆蓋齊）。
+
+---
+
+## 十五、第三輪用語（2026-10-25）
+
+按指定再改一輪，共 171 行：
+
+| 英文 | 舊譯 | 新譯 | 說明 |
+|---|---|---|---|
+| Texture | 貼圖 | **Texture** | 直接用英文 |
+| Mesh | 網格 | **Mesh** | 直接用英文（grid／網格仍留中文） |
+| Spline | 樣條線 | **Spline** | 直接用英文 |
+| Tile | 圖塊 | **Tile** | 直接用英文 |
+| Kerb | 路緣 | **路壆** | 香港運輸署用語 |
+| Undo / Redo | 撤銷／重做 | **復原／重做** | |
+| Crash | 當機／程式崩潰 | **程式無回應** | 詞彙表 |
+| Checkbox | 核取方塊 | **勾選框** | 詞彙表 |
+| Dialog | 對話方塊 | **對話框** | 詞彙表 |
+
+規則細節：
+
+- 中英之間**一個空格**，英文與全形標點之間**不留空格**（`Tile 網格（G）`、`工具：Tile`、`匯出 Texture`）。
+- `網格` 只保留畀 **grid**（`Tile 網格`、`吸附至網格`、`世界座標網格`、網格形狀），代表 **mesh** 的全部轉做 `Mesh`。
+- `UV map` 唔係 Texture，改為 `UV 圖`；`Lightmap pack` → `Lightmap 打包`。
+- 少數重複累贅句重寫，例如 `此物件沒有 Texture，無法製作 PBR Texture`。
+- 指令面板搜尋詞保留舊中文（`圖塊`、`貼圖`、`時刻表`…）做同義詞，中文照樣搵到。
+
+字型子集重做（新增「壆」）：1,790 字、995,808 bytes。
+
+驗證：`python tools/check-i18n.py` 全綠。
+
+
 
