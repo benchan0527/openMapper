@@ -1663,7 +1663,7 @@ impl Renderer {
                 let mut ids: Vec<i64> = members.keys().copied().collect();
                 ids.sort_unstable();
                 let parts: Vec<(&MeshData, &[Material], Aabb)> = ids.iter().filter_map(|id| self.splines.get(&(*k, *id))).filter_map(|e| e.cpu.as_deref().map(|m| (m, e.materials.as_slice(), e.bbox))).collect();
-                let (mesh, materials, bbox) = merge_meshes(&parts);
+                let (mesh, materials, bbox) = merge_meshes(&parts, &self.picture_alpha);
                 let mesh = (!mesh.indices.is_empty()).then(|| upload_mesh(device, &mesh));
                 self.chunks.insert(*k, Chunk { members, mesh, materials, bbox, instance: 0 });
             }
@@ -2362,7 +2362,12 @@ fn draw_mesh(pass: &mut wgpu::RenderPass, materials: &HashMap<MatKey, wgpu::Bind
 }
 
 /// Meshes (in the same frame) as one, its triangles grouped by material.
-fn merge_meshes(parts: &[(&MeshData, &[Material], Aabb)]) -> (MeshData, Vec<Material>, Aabb) {
+///
+/// The grouping uses the mode each material is really drawn with (see `effective_alpha`), not
+/// the one its slot says: `draw_mesh` looks a merged part up by that key, so grouping by the
+/// slot's own would leave a part whose picture changed the mode out of the bind groups and it
+/// would not be drawn at all.
+fn merge_meshes(parts: &[(&MeshData, &[Material], Aabb)], pictures: &HashMap<PathBuf, Alpha>) -> (MeshData, Vec<Material>, Aabb) {
     let mut out = MeshData::default();
     let mut materials: Vec<Material> = Vec::new();
     let mut keys: Vec<MatKey> = Vec::new();
@@ -2377,7 +2382,7 @@ fn merge_meshes(parts: &[(&MeshData, &[Material], Aabb)]) -> (MeshData, Vec<Mate
         out.uvs.extend((0..m.positions.len()).map(|i| m.uvs.get(i).copied().unwrap_or(glam::Vec2::ZERO)));
         for &(first, count, slot) in &m.ranges {
             let Some(mat) = mats.get(slot as usize) else { continue };
-            let key = mat_key(mat);
+            let key = mat_key_with(mat, effective_alpha(mat, pictures));
             let i = match keys.iter().position(|k| *k == key) {
                 Some(i) => i,
                 None => {
@@ -2697,6 +2702,25 @@ mod tests {
         // (a slot that already says opaque or cut out is left as it says)
         assert_eq!(effective_alpha(&a_material(Alpha::Opaque, Some("texture/arrow.png")), &pictures), Alpha::Opaque);
         assert_eq!(effective_alpha(&a_material(Alpha::Test, Some("texture/glass.tga")), &pictures), Alpha::Test);
+    }
+
+    #[test]
+    fn a_merged_chunk_groups_its_parts_by_the_mode_they_are_drawn_with() {
+        // (draw_mesh looks a merged part up by the mode it is really drawn with. Grouped by
+        // the slot's own mode instead, a part whose picture changes the mode would be left
+        // out of the bind groups and not drawn at all.)
+        let mut pictures = HashMap::new();
+        pictures.insert(PathBuf::from("texture/sign.bmp"), Alpha::Opaque);
+        let mat = Material { texture: Some(PathBuf::from("texture/sign.bmp")), color: [1.0; 4], alpha: Alpha::Blend, glow: None };
+        let mesh = MeshData { ranges: vec![(0, 3, 0)], indices: vec![0, 1, 2], one_sided: true, ..Default::default() };
+        let mats = [mat];
+        let aabb = Aabb::EMPTY;
+        let (merged, materials, _) = merge_meshes(&[(&mesh, &mats, aabb)], &pictures);
+        assert_eq!(materials.len(), 1);
+        // the slot the draw loop will look for is the effective one
+        let want = mat_key_with(&materials[0], effective_alpha(&materials[0], &pictures));
+        assert_eq!(want.alpha, 0, "a picture with no transparency is drawn opaque");
+        assert_eq!(merged.ranges[0].2, 0, "the merged part is in the first slot");
     }
 
     #[test]
