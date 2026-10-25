@@ -2366,7 +2366,12 @@ fn draw_mesh(pass: &mut wgpu::RenderPass, materials: &HashMap<MatKey, wgpu::Bind
 
 /// Meshes (in the same frame) as one, its triangles grouped by material.
 fn merge_meshes(parts: &[(&MeshData, &[Material], Aabb)]) -> (MeshData, Vec<Material>, Aabb) {
-    let mut out = MeshData::default();
+    // (one-sided only when every part is: they are drawn with one pipeline, and drawing a
+    // two-sided part from one side would leave it half missing. A tile's chunk merges the
+    // splines drawn near it, and every spline the geometry crate builds is one-sided - which
+    // this lost, begun from `MeshData::default()`, so the merged splines were the ones still
+    // drawn from both sides)
+    let mut out = MeshData { one_sided: !parts.is_empty() && parts.iter().all(|(m, _, _)| m.one_sided), ..Default::default() };
     let mut materials: Vec<Material> = Vec::new();
     let mut keys: Vec<MatKey> = Vec::new();
     let mut by_mat: Vec<Vec<u32>> = Vec::new();
@@ -2619,6 +2624,27 @@ fn light_view(cam: &Camera, sun: Vec3, size: u32, reach: f32) -> (Mat4, f32) {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn a_merged_chunk_keeps_the_one_sidedness_of_its_parts() {
+        // (a tile's chunk merges the splines drawn near it into one draw, and the merged mesh
+        // is what the draw loop sees: it has to carry the flag its parts had. Begun from
+        // `MeshData::default()` it was two-sided, so every merged spline - which is most of
+        // them - was still drawn from both sides.)
+        let one = MeshData { one_sided: true, ..Default::default() };
+        let mut two = one.clone();
+        two.one_sided = false;
+        let aabb = Aabb::EMPTY;
+        let mats: [Material; 0] = [];
+        let (merged, _, _) = merge_meshes(&[(&one, &mats, aabb), (&one, &mats, aabb)]);
+        assert!(merged.one_sided, "merged one-sided parts came out two-sided");
+        // (one two-sided part makes the whole draw two-sided: they share one pipeline)
+        let (merged, _, _) = merge_meshes(&[(&one, &mats, aabb), (&two, &mats, aabb)]);
+        assert!(!merged.one_sided, "a two-sided part was merged into a one-sided draw");
+        // (nothing to merge is nothing to cull)
+        let (merged, _, _) = merge_meshes(&[]);
+        assert!(!merged.one_sided);
+    }
 
     #[test]
     fn a_one_sided_mesh_is_drawn_with_the_pipeline_that_culls_the_back() {
