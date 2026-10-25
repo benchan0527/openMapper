@@ -392,6 +392,12 @@ pub struct Renderer {
     uncut: wgpu::TextureView,
     textures: HashMap<PathBuf, GpuTexture>,
     materials: HashMap<MatKey, wgpu::BindGroup>,
+    /// How each picture's transparency really is (opaque, cut out, fading), read from the
+    /// picture itself. A `[matl_alpha] 2` slot showing one is drawn the way the picture says
+    /// rather than blended, so that its solid part writes depth and what is drawn after it
+    /// cannot come over it; Omsi.exe writes depth there too (its ZWRITEENABLE is cleared by
+    /// `[matl_noZwrite]` alone). The rule travels with the content, not with a model's name.
+    picture_alpha: HashMap<PathBuf, Alpha>,
     models: HashMap<String, Option<GpuModel>>,
     tree_mesh: GpuMesh,
     marker: GpuMesh,
@@ -900,6 +906,7 @@ impl Renderer {
             uncut,
             textures: HashMap::new(),
             materials: HashMap::new(),
+            picture_alpha: HashMap::new(),
             models: HashMap::new(),
             tree_mesh,
             marker,
@@ -952,6 +959,7 @@ impl Renderer {
         self.scene_key = 0;
         self.tile_groups.clear();
         self.textures.clear();
+        self.picture_alpha.clear();
         self.materials.clear();
         self.models.clear();
         self.anchored = false;
@@ -992,6 +1000,7 @@ impl Renderer {
         self.materials.clear();
         // (a texture's PBR maps may have been made or taken away)
         self.textures.clear();
+        self.picture_alpha.clear();
         self.splines.clear();
         self.chunks.clear();
         self.builder.reset();
@@ -1034,32 +1043,48 @@ impl Renderer {
 
     /// A material's bind group (None while its texture loads).
     fn material(&mut self, device: &wgpu::Device, queue: &wgpu::Queue, assets: &mut Assets, m: &Material) -> Option<&wgpu::BindGroup> {
-        let key = mat_key(m);
+        // (a picture that cannot be read: the part is drawn in its colour, not left out;
+        // the glow one at night the same way, one that cannot be read: no glow)
+        let readable = m.texture.as_ref().filter(|p| !assets.texture_failed(p)).cloned();
+        let glow_path = m.glow.as_ref().filter(|g| !assets.texture_failed(&g.0)).map(|g| g.0.clone());
+        // (the pictures are read before the mode is chosen: the picture itself decides it. A
+        // cut-out one — every texel clear or solid, only the antialiased outline between — is
+        // what the parked buses and vans of the maps are painted on)
+        if let Some(p) = &readable {
+            if !self.textures.contains_key(p) {
+                let img = assets.texture(p)?;
+                let mode = crate::models::alpha_of_pixels(img.image.rgba.chunks_exact(4).map(|q| q[3]));
+                let alpha = match mode {
+                    0 => Alpha::Opaque,
+                    1 => Alpha::Test,
+                    _ => Alpha::Blend,
+                };
+                self.picture_alpha.insert(p.clone(), alpha);
+                let albedo = upload_image(device, queue, &img.image, true);
+                let normal = img.normal.as_ref().map(|n| upload_image(device, queue, n, false));
+                let orm = img.orm.as_ref().map(|n| upload_image(device, queue, n, false));
+                self.textures.insert(p.clone(), GpuTexture { albedo, normal, orm, flags: img.pbr_flags });
+            }
+        }
+        if let Some(p) = &glow_path {
+            if !self.textures.contains_key(p) {
+                let img = assets.texture(p)?;
+                let albedo = upload_image(device, queue, &img.image, true);
+                self.textures.insert(p.clone(), GpuTexture { albedo, normal: None, orm: None, flags: [0.0; 4] });
+            }
+        }
+        // (a `[matl_alpha] 2` slot showing a picture that is opaque or cut out is drawn that
+        // way, as Omsi.exe draws it: its solid part writes depth, so what is drawn after it
+        // cannot come over the paint)
+        let alpha = effective_alpha(m, &self.picture_alpha);
+        let key = mat_key_with(m, alpha);
         if !self.materials.contains_key(&key) {
             let mut flags = [0.0f32; 4];
             let mut has_tex = 0.0;
-            // (a picture that cannot be read: the part is drawn in its colour, not left out)
-            let readable = m.texture.as_ref().filter(|p| !assets.texture_failed(p));
-            if let Some(p) = readable {
-                if !self.textures.contains_key(p) {
-                    let img = assets.texture(p)?;
-                    let albedo = upload_image(device, queue, &img.image, true);
-                    let normal = img.normal.as_ref().map(|n| upload_image(device, queue, n, false));
-                    let orm = img.orm.as_ref().map(|n| upload_image(device, queue, n, false));
-                    self.textures.insert(p.clone(), GpuTexture { albedo, normal, orm, flags: img.pbr_flags });
-                }
+            if readable.is_some() {
                 has_tex = 1.0;
             }
-            // its glow at night, the same way
-            // (one that cannot be read: no glow)
-            if let Some((p, _)) = key.glow.as_ref().filter(|g| !assets.texture_failed(&g.0)) {
-                if !self.textures.contains_key(p) {
-                    let img = assets.texture(p)?;
-                    let albedo = upload_image(device, queue, &img.image, true);
-                    self.textures.insert(p.clone(), GpuTexture { albedo, normal: None, orm: None, flags: [0.0; 4] });
-                }
-            }
-            let t = readable.and_then(|p| self.textures.get(p));
+            let t = readable.as_ref().and_then(|p| self.textures.get(p));
             if let Some(t) = t {
                 flags = t.flags;
                 if t.normal.is_none() {
@@ -1072,10 +1097,12 @@ impl Renderer {
                 }
             }
             // (a blended colour keeps its own opacity: the water without a picture)
-            let color = if has_tex > 0.0 { [1.0, 1.0, 1.0, m.color[3].max(0.0)] } else { [m.color[0], m.color[1], m.color[2], if key.alpha == 2 { m.color[3] } else { 1.0 }] };
-            let glow_mode = match key.glow.as_ref().filter(|g| self.textures.contains_key(&g.0)) {
-                Some((_, true)) => 1.0,
-                Some((_, false)) => 2.0,
+            let color = if has_tex > 0.0 { [1.0, 1.0, 1.0, m.color[3].max(0.0)] } else { [m.color[0], m.color[1], m.color[2], if alpha == Alpha::Blend { m.color[3] } else { 1.0 }] };
+            let glow_mode = match glow_path.as_ref().filter(|p| self.textures.contains_key(*p)) {
+                Some(_) => match m.glow.as_ref().map(|g| g.1) {
+                    Some(true) => 1.0,
+                    _ => 2.0,
+                },
                 None => 0.0,
             };
             let u = MatUniform { color, mode: [key.alpha as f32, has_tex, 1.0, glow_mode], pbr: flags };
@@ -1083,7 +1110,7 @@ impl Renderer {
             let albedo = t.map(|t| &t.albedo).unwrap_or(&self.white);
             let normal = t.and_then(|t| t.normal.as_ref()).unwrap_or(&self.flat_normal);
             let orm = t.and_then(|t| t.orm.as_ref()).unwrap_or(&self.default_orm);
-            let glow = key.glow.as_ref().and_then(|g| self.textures.get(&g.0)).map(|t| &t.albedo).unwrap_or(&self.white);
+            let glow = glow_path.as_ref().and_then(|p| self.textures.get(p)).map(|t| &t.albedo).unwrap_or(&self.white);
             let bg = device.create_bind_group(&wgpu::BindGroupDescriptor {
                 label: Some("material"),
                 layout: &self.mat_layout,
@@ -1920,12 +1947,12 @@ impl Renderer {
         pass.set_vertex_buffer(1, dynamic.slice(..));
         for c in self.chunks.values().filter(|c| !self.hide_splines && f.sees(&c.bbox)) {
             if let Some(mesh) = &c.mesh {
-                calls += draw_mesh(&mut pass, &self.materials, mesh, &c.materials, Some(false), &[c.instance..c.instance + 1]);
+                calls += draw_mesh(&mut pass, &self.materials, mesh, &c.materials, Some(false), &[c.instance..c.instance + 1], &self.picture_alpha);
             }
         }
         for e in self.splines.values().filter(|e| !e.technical && !e.hidden && !e.in_chunk && f.sees(&e.bbox)) {
             if let Some(mesh) = &e.mesh {
-                calls += draw_mesh(&mut pass, &self.materials, mesh, &e.materials, Some(false), &[e.instance..e.instance + 1]);
+                calls += draw_mesh(&mut pass, &self.materials, mesh, &e.materials, Some(false), &[e.instance..e.instance + 1], &self.picture_alpha);
             }
         }
         pass.set_vertex_buffer(1, scene.slice(..));
@@ -1942,12 +1969,12 @@ impl Renderer {
             if b.tree {
                 let tex = b.model.strip_prefix("tree:").map(PathBuf::from);
                 let m = Material { texture: tex, color: [1.0; 4], alpha: Alpha::Test, glow: None };
-                calls += draw_mesh(&mut pass, &self.materials, &self.tree_mesh, std::slice::from_ref(&m), Some(false), &ranges);
+                calls += draw_mesh(&mut pass, &self.materials, &self.tree_mesh, std::slice::from_ref(&m), Some(false), &ranges, &self.picture_alpha);
                 continue;
             }
             let Some(Some(model)) = self.models.get(&b.model).filter(|m| m.as_ref().map(|m| !m.technical).unwrap_or(false)) else { continue };
             for (mesh, mats) in &model.parts {
-                calls += draw_mesh(&mut pass, &self.materials, mesh, mats, Some(false), &ranges);
+                calls += draw_mesh(&mut pass, &self.materials, mesh, mats, Some(false), &ranges, &self.picture_alpha);
             }
         }
         calls
@@ -2034,7 +2061,7 @@ impl Renderer {
             pass.set_pipeline(if blend { &self.spline_blend } else { &self.spline_opaque });
             pass.set_vertex_buffer(1, dynamic.slice(..));
             for &(mesh, mats, i) in &splines {
-                let n = draw_mesh(&mut pass, &self.materials, mesh, mats, Some(blend), &[i..i + 1]);
+                let n = draw_mesh(&mut pass, &self.materials, mesh, mats, Some(blend), &[i..i + 1], &self.picture_alpha);
                 calls += n;
                 spline_calls += n;
             }
@@ -2051,7 +2078,7 @@ impl Renderer {
                     if !blend {
                         self.set_object_pipeline(&mut pass, false, blend, &mut culled);
                         let m = marker_material();
-                        calls += draw_mesh(&mut pass, &self.materials, &self.marker, std::slice::from_ref(&m), None, ranges);
+                        calls += draw_mesh(&mut pass, &self.materials, &self.marker, std::slice::from_ref(&m), None, ranges, &self.picture_alpha);
                     }
                     continue;
                 }
@@ -2061,14 +2088,14 @@ impl Renderer {
                         self.set_object_pipeline(&mut pass, false, blend, &mut culled);
                         let tex = b.model.strip_prefix("tree:").map(PathBuf::from);
                         let m = Material { texture: tex, color: [1.0; 4], alpha: Alpha::Test, glow: None };
-                        calls += draw_mesh(&mut pass, &self.materials, &self.tree_mesh, std::slice::from_ref(&m), None, ranges);
+                        calls += draw_mesh(&mut pass, &self.materials, &self.tree_mesh, std::slice::from_ref(&m), None, ranges, &self.picture_alpha);
                     }
                     continue;
                 }
                 let Some(Some(model)) = self.models.get(&b.model) else { continue };
                 for (mesh, mats) in &model.parts {
                     self.set_object_pipeline(&mut pass, mesh.one_sided, blend, &mut culled);
-                    calls += draw_mesh(&mut pass, &self.materials, mesh, mats, Some(blend), ranges);
+                    calls += draw_mesh(&mut pass, &self.materials, mesh, mats, Some(blend), ranges, &self.picture_alpha);
                 }
             }
             if !blend {
@@ -2082,7 +2109,7 @@ impl Renderer {
             pass.set_vertex_buffer(1, dynamic.slice(..));
             for g in &self.ghost_spline_meshes {
                 let Some(mesh) = &g.1 else { continue };
-                calls += draw_mesh(&mut pass, &self.materials, mesh, &g.2, None, &[g.3..g.3 + 1]);
+                calls += draw_mesh(&mut pass, &self.materials, mesh, &g.2, None, &[g.3..g.3 + 1], &self.picture_alpha);
             }
         }
         if let Some((b, n)) = &self.solid_buf {
@@ -2309,15 +2336,17 @@ impl Renderer {
 
 /// Draw a mesh's parts whose material is ready (`blend`: only the blended ones, or only the
 /// others; None: all), once for each range of instances. Returns the draw calls made.
-fn draw_mesh(pass: &mut wgpu::RenderPass, materials: &HashMap<MatKey, wgpu::BindGroup>, mesh: &GpuMesh, mats: &[Material], blend: Option<bool>, ranges: &[std::ops::Range<u32>]) -> u32 {
+fn draw_mesh(pass: &mut wgpu::RenderPass, materials: &HashMap<MatKey, wgpu::BindGroup>, mesh: &GpuMesh, mats: &[Material], blend: Option<bool>, ranges: &[std::ops::Range<u32>], pictures: &HashMap<PathBuf, Alpha>) -> u32 {
     let mut calls = 0;
     let mut bound = false;
     for &(first, count, slot) in &mesh.ranges {
         let Some(m) = mats.get(slot as usize) else { continue };
-        if blend.map(|b| (m.alpha == Alpha::Blend) != b).unwrap_or(false) {
+        // (a picture that is not blended is drawn in the pass that writes depth)
+        let alpha = effective_alpha(m, pictures);
+        if blend.map(|b| (alpha == Alpha::Blend) != b).unwrap_or(false) {
             continue;
         }
-        let Some(bg) = materials.get(&mat_key(m)) else { continue };
+        let Some(bg) = materials.get(&mat_key_with(m, alpha)) else { continue };
         if !bound {
             pass.set_vertex_buffer(0, mesh.vb.slice(..));
             pass.set_index_buffer(mesh.ib.slice(..), wgpu::IndexFormat::Uint32);
@@ -2370,15 +2399,60 @@ fn merge_meshes(parts: &[(&MeshData, &[Material], Aabb)]) -> (MeshData, Vec<Mate
 }
 
 fn mat_key(m: &Material) -> MatKey {
+    mat_key_with(m, m.alpha)
+}
+
+/// The key of a material drawn with this alpha mode (the mode is part of it).
+fn mat_key_with(m: &Material, alpha: Alpha) -> MatKey {
     MatKey {
         texture: m.texture.clone(),
         glow: m.glow.clone(),
-        alpha: match m.alpha {
+        alpha: match alpha {
             Alpha::Opaque => 0,
             Alpha::Test => 1,
             Alpha::Blend => 2,
         },
         color: m.color.map(|c| (c.clamp(0.0, 1.0) * 255.0) as u8),
+    }
+}
+
+/// How a material is really drawn: a `[matl_alpha] 2` slot that has nothing to fade by is drawn
+/// as an opaque one, so that it writes depth.
+///
+/// Omsi.exe's blend writes depth there — its ZWRITEENABLE is cleared by `[matl_noZwrite]` alone
+/// — which is why a sign panel or a road marking stays whole there, while a slot drawn as a
+/// no-write blend here was eaten in bands by the surfaces drawn after it (the road, the terrain,
+/// the markings), coming back as the camera moved. That is what a panel shows as the wide
+/// pale band in a gantry's face.
+///
+/// A slot has nothing to fade by when its picture has no transparency at all — no alpha channel,
+/// or 255 throughout, as many sign and marking textures are — and then blending it draws exactly
+/// what drawing it opaque draws, only without the depth. A picture with a real fade stays blended
+/// (glass, a soft shadow, a feathered border). So does a slot with a tint of its own
+/// (`[matl] … alpha`), which is how a glass panel gets its look from a picture that is opaque.
+///
+/// A cut-out picture (every texel clear or solid, the antialiased outline between) is drawn cut
+/// out instead: the same texels are discarded as blending discarded, and the solid part writes
+/// depth.
+fn effective_alpha(m: &Material, pictures: &HashMap<PathBuf, Alpha>) -> Alpha {
+    if m.alpha != Alpha::Blend {
+        // (a slot saying opaque or cut out is drawn as it says, as it always was)
+        return m.alpha;
+    }
+    // (the blend is the only thing that fades a slot by its colour's alpha: leave it be)
+    if m.color[3] < 0.98 {
+        return Alpha::Blend;
+    }
+    let Some(p) = m.texture.as_ref() else {
+        // (a colour with no picture: the water, which fades by its own alpha)
+        return Alpha::Blend;
+    };
+    match pictures.get(p) {
+        // (a picture that is missing from the content: bare, as Omsi.exe leaves it)
+        None => Alpha::Opaque,
+        Some(Alpha::Opaque) => Alpha::Opaque,
+        Some(Alpha::Test) => Alpha::Test,
+        Some(Alpha::Blend) => Alpha::Blend,
     }
 }
 
@@ -2582,4 +2656,58 @@ fn light_view(cam: &Camera, sun: Vec3, size: u32, reach: f32) -> (Mat4, f32) {
     let depth = half * 2.0 + 600.0;
     let proj = Mat4::orthographic_rh(x - half, x + half, y - half, y + half, -c.z - depth, -c.z + depth);
     (proj * view, texel)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn a_material(alpha: Alpha, texture: Option<&str>) -> Material {
+        Material { texture: texture.map(PathBuf::from), color: [1.0; 4], alpha, glow: None }
+    }
+
+    #[test]
+    fn a_tinted_slot_keeps_blending() {
+        let mut pictures = HashMap::new();
+        pictures.insert(PathBuf::from("texture/white.bmp"), Alpha::Opaque);
+        // (a glass panel gets its look from a tint and a picture that is opaque: the blend has
+        // to stay, or it would be drawn as a white board)
+        let tinted = Material { color: [1.0, 1.0, 1.0, 0.4], ..a_material(Alpha::Blend, Some("texture/white.bmp")) };
+        assert_eq!(effective_alpha(&tinted, &pictures), Alpha::Blend);
+        // (and the water: a colour of its own with no picture at all)
+        let water = Material { texture: None, color: [0.22, 0.38, 0.45, 0.72], alpha: Alpha::Blend, glow: None };
+        assert_eq!(effective_alpha(&water, &pictures), Alpha::Blend);
+    }
+
+    #[test]
+    fn a_blended_slot_with_nothing_to_fade_by_is_drawn_opaque() {
+        let mut pictures = HashMap::new();
+        pictures.insert(PathBuf::from("texture/arrow.png"), Alpha::Test);
+        pictures.insert(PathBuf::from("texture/sign.bmp"), Alpha::Opaque);
+        pictures.insert(PathBuf::from("texture/glass.tga"), Alpha::Blend);
+        // (a sign panel or marking whose picture is 255 throughout: drawn opaque, so it writes
+        // depth and the surfaces drawn after it cannot eat it in bands)
+        assert_eq!(effective_alpha(&a_material(Alpha::Blend, Some("texture/sign.bmp")), &pictures), Alpha::Opaque);
+        // (a picture missing from the content: bare, as Omsi.exe leaves it, and never faded)
+        assert_eq!(effective_alpha(&a_material(Alpha::Blend, Some("texture/missing.bmp")), &pictures), Alpha::Opaque);
+        // (a hard-edged picture: cut out, so its solid part writes depth and the rest is discarded)
+        assert_eq!(effective_alpha(&a_material(Alpha::Blend, Some("texture/arrow.png")), &pictures), Alpha::Test);
+        // (a picture with a real fade stays blended: glass, a soft shadow, a feathered border)
+        assert_eq!(effective_alpha(&a_material(Alpha::Blend, Some("texture/glass.tga")), &pictures), Alpha::Blend);
+        // (a slot that already says opaque or cut out is left as it says)
+        assert_eq!(effective_alpha(&a_material(Alpha::Opaque, Some("texture/arrow.png")), &pictures), Alpha::Opaque);
+        assert_eq!(effective_alpha(&a_material(Alpha::Test, Some("texture/glass.tga")), &pictures), Alpha::Test);
+    }
+
+    #[test]
+    fn the_key_of_a_material_follows_the_mode_it_is_drawn_with() {
+        let m = a_material(Alpha::Blend, Some("texture/bus.bmp"));
+        assert_eq!(mat_key_with(&m, Alpha::Blend).alpha, 2);
+        assert_eq!(mat_key_with(&m, Alpha::Test).alpha, 1);
+        assert_eq!(mat_key_with(&m, Alpha::Opaque).alpha, 0);
+        // (the rest of the key is the same: the texture, the glow and the colour)
+        let k = mat_key(&m);
+        assert_eq!(k.texture, mat_key_with(&m, Alpha::Test).texture);
+        assert_eq!(k.color, mat_key_with(&m, Alpha::Test).color);
+    }
 }
