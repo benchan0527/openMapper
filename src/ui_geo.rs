@@ -1219,7 +1219,7 @@ impl GeoUi {
         let near = self.near_set(doc, at);
         // (the edge of the textures: what is held at once, not what the map has - a window of a
         // few tiles can keep its photos near their own size, the whole map cannot)
-        let held = near.as_ref().map(|s| s.len()).unwrap_or(doc.tiles.len());
+        let held = near.as_ref().map(|s| s.len()).unwrap_or_else(|| self.file.tiles.values().filter(|t| t.imagery.is_some() || t.own.is_some()).count());
         let max = self.gpu_side(held);
         // (a different edge from the one the pictures went up at: they go up again)
         if self.shown_side != max {
