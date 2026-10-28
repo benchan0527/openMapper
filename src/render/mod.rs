@@ -473,6 +473,8 @@ pub struct Renderer {
     warm_for: u64,
     /// How far the walk over them has gone.
     warm_done: usize,
+    /// Whether the last walk met one that could not be put up yet (its picture still loading).
+    warm_missing: bool,
     /// When the list was last collected.
     warm_collect_at: Option<std::time::Instant>,
     chunks: HashMap<TileKey, Chunk>,
@@ -1006,6 +1008,7 @@ impl Renderer {
             warm_mats: Vec::new(),
             warm_for: 0,
             warm_done: 0,
+            warm_missing: false,
             warm_collect_at: None,
             chunks: HashMap::new(),
             builder: build::Builder::new(),
@@ -2050,6 +2053,11 @@ impl Renderer {
             self.warm_for = self.scene_key;
             self.warm_collect_at = Some(std::time::Instant::now());
             self.warm_done = 0;
+            self.warm_missing = false;
+        } else if finished && self.warm_missing && !stale {
+            // (called again when pictures arrived: a walk that missed some goes again for them)
+            self.warm_done = 0;
+            self.warm_missing = false;
         }
         let mats = std::mem::take(&mut self.warm_mats);
         let start = std::time::Instant::now();
@@ -2059,13 +2067,14 @@ impl Renderer {
             if start.elapsed().as_millis() > 20 {
                 break;
             }
-            let _ = self.material(device, queue, assets, &mats[i]).is_none();
+            self.warm_missing |= self.material(device, queue, assets, &mats[i]).is_none();
             i += 1;
         }
         let more = i < mats.len();
         self.warm_mats = mats;
         self.warm_done = i;
-        more
+        // (a scene changed since the list was made is asked about again until it is collected)
+        more || self.warm_for != self.scene_key
     }
 
     /// Every material the scene draws, once each.

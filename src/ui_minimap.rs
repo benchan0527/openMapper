@@ -167,21 +167,21 @@ impl Minimap {
         self.max = max;
     }
 
-    /// What the lines' picture was made for: the map as built, and where the map lies on the
-    /// screen (a resized window, the larger map).
-    fn raster_key(&self, rect: Rect) -> u64 {
+    /// What the lines' picture was made for: the map as built, where the map lies on the
+    /// screen (a resized window, the larger map) and the screen's pixels a point.
+    fn raster_key(&self, rect: Rect, ppp: f32) -> u64 {
         let mut h = self.key;
-        for v in [rect.min.x, rect.min.y, rect.width(), rect.height()] {
+        for v in [rect.min.x, rect.min.y, rect.width(), rect.height(), ppp * 100.0] {
             h = h.rotate_left(7) ^ (v as i32 as u32 as u64).wrapping_mul(0x9E37_79B9_7F4A_7C15);
         }
         h
     }
 
-    /// The lines into a picture of the map's rect, each as its own colour and width (a pixel of
-    /// the picture is a character more or less; the map is small, so nothing finer is wanted).
-    fn raster_lines(&self, rect: Rect, to_screen: &impl Fn(DVec2) -> Pos2) -> egui::ColorImage {
-        let w = (rect.width().ceil() as usize).clamp(1, 512);
-        let h = (rect.height().ceil() as usize).clamp(1, 512);
+    /// The lines into a picture of the map's rect, each as its own colour and width, a pixel of
+    /// the picture a pixel of the screen (a point is two of them on a sharp screen).
+    fn raster_lines(&self, rect: Rect, ppp: f32, to_screen: &impl Fn(DVec2) -> Pos2) -> egui::ColorImage {
+        let w = ((rect.width() * ppp).ceil() as usize).clamp(1, 1024);
+        let h = ((rect.height() * ppp).ceil() as usize).clamp(1, 1024);
         let sx = w as f32 / rect.width().max(1.0);
         let sy = h as f32 / rect.height().max(1.0);
         // (a pixel of the picture, from a place on the screen)
@@ -194,7 +194,7 @@ impl Minimap {
                 Line::Path => (0.8, Color32::from_rgb(120, 125, 120)),
                 Line::Other => (0.6, Color32::from_rgb(90, 95, 90)),
             };
-            let r = (width * 0.5_f32).max(0.5_f32);
+            let r = (width * 0.5 * sx.min(sy)).max(0.5);
             let mut prev: Option<(f32, f32)> = None;
             for &p in pts {
                 let (x, y) = px(to_screen(p));
@@ -236,9 +236,10 @@ impl Minimap {
         }
         // (the whole map's roads, drawn into a small picture once: tens of thousands of
         // splines laid out as shapes are tessellated again in every frame)
-        let raster_key = self.raster_key(rect);
+        let ppp = ui.ctx().pixels_per_point();
+        let raster_key = self.raster_key(rect, ppp);
         if self.raster.as_ref().map(|(k, _)| *k) != Some(raster_key) {
-            let img = self.raster_lines(rect, &to_screen);
+            let img = self.raster_lines(rect, ppp, &to_screen);
             self.raster = Some((raster_key, ui.ctx().load_texture("minimap lines", img, egui::TextureOptions::LINEAR)));
         }
         if let Some((_, tex)) = &self.raster {
