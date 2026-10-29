@@ -208,6 +208,97 @@ pub fn touch_spline(hist: &mut History, doc: &Document, k: TileKey, id: i64) {
     }
 }
 
+/// Where the things of a move are in their tiles, read once: a move of thousands walks each
+/// tile it touches a single time, instead of walking one for every piece it carries (which is
+/// what a grab answered with seconds a frame on a map of a hundred thousand splines).
+struct Places {
+    splines: std::collections::HashMap<TileKey, std::collections::HashMap<i64, usize>>,
+    objects: std::collections::HashMap<TileKey, std::collections::HashMap<i64, usize>>,
+}
+
+/// A tile with fewer things than this is walked: a place read for it would cost more than
+/// the walk (a move of one thing is never slower for this).
+const PLACES_SMALL: usize = 32;
+
+impl Places {
+    fn new() -> Self {
+        Places { splines: std::collections::HashMap::new(), objects: std::collections::HashMap::new() }
+    }
+
+    /// Where the spline `id` is in tile `k` (None: it is not there).
+    fn spline(&mut self, doc: &Document, k: TileKey, id: i64) -> Option<usize> {
+        let t = doc.tiles.get(&k)?;
+        if t.tile.splines.len() <= PLACES_SMALL {
+            return t.tile.splines.iter().position(|s| s.id == id && !s.deleted);
+        }
+        let m = self.splines.entry(k).or_insert_with(|| {
+            let mut m = std::collections::HashMap::with_capacity(t.tile.splines.len());
+            for (i, s) in t.tile.splines.iter().enumerate() {
+                if !s.deleted {
+                    m.insert(s.id, i);
+                }
+            }
+            m
+        });
+        m.get(&id).copied()
+    }
+
+    /// Where the object `id` is in tile `k` (None: it is not there).
+    fn object(&mut self, doc: &Document, k: TileKey, id: i64) -> Option<usize> {
+        let t = doc.tiles.get(&k)?;
+        if t.tile.objects.len() <= PLACES_SMALL {
+            return t.tile.objects.iter().position(|o| o.id == id);
+        }
+        let m = self.objects.entry(k).or_insert_with(|| {
+            let mut m = std::collections::HashMap::with_capacity(t.tile.objects.len());
+            for (i, o) in t.tile.objects.iter().enumerate() {
+                m.insert(o.id, i);
+            }
+            m
+        });
+        m.get(&id).copied()
+    }
+
+    /// A tile changed shape (something was taken out of it or put in): read it again.
+    fn forget(&mut self, k: TileKey) {
+        self.splines.remove(&k);
+        self.objects.remove(&k);
+    }
+}
+
+/// Where every spline is and what it is linked to, read once: moving a chain of thousands
+/// would else look each link up across the whole map, twice for every piece of it.
+pub struct SplineWhere {
+    map: std::collections::HashMap<i64, (TileKey, i64, i64)>,
+}
+
+impl SplineWhere {
+    pub fn of(doc: &Document) -> Self {
+        let mut map = std::collections::HashMap::new();
+        for (k, t) in &doc.tiles {
+            for s in &t.tile.splines {
+                if !s.deleted {
+                    map.insert(s.id, (*k, s.prev_id, s.next_id));
+                }
+            }
+        }
+        SplineWhere { map }
+    }
+}
+
+/// `touch_spline` with the links read from `w` (the same tiles kept, a move of many paid for
+/// once).
+pub fn touch_spline_where(hist: &mut History, doc: &Document, w: &SplineWhere, k: TileKey, id: i64) {
+    hist.touch_tile(doc, k);
+    if let Some((_, prev, next)) = w.map.get(&id) {
+        for other in [*prev, *next] {
+            if let Some((nk, _, _)) = w.map.get(&other) {
+                hist.touch_tile(doc, *nk);
+            }
+        }
+    }
+}
+
 /// Put an object at a world position, into the file of the tile it is now over (None: no
 /// tile there). Returns where it is now.
 pub fn place_object_at(doc: &mut Document, k: TileKey, id: i64, to: DVec2) -> Option<Sel> {
@@ -264,27 +355,82 @@ pub fn place_spline_at(doc: &mut Document, k: TileKey, id: i64, to: DVec2, headi
 /// round `pivot`, then shifted by `delta`. History keeps every tile touched. Returns the
 /// selection as it is now (objects may have gone over into another tile).
 pub fn transform(doc: &mut Document, hist: &mut History, from: &[Origin], pivot: DVec2, deg: f64, delta: DVec2) -> Vec<Sel> {
+    transform_known(doc, hist, from, pivot, deg, delta, None)
+}
+
+/// `transform`, with what a spline is linked to already read (a grab reads it once, when it
+/// takes hold, and every frame of it then moves the chain without reading the map again).
+pub fn transform_known(doc: &mut Document, hist: &mut History, from: &[Origin], pivot: DVec2, deg: f64, delta: DVec2, link: Option<&SplineWhere>) -> Vec<Sel> {
     let mut out = Vec::new();
+    // (a chain of thousands would else have every link of it looked up across the whole map;
+    // a spline keeps the tile it is in, so one reading of them serves the whole move)
+    let own = (link.is_none() && from.len() > 16).then(|| SplineWhere::of(doc));
+    let where_ = link.or(own.as_ref());
+    // (and every piece of it looked up in its own tile: the tile is read once)
+    let mut places = (from.len() > 16).then(Places::new);
     for o in from {
         let to = turn_point(o.pos, pivot, deg) + delta;
         let h = o.heading + deg;
         match o.sel {
             Sel::Object(k, id) => {
                 // (the object may have gone over already: it is looked for where it is now)
-                let Some(cur) = find_object(doc, k, id) else { continue };
+                let here = places.as_mut().and_then(|p| p.object(doc, k, id));
+                let Some(cur) = (if here.is_some() { Some(k) } else { find_object(doc, k, id) }) else { continue };
                 hist.touch_tile(doc, cur);
                 let nk = tile_of(to);
                 if doc.tiles.contains_key(&nk) {
                     hist.touch_tile(doc, nk);
                 }
+                // (still over the tile it was in: it is set where it stands, the tile not walked
+                // for it - a move of thousands would pay for that walk every frame)
+                let at = match (nk == cur, here) {
+                    (true, Some(i)) => Some(i),
+                    (true, None) => places.as_mut().and_then(|p| p.object(doc, cur, id)),
+                    _ => None,
+                };
+                if let Some(i) = at {
+                    if let Some(t) = doc.tiles.get_mut(&cur) {
+                        let org = tile_origin(cur);
+                        if let Some(ob) = t.tile.objects.get_mut(i) {
+                            ob.rot[0] = roads::norm_deg(h);
+                            ob.pos[0] = to.x - org.x;
+                            ob.pos[1] = to.y - org.y;
+                        }
+                        t.touch_content();
+                    }
+                    out.push(Sel::Object(cur, id));
+                    continue;
+                }
                 if let Some(ob) = doc.object_mut(cur, id) {
                     ob.rot[0] = roads::norm_deg(h);
                 }
                 out.push(place_object_at(doc, cur, id, to).unwrap_or(Sel::Object(cur, id)));
+                // (it is in another tile now: the two read wrong)
+                if let Some(p) = places.as_mut() {
+                    p.forget(cur);
+                    p.forget(nk);
+                }
             }
             Sel::Spline(k, id) => {
-                touch_spline(hist, doc, k, id);
-                if let Some(s) = place_spline_at(doc, k, id, to, h) {
+                match where_ {
+                    Some(w) => touch_spline_where(hist, doc, w, k, id),
+                    None => touch_spline(hist, doc, k, id),
+                }
+                // (a spline stays in its tile's file: set where it is, the tile not walked)
+                let at = places.as_mut().and_then(|p| p.spline(doc, k, id));
+                let placed = at.and_then(|i| {
+                    let org = tile_origin(k);
+                    let t = doc.tiles.get_mut(&k)?;
+                    let s = t.tile.splines.get_mut(i)?;
+                    s.pos[0] = to.x - org.x;
+                    s.pos[1] = to.y - org.y;
+                    s.heading = roads::norm_deg(h);
+                    t.touch_content();
+                    Some(Sel::Spline(k, id))
+                });
+                if let Some(s) = placed {
+                    out.push(s);
+                } else if let Some(s) = place_spline_at(doc, k, id, to, h) {
                     out.push(s);
                 }
             }
@@ -633,6 +779,32 @@ pub mod tests {
         // (the whole move is one step)
         hist.undo(&mut doc);
         assert!((doc.attachment((0, 0), 5).unwrap().offset[0] + 2.0).abs() < 1e-6);
+    }
+
+    /// A move of many pieces keeps the tiles of the links they have outside it, as a move of
+    /// one does: the links are read once for the whole move (the same tiles, a move of a
+    /// chain of thousands paid for once).
+    #[test]
+    fn a_link_outside_the_move_is_found_wherever_it_is() {
+        let mut one = flat_map(2);
+        let mut many = flat_map(2);
+        for doc in [&mut one, &mut many] {
+            add_spline(doc, (0, 0), 1, 20.0, 20.0, 0.0, 100.0, 0, 2);
+            add_spline(doc, (1, 0), 2, 20.0, 20.0, 0.0, 100.0, 1, 0);
+        }
+        let mut h1 = History::default();
+        h1.begin("t");
+        touch_spline(&mut h1, &one, (0, 0), 1);
+        h1.commit();
+        let mut h2 = History::default();
+        h2.begin("t");
+        let w = SplineWhere::of(&many);
+        touch_spline_where(&mut h2, &many, &w, (0, 0), 1);
+        h2.commit();
+        let a = h1.take_changed().tiles;
+        let b = h2.take_changed().tiles;
+        assert!(a.contains(&(1, 0)), "the link's tile is kept: {a:?}");
+        assert_eq!(a, b);
     }
 
     #[test]

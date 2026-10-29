@@ -123,6 +123,15 @@ impl TileDoc {
     }
 }
 
+impl Document {
+    /// A number that changes when anything on the map does: the tiles' own revisions summed
+    /// (a revision only grows, so it grows with them). Cheap enough to ask every frame,
+    /// unlike walking the map for what changed.
+    pub fn content_rev(&self) -> u64 {
+        self.tiles.values().fold(0u64, |a, t| a.wrapping_add(t.content_rev))
+    }
+}
+
 /// Mask edge in texels for a ground layer.
 /// A painting mask of `from` × `from` texels at `to` × `to`: bilinear when it grows (smooth
 /// edges), averaged when it shrinks.
