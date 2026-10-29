@@ -277,6 +277,7 @@ impl ChronoWindow {
             let ids: Vec<(i64, bool)> = items.iter().map(|s| match *s {
                 Sel::Object(_, id) => (id, false),
                 Sel::Spline(_, id) => (id, true),
+                Sel::Attached(_, id) => (id, false),
             }).collect();
             n += ids.len();
             let c = match what {
@@ -787,6 +788,7 @@ impl ChronoWindow {
             let (id, is_spline) = match sel {
                 Sel::Object(_, id) => (id, false),
                 Sel::Spline(_, id) => (id, true),
+                Sel::Attached(_, id) => (id, false),
             };
             let res = (|| -> anyhow::Result<()> {
                 let doc = ed.doc.as_ref().ok_or_else(|| anyhow::anyhow!("no map"))?;

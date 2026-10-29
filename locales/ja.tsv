@@ -2499,3 +2499,20 @@ a drawing is on the road	図柄が道路上にあります
 Across the roadway from its middle (right of the road's way is plus)	車道を横切る位置（中央から、道路の進行方向の右がプラス）
 Double solid	二重実線
 The line's width	線の幅
+Delete object along a road	道路に沿ったオブジェクトを削除
+Only a free object can be put on a road	道路に置けるのは自由なオブジェクトだけです
+An object hanging on another cannot go onto a road	他のオブジェクトに吊られたオブジェクトは道路に置けません
+There is no road within 30 m	30 m 以内に道路がありません
+Put on a road	道路に置く
+The object is gone	オブジェクトはありません
+It stands on no road	どの道路の上にもありません
+There is no tile there	そこにタイルはありません
+Take off the road	道路から外す
+Beside it (right +)	その隣（右が +）
+Above the road	道路の上
+Distance between two copies; 0: one object only	二つの複製の間隔。0 なら一つのオブジェクトだけ
+How many copies stand along the road	道路に沿って並ぶ複製の数
+Detach from the road	道路から切り離す
+It becomes a free object where it stands. A row of several copies becomes one object; an object at an absolute height keeps the height above the ground there.	その場で自由なオブジェクトになります。複数の複製の列は一つのオブジェクトになります。絶対高さのオブジェクトはその場所の地面からの高さを保ちます。
+Attach to the road	道路につなぐ
+It stands on the nearest road and follows it (as OMSI's [splineAttachement]); its IDCode stays	いちばん近い道路の上に立ち、それに従います（OMSI の [splineAttachement] のように）。IDCode は変わりません

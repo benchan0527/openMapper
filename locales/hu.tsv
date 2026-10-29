@@ -2499,3 +2499,20 @@ a drawing is on the road	rajz van az úton
 Across the roadway from its middle (right of the road's way is plus)	Az úttesten át a közepétől (az út irányától jobbra plusz)
 Double solid	Dupla folytonos
 The line's width	A vonal szélessége
+Delete object along a road	Objektum törlése egy út mentén
+Only a free object can be put on a road	Útra csak szabad objektum tehető
+An object hanging on another cannot go onto a road	Egy másikra akasztott objektum nem kerülhet útra
+There is no road within 30 m	30 méteren belül nincs út
+Put on a road	Útra tenni
+The object is gone	Az objektum eltűnt
+It stands on no road	Nincs semmilyen úton
+There is no tile there	Ott nincs csempe
+Take off the road	Le az útról
+Beside it (right +)	Mellette (jobbra +)
+Above the road	Az út fölött
+Distance between two copies; 0: one object only	Két másolat távolsága; 0: csak egy objektum
+How many copies stand along the road	Hány másolat áll az út mentén
+Detach from the road	Leválasztás az útról
+It becomes a free object where it stands. A row of several copies becomes one object; an object at an absolute height keeps the height above the ground there.	Szabad objektummá válik ott, ahol áll. Több másolat egy sora egyetlen objektummá válik; az abszolút magasságú objektum megtartja a talaj feletti magasságát ott.
+Attach to the road	Hozzákapcsolás az úthoz
+It stands on the nearest road and follows it (as OMSI's [splineAttachement]); its IDCode stays	A legközelebbi úton áll és követi azt (mint az OMSI [splineAttachement]-je); az IDCode-ja megmarad

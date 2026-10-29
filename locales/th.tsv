@@ -2499,3 +2499,20 @@ a drawing is on the road	มีภาพวาดอยู่บนถนน
 Across the roadway from its middle (right of the road's way is plus)	ข้ามผิวถนนจากตรงกลาง (ขวาของทิศทางถนนเป็นบวก)
 Double solid	เส้นทึบคู่
 The line's width	ความกว้างของเส้น
+Delete object along a road	ลบวัตถุตามถนน
+Only a free object can be put on a road	วางบนถนนได้เฉพาะวัตถุอิสระ
+An object hanging on another cannot go onto a road	วัตถุที่แขวนอยู่กับวัตถุอื่นวางบนถนนไม่ได้
+There is no road within 30 m	ไม่มีถนนภายใน 30 ม.
+Put on a road	วางบนถนน
+The object is gone	วัตถุหายไปแล้ว
+It stands on no road	มันไม่ได้อยู่บนถนนใดเลย
+There is no tile there	ไม่มีไทล์ตรงนั้น
+Take off the road	เอาออกจากถนน
+Beside it (right +)	ข้าง ๆ (ขวา +)
+Above the road	เหนือถนน
+Distance between two copies; 0: one object only	ระยะระหว่างสองสำเนา; 0: วัตถุเดียว
+How many copies stand along the road	จำนวนสำเนาที่เรียงตามถนน
+Detach from the road	ถอดออกจากถนน
+It becomes a free object where it stands. A row of several copies becomes one object; an object at an absolute height keeps the height above the ground there.	มันกลายเป็นวัตถุอิสระตรงที่มันอยู่ แถวของสำเนาหลายอันกลายเป็นวัตถุเดียว วัตถุที่ใช้ความสูงสัมบูรณ์จะคงความสูงเหนือพื้นดินตรงนั้นไว้
+Attach to the road	ผูกกับถนน
+It stands on the nearest road and follows it (as OMSI's [splineAttachement]); its IDCode stays	มันอยู่บนถนนที่ใกล้ที่สุดและตามถนนนั้น (เหมือน [splineAttachement] ของ OMSI) IDCode ของมันยังคงเดิม

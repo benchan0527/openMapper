@@ -2499,3 +2499,20 @@ a drawing is on the road	un dibuix és a la carretera
 Across the roadway from its middle (right of the road's way is plus)	Per la calçada des del seu mig (la dreta del sentit de la via és positiu)
 Double solid	Doble contínua
 The line's width	L'amplada de la línia
+Delete object along a road	Suprimeix l'objecte al llarg d'una carretera
+Only a free object can be put on a road	Només es pot posar a una carretera un objecte lliure
+An object hanging on another cannot go onto a road	Un objecte penjat d'un altre no pot anar a una carretera
+There is no road within 30 m	No hi ha cap carretera a menys de 30 m
+Put on a road	Posa a una carretera
+The object is gone	L'objecte ha desaparegut
+It stands on no road	No està sobre cap carretera
+There is no tile there	Allà no hi ha cap rajola
+Take off the road	Treu de la carretera
+Beside it (right +)	Al costat (dreta +)
+Above the road	Sobre la carretera
+Distance between two copies; 0: one object only	Distància entre dues còpies; 0: només un objecte
+How many copies stand along the road	Quantes còpies hi ha al llarg de la carretera
+Detach from the road	Desenganxa de la carretera
+It becomes a free object where it stands. A row of several copies becomes one object; an object at an absolute height keeps the height above the ground there.	Es converteix en un objecte lliure on és. Una fila de diverses còpies es converteix en un sol objecte; un objecte amb altura absoluta conserva l'altura sobre el terra d'allà.
+Attach to the road	Enganxa a la carretera
+It stands on the nearest road and follows it (as OMSI's [splineAttachement]); its IDCode stays	Està sobre la carretera més propera i la segueix (com el [splineAttachement] d'OMSI); el seu IDCode es manté

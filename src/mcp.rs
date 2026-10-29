@@ -300,6 +300,7 @@ impl Server {
             match i.sel {
                 Some(Sel::Object(k, id)) => v["object"] = json!({ "id": id, "tile": [k.0, k.1] }),
                 Some(Sel::Spline(k, id)) => v["spline"] = json!({ "id": id, "tile": [k.0, k.1] }),
+                Some(Sel::Attached(k, id)) => v["object"] = json!({ "id": id, "tile": [k.0, k.1], "on_spline": true }),
                 None => {}
             }
             out.push(v);

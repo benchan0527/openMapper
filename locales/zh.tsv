@@ -2499,3 +2499,20 @@ a drawing is on the road	路上有一幅绘图
 Across the roadway from its middle (right of the road's way is plus)	从中线起横跨行车道（沿道路方向的右侧为正）
 Double solid	双实线
 The line's width	线宽
+Delete object along a road	删除沿道路的物体
+Only a free object can be put on a road	只有自由物体才能放上道路
+An object hanging on another cannot go onto a road	挂在另一个物体上的物体不能上道路
+There is no road within 30 m	30 米内没有道路
+Put on a road	放上道路
+The object is gone	物体已不在
+It stands on no road	它不在任何道路上
+There is no tile there	那里没有图块
+Take off the road	从道路取下
+Beside it (right +)	在它旁边（右为 +）
+Above the road	在道路上方
+Distance between two copies; 0: one object only	两个副本之间的距离；0：只有一个物体
+How many copies stand along the road	沿道路站着几个副本
+Detach from the road	从道路拆下
+It becomes a free object where it stands. A row of several copies becomes one object; an object at an absolute height keeps the height above the ground there.	它在所在之处成为自由物体。几个副本排成的一行会变成一个物体；绝对高度的物体会保留当地离地高度。
+Attach to the road	接到道路上
+It stands on the nearest road and follows it (as OMSI's [splineAttachement]); its IDCode stays	它站在最近的道路上并跟着走（如同 OMSI 的 [splineAttachement]）；它的 IDCode 不变

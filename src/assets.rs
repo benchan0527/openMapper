@@ -56,6 +56,7 @@ impl Part {
     }
 }
 
+#[derive(Default)]
 pub struct ObjectModel {
     pub parts: Vec<Part>,
     pub lo: Vec3,

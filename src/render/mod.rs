@@ -1529,11 +1529,14 @@ impl Renderer {
                     let rel_key = self.model_with_labels(device, &a.file.to_lowercase(), &model, &a.strings, assets);
                     let objs = crate::place::row_objects(a, &t.splines, org);
                     let first = objs.iter().map(|o| o.index).min();
+                    // (each record is a thing of its own: clicking one of its copies picks it,
+                    // and they take its tint - selected or hovered - as an object does)
+                    let own = Some(Sel::Attached(*k, a.id));
                     for ro in &objs {
                         if a.repeater.is_none() && Some(ro.index) == first {
                             parents.entry(a.id).or_insert((ro.pose, model.clone()));
                         }
-                        push_object(&mut groups, &rel_key, &model, a.strings.first(), ro.pose.matrix_from(anchor), [0.0; 4], None, extras.show_technical);
+                        push_object(&mut groups, &rel_key, &model, a.strings.first(), ro.pose.matrix_from(anchor), [0.0; 4], own, extras.show_technical);
                     }
                 }
                 // objects hanging on others (signs on posts, lamps on masts)

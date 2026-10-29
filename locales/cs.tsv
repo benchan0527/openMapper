@@ -2499,3 +2499,20 @@ a drawing is on the road	na silnici je kresba
 Across the roadway from its middle (right of the road's way is plus)	Přes vozovku od jejího středu (vpravo ve směru silnice je plus)
 Double solid	Dvojitá souvislá
 The line's width	Šířka čáry
+Delete object along a road	Smazat objekt podél silnice
+Only a free object can be put on a road	Na silnici lze umístit jen volný objekt
+An object hanging on another cannot go onto a road	Objekt zavěšený na jiném nemůže na silnici
+There is no road within 30 m	V okruhu 30 m není žádná silnice
+Put on a road	Umístit na silnici
+The object is gone	Objekt je pryč
+It stands on no road	Nestojí na žádné silnici
+There is no tile there	Není tam žádná dlaždice
+Take off the road	Sundat ze silnice
+Beside it (right +)	Vedle (vpravo +)
+Above the road	Nad silnicí
+Distance between two copies; 0: one object only	Vzdálenost mezi dvěma kopiemi; 0: jen jeden objekt
+How many copies stand along the road	Kolik kopií stojí podél silnice
+Detach from the road	Odpojit od silnice
+It becomes a free object where it stands. A row of several copies becomes one object; an object at an absolute height keeps the height above the ground there.	Stane se volným objektem tam, kde stojí. Řada několika kopií se stane jedním objektem; objekt s absolutní výškou si tam ponechá výšku nad zemí.
+Attach to the road	Připojit k silnici
+It stands on the nearest road and follows it (as OMSI's [splineAttachement]); its IDCode stays	Stojí na nejbližší silnici a sleduje ji (jako [splineAttachement] v OMSI); jeho IDCode zůstává

@@ -2539,3 +2539,20 @@ a drawing is on the road	er staat een tekening op de weg
 Across the roadway from its middle (right of the road's way is plus)	Dwars over de weg vanaf het midden (rechts van de rijrichting is plus)
 Double solid	Dubbel doorgetrokken
 The line's width	Lijnbreedte
+Delete object along a road	Object langs een weg verwijderen
+Only a free object can be put on a road	Alleen een vrij object kan op een weg worden gezet
+An object hanging on another cannot go onto a road	Een object dat aan een ander hangt kan niet op een weg
+There is no road within 30 m	Er is geen weg binnen 30 m
+Put on a road	Op een weg zetten
+The object is gone	Het object is weg
+It stands on no road	Het staat op geen enkele weg
+There is no tile there	Daar is geen tegel
+Take off the road	Van de weg halen
+Beside it (right +)	Ernaast (rechts +)
+Above the road	Boven de weg
+Distance between two copies; 0: one object only	Afstand tussen twee kopieën; 0: één object
+How many copies stand along the road	Hoeveel kopieën langs de weg staan
+Detach from the road	Losmaken van de weg
+It becomes a free object where it stands. A row of several copies becomes one object; an object at an absolute height keeps the height above the ground there.	Het wordt een vrij object waar het staat. Een rij van meerdere kopieën wordt één object; een object op absolute hoogte houdt daar de hoogte boven de grond.
+Attach to the road	Aan de weg hangen
+It stands on the nearest road and follows it (as OMSI's [splineAttachement]); its IDCode stays	Het staat op de dichtstbijzijnde weg en volgt die (zoals OMSI's [splineAttachement]); zijn IDCode blijft

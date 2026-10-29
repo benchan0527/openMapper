@@ -470,6 +470,7 @@ fn keep_selection(ed: &mut Editor) {
     let there = |s: &crate::doc::Sel| match *s {
         crate::doc::Sel::Object(k, id) => doc.object(k, id).is_some(),
         crate::doc::Sel::Spline(k, id) => doc.spline(k, id).is_some(),
+        crate::doc::Sel::Attached(k, id) => doc.attachment(k, id).is_some(),
     };
     ed.also.retain(|s| there(s));
     if ed.selected.as_ref().map(|s| !there(s)).unwrap_or(false) {

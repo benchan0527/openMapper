@@ -2110,7 +2110,7 @@ fn properties(ui: &mut egui::Ui, st: &mut UiState, ed: &mut Editor, lib: &Librar
     };
     if ed.selection().len() > 1 {
         crate::ui_edit::group_properties(ui, ed, lib, actions);
-        let objects = ed.selection().iter().filter(|s| matches!(s, Sel::Object(..))).count();
+        let objects = ed.selection().iter().filter(|s| !matches!(s, Sel::Spline(..))).count();
         let splines = ed.selection().len() - objects;
         Frame::new().inner_margin(Margin::same(8)).show(ui, |ui| crate::ui_mesh::many_panel(ui, &mut st.keep_cutters, objects, splines, actions));
         return;
@@ -2139,11 +2139,24 @@ fn properties(ui: &mut egui::Ui, st: &mut UiState, ed: &mut Editor, lib: &Librar
     let mut lean = false;
     let mut alike = false;
     let mut replace_obj: Option<String> = None;
+    let mut attach_road = false;
+    let mut detach_road = false;
+    // (an attached object's place on its road, its row's shape, and its world rotation)
+    let mut new_att: Option<(Option<f64>, Option<f64>, Option<f64>)> = None;
+    let mut new_row: Option<(Option<f64>, Option<f64>, Option<bool>)> = None;
     let Some(doc) = ed.doc.as_ref() else { return };
+    let view = match sel {
+        Sel::Object(k, id) => crate::selection::any_object(doc, k, id).map(|o| (k, id, o.clone(), None)),
+        Sel::Attached(k, id) => crate::selection::attachment_view(doc, k, id).map(|(k, id, o, att)| (k, id, o, Some(att))),
+        Sel::Spline(..) => None,
+    };
     Frame::new().inner_margin(Margin::same(8)).show(ui, |ui| {
         match sel {
-            Sel::Object(k, id) => {
-                let Some(o) = crate::selection::any_object(doc, k, id) else { return };
+            Sel::Object(..) | Sel::Attached(..) => {
+                // (a `[splineAttachement]` record is shown as the object it is, standing where
+                // its first copy does: its road's place instead of east and north)
+                let Some((k, id, o, att)) = view else { return };
+                let o = &o;
                 let a = lib.find(&o.file);
                 let name = a.map(|a| a.name.clone()).unwrap_or_else(|| o.file.rsplit('\\').next().unwrap_or("").to_string());
                 long_label(ui, &name, egui::TextStyle::Body, Color32::WHITE);
@@ -2172,7 +2185,17 @@ fn properties(ui: &mut egui::Ui, st: &mut UiState, ed: &mut Editor, lib: &Librar
                             ui.label(format!("ID {p} · {} {}", tr("point", "точка"), o.attach_index));
                         });
                     }
-                    if o.parent_id.is_none() {
+                    if let Some(att) = &att {
+                        // (where it lies on its road: distance along from the chain's start,
+                        // beside the centre line, and height above the road - OMSI's own way)
+                        let mut v = [att.along, att.beside, att.height];
+                        prop_row(ui, tr("Location", "Положение"), |ui| {
+                            let ch = crate::ui_xform::xyz(ui, &mut v, 0.05, " m", 3, None, [tr("Along the road", "Вдоль дороги"), tr("Beside it (right +)", "Сбоку (вправо +)"), tr("Above the road", "Над дорогой")]);
+                            if ch[0] || ch[1] || ch[2] {
+                                new_att = Some((ch[0].then_some(v[0]), ch[1].then_some(v[1]), ch[2].then_some(v[2])));
+                            }
+                        });
+                    } else if o.parent_id.is_none() {
                         // (on the map, in metres; past a tile's edge it goes over to the next one;
                         // the height is the world's, whatever the object keeps it as)
                         let org = crate::doc::tile_origin(k);
@@ -2216,7 +2239,7 @@ fn properties(ui: &mut egui::Ui, st: &mut UiState, ed: &mut Editor, lib: &Librar
                             });
                         });
                     });
-                    if o.parent_id.is_none() {
+                    if att.is_none() && o.parent_id.is_none() {
                         prop_row(ui, tr("Scale", "Масштаб"), |ui| {
                             let now = crate::scaled::base_of(&o.file).1;
                             if let Some((done, v)) = crate::ui_xform::scale(ui, egui::Id::new(("scale", id)), [now.x, now.y, now.z], &mut st.scale_uniform) {
@@ -2226,7 +2249,48 @@ fn properties(ui: &mut egui::Ui, st: &mut UiState, ed: &mut Editor, lib: &Librar
                         });
                     }
                 });
-                let is_stop = a.map(|a| a.is_bus_stop).unwrap_or(false);
+                // (an attached object's row: how often it repeats round its road)
+                if let Some(att) = &att {
+                    ui.add_space(6.0);
+                    ui.label(RichText::new(tr("Along the road", "Вдоль дороги")).strong());
+                    let copies = att.copies();
+                    let mut every = att.interval;
+                    let mut count = copies as i32;
+                    let mut tilt = att.tilt;
+                    let mut changed: Option<(Option<f64>, Option<f64>, Option<bool>)> = None;
+                    egui::Grid::new("att row").num_columns(2).spacing(Vec2::new(8.0, 5.0)).show(ui, |ui| {
+                        prop_row(ui, tr("Every", "Шаг"), |ui| {
+                            // (0: one object only)
+                            let r = ui.add(egui::DragValue::new(&mut every).speed(0.1).range(0.0..=500.0).max_decimals(2).suffix(" m")).on_hover_text(tr("Distance between two copies; 0: one object only", "Расстояние между копиями; 0 — только один объект"));
+                            if r.changed() {
+                                changed = Some((Some(every.max(0.0)), None, None));
+                            }
+                        });
+                        prop_row(ui, tr("Count", "Количество"), |ui| {
+                            let r = ui.add_enabled(att.interval > 1e-6, egui::DragValue::new(&mut count).speed(0.2).range(1..=2000)).on_hover_text(tr("How many copies stand along the road", "Сколько копий стоит вдоль дороги"));
+                            if r.changed() {
+                                changed = Some((None, Some((count.max(1) - 1) as f64), None));
+                            }
+                        });
+                        prop_row(ui, "", |ui| {
+                            if check(ui, &mut tilt, tr("Lean with the road", "Наклон вместе с дорогой")).changed() {
+                                changed = Some((None, None, Some(tilt)));
+                            }
+                        });
+                    });
+                    if let Some((i, c, t)) = changed {
+                        new_row = Some((i, c.map(|c| c * every.max(1e-6)), t));
+                    }
+                    ui.horizontal_wrapped(|ui| {
+                        if ui.button(icons::labelled(Icon::Road, tr("Detach from the road", "Снять с дороги"))).on_hover_text(tr("It becomes a free object where it stands. A row of several copies becomes one object; an object at an absolute height keeps the height above the ground there.", "Он становится свободным объектом там, где стоит. Ряд из нескольких копий станет одним объектом; объект с абсолютной высотой сохранит высоту над землёй там.")).clicked() {
+                            detach_road = true;
+                        }
+                    });
+                }
+                if att.is_none() && o.parent_id.is_none() && ui.small_button(icons::labelled(Icon::Road, tr("Attach to the road", "Поставить на дорогу"))).on_hover_text(tr("It stands on the nearest road and follows it (as OMSI's [splineAttachement]); its IDCode stays", "Он встаёт на ближайшую дорогу и следует за ней (как [splineAttachement] в OMSI); IDCode сохраняется")).clicked() {
+                    attach_road = true;
+                }
+                let is_stop = att.is_none() && a.map(|a| a.is_bus_stop).unwrap_or(false);
                 let is_entry = a.map(|a| a.is_entry_point).unwrap_or(false);
                 if is_entry {
                     ui.add_space(6.0);
@@ -2459,8 +2523,13 @@ fn properties(ui: &mut egui::Ui, st: &mut UiState, ed: &mut Editor, lib: &Librar
             }
         }
         // an object becomes the one chosen in the Objects catalogue (where it stands, turned so)
-        if let (Sel::Object(k, id), Some(ot)) = (sel, ed.object_type.clone()) {
-            let now = ed.doc.as_ref().and_then(|d| crate::selection::any_object(d, k, id)).map(|o| o.file.clone()).unwrap_or_default();
+        if let (Some(ot), true) = (ed.object_type.clone(), matches!(sel, Sel::Object(..) | Sel::Attached(..))) {
+            let now = match sel {
+                Sel::Object(k, id) => ed.doc.as_ref().and_then(|d| crate::selection::any_object(d, k, id)).map(|o| o.file.clone()),
+                Sel::Attached(k, id) => ed.doc.as_ref().and_then(|d| d.attachment(k, id)).map(|a| a.file.clone()),
+                Sel::Spline(..) => None,
+            }
+            .unwrap_or_default();
             if !ot.eq_ignore_ascii_case(&now) {
                 let n = lib.find(&ot).map(|a| a.name.clone()).unwrap_or_else(|| ot.clone());
                 ui.add_space(4.0);
@@ -2496,10 +2565,15 @@ fn properties(ui: &mut egui::Ui, st: &mut UiState, ed: &mut Editor, lib: &Librar
             let file = ed.doc.as_ref().and_then(|d| crate::selection::any_object(d, k, id)).map(|o| (o.file.clone(), !o.rules.is_empty()));
             file.map(|(f, r)| r || st.obj_info.as_ref().filter(|i| i.file.eq_ignore_ascii_case(&f)).map(|i| i.paths > 0).unwrap_or(false)).unwrap_or(false)
         }
+        Sel::Attached(k, id) => {
+            let file = ed.doc.as_ref().and_then(|d| d.attachment(k, id)).map(|a| (a.file.clone(), !a.rules.is_empty()));
+            file.map(|(f, r)| r || st.obj_info.as_ref().filter(|i| i.file.eq_ignore_ascii_case(&f)).map(|i| i.paths > 0).unwrap_or(false)).unwrap_or(false)
+        }
         Sel::Spline(..) => true,
     };
     let attach_points = match sel {
         Sel::Object(k, id) => ed.doc.as_ref().and_then(|d| crate::selection::any_object(d, k, id)).and_then(|o| st.obj_info.as_ref().filter(|i| i.file.eq_ignore_ascii_case(&o.file))).map(|i| i.attach_points).unwrap_or(0),
+        Sel::Attached(k, id) => ed.doc.as_ref().and_then(|d| d.attachment(k, id)).and_then(|a| st.obj_info.as_ref().filter(|i| i.file.eq_ignore_ascii_case(&a.file))).map(|i| i.attach_points).unwrap_or(0),
         _ => 0,
     };
     let obj_info = st.obj_info.clone();
@@ -2526,6 +2600,14 @@ fn properties(ui: &mut egui::Ui, st: &mut UiState, ed: &mut Editor, lib: &Librar
             }
             if attach_points > 0 {
                 crate::ui_edit::attach_section(ui, ed, lib, k, id, attach_points);
+            }
+            if attach_road {
+                if let Err(e) = ed.attach_object_to_spline(lib, k, id) {
+                    if !e.is_empty() {
+                        ed.toast(e);
+                    }
+                }
+                return;
             }
             if let Some(f) = replace_obj {
                 ed.replace_selected_objects(&f);
@@ -2619,6 +2701,74 @@ fn properties(ui: &mut egui::Ui, st: &mut UiState, ed: &mut Editor, lib: &Librar
                     crate::ui_mesh::plain_object_panel(ui, parts, actions);
                 }
             });
+        }
+        Sel::Attached(k, id) => {
+            if has_paths {
+                crate::ui_edit::rules_section(ui, ed, sel);
+            }
+            if attach_points > 0 {
+                crate::ui_edit::attach_section(ui, ed, lib, k, id, attach_points);
+            }
+            if let Some(f) = replace_obj {
+                ed.replace_selected_objects(&f);
+                return;
+            }
+            if new_att.is_some() || new_rot.is_some() || changed_labels.is_some() || new_row.is_some() {
+                // (the panel's rotation is the world's: the record keeps its heading against
+                // its road)
+                let turn = new_rot.and_then(|r| ed.doc.as_ref().and_then(|d| d.attachment(k, id).map(|a| (r, r[0] - crate::selection::attachment_world_rot(d, k, a)))));
+                ed.edit_attachment(k, id, |a| {
+                    if let Some((along, beside, height)) = new_att {
+                        if let Some(v) = along {
+                            a.offset[2] = v;
+                        }
+                        if let Some(v) = beside {
+                            a.offset[0] = v;
+                        }
+                        if let Some(v) = height {
+                            a.offset[1] = v;
+                        }
+                    }
+                    if let Some((r, d0)) = turn {
+                        a.rot[0] = crate::roads::norm_deg(a.rot[0] + d0);
+                        a.rot[1] = r[1];
+                        a.rot[2] = r[2];
+                    }
+                    if let Some(l) = &changed_labels {
+                        a.strings = l.clone();
+                    }
+                    if let Some((every, range, tilt)) = new_row {
+                        if let Some(i) = every {
+                            if i <= 1e-6 {
+                                a.interval = 0.0;
+                                a.range = 0.0;
+                            } else if a.interval <= 1e-6 {
+                                // (one object made a row: it keeps its place and repeats)
+                                a.interval = i;
+                                a.range = 0.0;
+                            } else {
+                                crate::rows::set_interval(a, i);
+                            }
+                        }
+                        if let Some(r) = range {
+                            a.range = r;
+                        }
+                        if let Some(t) = tilt {
+                            a.tilt = t;
+                        }
+                    }
+                });
+            } else {
+                ed.end_panel_step_if_idle(ui.ctx());
+            }
+            if detach_road {
+                if let Err(e) = ed.detach_attachment(k, id) {
+                    if !e.is_empty() {
+                        ed.toast(e);
+                    }
+                }
+                return;
+            }
         }
         Sel::Spline(k, id) => {
             if whole_road {

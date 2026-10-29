@@ -2539,3 +2539,20 @@ a drawing is on the road	en teckning ligger på vägen
 Across the roadway from its middle (right of the road's way is plus)	Tvärs över vägbanan från mitten (höger om vägens riktning är plus)
 Double solid	Dubbel heldragen
 The line's width	Linjens bredd
+Delete object along a road	Ta bort objektet längs en väg
+Only a free object can be put on a road	Bara ett fritt objekt kan sättas på en väg
+An object hanging on another cannot go onto a road	Ett objekt som hänger på ett annat kan inte gå ut på en väg
+There is no road within 30 m	Det finns ingen väg inom 30 m
+Put on a road	Sätt på en väg
+The object is gone	Objektet är borta
+It stands on no road	Det står inte på någon väg
+There is no tile there	Det finns ingen ruta där
+Take off the road	Ta av från vägen
+Beside it (right +)	Bredvid (höger +)
+Above the road	Ovanför vägen
+Distance between two copies; 0: one object only	Avstånd mellan två kopior; 0: bara ett objekt
+How many copies stand along the road	Hur många kopior som står längs vägen
+Detach from the road	Lossa från vägen
+It becomes a free object where it stands. A row of several copies becomes one object; an object at an absolute height keeps the height above the ground there.	Det blir ett fritt objekt där det står. En rad av flera kopior blir ett enda objekt; ett objekt med absolut höjd behåller höjden över marken där.
+Attach to the road	Fäst på vägen
+It stands on the nearest road and follows it (as OMSI's [splineAttachement]); its IDCode stays	Det står på närmaste väg och följer den (som OMSI:s [splineAttachement]); dess IDCode är kvar

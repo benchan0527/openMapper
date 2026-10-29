@@ -30,7 +30,7 @@ pub fn mine(ed: &Editor) -> Presence {
         .chain(&ed.also)
         .take(MAX_SELECTED)
         .map(|s| match *s {
-            Sel::Object(k, id) | Sel::Spline(k, id) => (k.0, k.1, id),
+            Sel::Object(k, id) | Sel::Spline(k, id) | Sel::Attached(k, id) => (k.0, k.1, id),
         })
         .collect();
     Presence { cursor, selected, tool: ed.tool.label().to_string() }

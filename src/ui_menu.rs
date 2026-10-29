@@ -39,6 +39,7 @@ pub fn show(ctx: &egui::Context, menu: &mut Option<ViewMenu>, ed: &mut Editor, l
                     let file = ed.doc.as_ref().and_then(|d| match sels[0] {
                         crate::doc::Sel::Object(k, id) => crate::selection::any_object(d, k, id).map(|o| o.file.clone()),
                         crate::doc::Sel::Spline(k, id) => d.spline(k, id).map(|s| s.file.clone()),
+                        crate::doc::Sel::Attached(k, id) => d.attachment(k, id).map(|a| a.file.clone()),
                     });
                     file.map(|f| lib.find(&f).map(|a| a.name.clone()).unwrap_or_else(|| f.rsplit('\\').next().unwrap_or(&f).to_string())).unwrap_or_default()
                 }

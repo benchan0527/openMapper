@@ -1,7 +1,7 @@
 //! A map saved and read again is the same map; an autosave brings its changes back; a save
 //! keeps what it replaced.
 
-use omsi_map::{EntryPoint, GroundTex, MapObject, MapSpline};
+use omsi_map::{EntryPoint, GroundTex, MapObject, MapRule, MapSpline, SplineAttachment};
 
 use super::*;
 use crate::install::Roots;
@@ -54,6 +54,21 @@ pub(crate) fn sample_map(roots: &Roots) -> Document {
     t.tile.objects.push(MapObject { file: "Sceneryobjects\\Generic\\entrypoint_bus.sco".into(), id: 7, pos: [120.0, 18.0, 0.0], rot: [90.0, 0.0, 0.0], flag: 1, extra: vec!["Start 1".into()], ..Default::default() });
     t.tile.objects.push(MapObject { file: "Sceneryobjects\\Bäume\\linde.sco".into(), id: 8, pos: [10.25, 299.5, 1.5], rot: [12.5, 0.0, 0.0], ..Default::default() });
     t.tile.splines.push(MapSpline { file: "Splines\\str_2spur.sli".into(), id: 9, next_id: 10, pos: [0.0, 150.0, 2.0], heading: 90.0, length: 300.0, ..Default::default() });
+    // a record on that road: its strings, the variables it takes from another object and its rules
+    t.tile.spline_attachments.push(SplineAttachment {
+        file: "Sceneryobjects\\lamp.sco".into(),
+        id: 11,
+        spline_index: 0,
+        offset: [-6.5, 0.25, 4.0],
+        rot: [180.0, 0.0, 0.0],
+        interval: 30.0,
+        range: 400.0,
+        tilt: true,
+        strings: vec!["Hauptstr.".into(), "34N".into()],
+        var_parent: Some(7),
+        rules: vec![MapRule { path_index: 2, kind: "speedlimit".into(), value: 30.0, extra: 0.5, kill: true }],
+        ..Default::default()
+    });
     doc.tiles.get_mut(&(1, 0)).unwrap().tile.splines.push(MapSpline { file: "Splines\\str_2spur.sli".into(), id: 10, prev_id: 9, pos: [0.0, 150.0, 2.0], heading: 90.0, length: 80.0, radius: -60.0, grad_start: 2.0, grad_end: -1.0, ..Default::default() });
     doc.global.entry_points.push(EntryPoint { index: 0, object_id: 7, name: "Start 1".into(), ..Default::default() });
     crate::editor::sync_entry_points(&mut doc);
@@ -86,11 +101,18 @@ fn a_map_saved_reads_back_the_same() {
             assert_eq!((&x.file, x.id, x.prev_id, x.next_id, x.pos, x.heading, x.length, x.radius), (&y.file, y.id, y.prev_id, y.next_id, y.pos, y.heading, y.length, y.radius));
             assert_eq!((x.grad_start, x.grad_end), (y.grad_start, y.grad_end));
         }
+        // a [splineAttachement] record is a whole object: its place, its strings, the object it
+        // takes its variables from and its rules all come back
+        assert_eq!(b.tile.spline_attachments, t.tile.spline_attachments, "{k:?}");
         assert_eq!(b.terrain.heights, t.terrain.heights, "{k:?}");
     }
     // the painting, through the A8 DDS
     let m = back.tiles[&(0, 0)].masks[1].as_ref().unwrap();
     assert_eq!(m, doc.tiles[&(0, 0)].masks[1].as_ref().unwrap());
+    // the record comes back with the variables it takes from another object and its rules
+    let a = back.attachment((0, 0), 11).expect("the record is in the map again");
+    assert_eq!((a.var_parent, a.rules.len(), a.strings.len()), (Some(7), 1, 2), "{a:?}");
+    assert_eq!(a.rules[0].kind, "speedlimit");
     assert_eq!(back.global.entry_points.len(), 1);
     assert_eq!(back.global.entry_points[0].object_id, 7);
     // (saved again unchanged: the same bytes)

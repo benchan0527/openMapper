@@ -2499,3 +2499,20 @@ a drawing is on the road	yolda bir çizim var
 Across the roadway from its middle (right of the road's way is plus)	Yol yüzeyi boyunca ortasından itibaren (yolun yönünün sağı artıdır)
 Double solid	Çift düz
 The line's width	Çizginin genişliği
+Delete object along a road	Nesneyi yol boyunca sil
+Only a free object can be put on a road	Yola yalnızca serbest bir nesne konabilir
+An object hanging on another cannot go onto a road	Başka bir nesneye asılı olan nesne yola çıkamaz
+There is no road within 30 m	30 m içinde yol yok
+Put on a road	Yola koy
+The object is gone	Nesne artık yok
+It stands on no road	Hiçbir yolun üzerinde değil
+There is no tile there	Orada karo yok
+Take off the road	Yoldan al
+Beside it (right +)	Yanında (sağ +)
+Above the road	Yolun üstünde
+Distance between two copies; 0: one object only	İki kopya arasındaki uzaklık; 0: yalnızca bir nesne
+How many copies stand along the road	Yol boyunca kaç kopya duruyor
+Detach from the road	Yoldan ayır
+It becomes a free object where it stands. A row of several copies becomes one object; an object at an absolute height keeps the height above the ground there.	Durduğu yerde serbest bir nesne olur. Birkaç kopyanın oluşturduğu sıra tek bir nesne olur; mutlak yükseklikteki bir nesne oradaki yerden yüksekliğini korur.
+Attach to the road	Yola bağla
+It stands on the nearest road and follows it (as OMSI's [splineAttachement]); its IDCode stays	En yakın yolun üzerinde durur ve onu izler (OMSI'nin [splineAttachement] gibi); IDCode'u kalır

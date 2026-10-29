@@ -1655,6 +1655,7 @@ impl App {
                     let p = match sel {
                         Sel::Object(k, id) => doc.object(k, id).map(|o| doc.object_world(k, o, false)),
                         Sel::Spline(k, id) => doc.spline(k, id).map(|s| omsi_geometry::SplineCurve::from_map(s, tile_origin(k)).point_at(s.length * 0.5)),
+                        Sel::Attached(k, id) => crate::selection::attachment_first(doc, k, id).map(|f| f.pose.pos),
                     };
                     if let Some(p) = p {
                         self.cam.target = p;
@@ -2084,6 +2085,7 @@ impl App {
         let sel_file = match (self.ed.selected, &self.ed.doc) {
             (Some(Sel::Object(k, id)), Some(doc)) => crate::selection::any_object(doc, k, id).map(|o| (o.file.clone(), false)),
             (Some(Sel::Spline(k, id)), Some(doc)) => doc.spline(k, id).map(|s| (s.file.clone(), true)),
+            (Some(Sel::Attached(k, id)), Some(doc)) => doc.attachment(k, id).map(|a| (a.file.clone(), false)),
             _ => None,
         };
         if let (Some((f, spline)), Some(a), Some(r)) = (sel_file, self.assets.as_mut(), &self.roots) {

@@ -37,7 +37,7 @@ pub fn save(map_dir: &Path, list: &[MapGroup]) -> std::io::Result<()> {
 
 pub fn id_of(s: Sel) -> i64 {
     match s {
-        Sel::Object(_, id) | Sel::Spline(_, id) => id,
+        Sel::Object(_, id) | Sel::Spline(_, id) | Sel::Attached(_, id) => id,
     }
 }
 
@@ -49,6 +49,8 @@ pub fn sel_of(doc: &Document, id: i64) -> Option<Sel> {
             Some(Sel::Object(*k, id))
         } else if t.tile.splines.iter().any(|s| s.id == id && !s.deleted) {
             Some(Sel::Spline(*k, id))
+        } else if t.tile.spline_attachments.iter().any(|a| a.id == id) {
+            Some(Sel::Attached(*k, id))
         } else {
             None
         }

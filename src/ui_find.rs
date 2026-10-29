@@ -157,7 +157,7 @@ impl Find {
             // an IDCode: straight to it
             if let Ok(id) = q.parse::<i64>() {
                 let hit = self.groups.iter().flat_map(|g| g.at.iter().map(move |a| (g, a))).find(|(_, (s, _))| match s {
-                    Sel::Object(_, i) | Sel::Spline(_, i) => *i == id,
+                    Sel::Object(_, i) | Sel::Spline(_, i) | Sel::Attached(_, i) => *i == id,
                 });
                 match hit {
                     Some((g, &(s, p))) => {

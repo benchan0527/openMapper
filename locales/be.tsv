@@ -2499,3 +2499,20 @@ a drawing is on the road	малюнак на дарозе
 Across the roadway from its middle (right of the road's way is plus)	Упоперак праезнай часткі ад яе сярэдзіны (справа ад напрамку дарогі — плюс)
 Double solid	Падвойная суцэльная
 The line's width	Шырыня лініі
+Delete object along a road	Выдаліць аб'ект уздоўж дарогі
+Only a free object can be put on a road	На дарогу можна паставіць толькі свабодны аб'ект
+An object hanging on another cannot go onto a road	Аб'ект, які трымаецца за іншы, не можа пайсці на дарогу
+There is no road within 30 m	У межах 30 м няма дарогі
+Put on a road	Паставіць на дарогу
+The object is gone	Аб'ект знік
+It stands on no road	Ён не стаіць ні на якой дарозе
+There is no tile there	Там няма пліткі
+Take off the road	Зняць з дарогі
+Beside it (right +)	Побач (справа +)
+Above the road	Над дарогай
+Distance between two copies; 0: one object only	Адлегласць паміж двума копіямі; 0: толькі адзін аб'ект
+How many copies stand along the road	Колькі копій стаяць уздоўж дарогі
+Detach from the road	Адчапіць ад дарогі
+It becomes a free object where it stands. A row of several copies becomes one object; an object at an absolute height keeps the height above the ground there.	Ён робіцца свабодным аб'ектам там, дзе стаіць. Рад з некалькіх копій робіцца адным аб'ектам; аб'ект з абсалютнай вышынёй захоўвае вышыню над зямлёй там.
+Attach to the road	Прычапіць да дарогі
+It stands on the nearest road and follows it (as OMSI's [splineAttachement]); its IDCode stays	Ён стаіць на бліжэйшай дарозе і ідзе за ёй (як [splineAttachement] у OMSI); яго IDCode застаецца

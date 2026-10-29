@@ -2499,3 +2499,20 @@ a drawing is on the road	ada gambar di jalan
 Across the roadway from its middle (right of the road's way is plus)	Melintang badan jalan dari tengahnya (kanan arah jalan bernilai plus)
 Double solid	Ganda menerus
 The line's width	Lebar garis
+Delete object along a road	Hapus objek di sepanjang jalan
+Only a free object can be put on a road	Hanya objek bebas yang bisa diletakkan di jalan
+An object hanging on another cannot go onto a road	Objek yang menggantung pada objek lain tidak bisa masuk ke jalan
+There is no road within 30 m	Tidak ada jalan dalam 30 m
+Put on a road	Letakkan di jalan
+The object is gone	Objeknya sudah hilang
+It stands on no road	Tidak berdiri di jalan mana pun
+There is no tile there	Tidak ada petak di sana
+Take off the road	Keluarkan dari jalan
+Beside it (right +)	Di sebelahnya (kanan +)
+Above the road	Di atas jalan
+Distance between two copies; 0: one object only	Jarak antara dua salinan; 0: hanya satu objek
+How many copies stand along the road	Berapa salinan yang berdiri di sepanjang jalan
+Detach from the road	Lepaskan dari jalan
+It becomes a free object where it stands. A row of several copies becomes one object; an object at an absolute height keeps the height above the ground there.	Objek menjadi objek bebas di tempatnya berdiri. Satu baris beberapa salinan menjadi satu objek; objek dengan ketinggian mutlak mempertahankan ketinggian di atas tanah di sana.
+Attach to the road	Pasang ke jalan
+It stands on the nearest road and follows it (as OMSI's [splineAttachement]); its IDCode stays	Berdiri di jalan terdekat dan mengikutinya (seperti [splineAttachement] OMSI); IDCode-nya tetap

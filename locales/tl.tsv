@@ -2499,3 +2499,20 @@ a drawing is on the road	may drowing sa kalsada
 Across the roadway from its middle (right of the road's way is plus)	Sa kabila ng daanan mula sa gitna nito (ang kanan ng direksyon ng kalsada ay plus)
 Double solid	Dobleng tuloy-tuloy
 The line's width	Lapad ng linya
+Delete object along a road	Burahin ang object sa kahabaan ng kalsada
+Only a free object can be put on a road	Malayang object lang ang mailalagay sa kalsada
+An object hanging on another cannot go onto a road	Ang object na nakasabit sa iba ay hindi makakapasok sa kalsada
+There is no road within 30 m	Walang kalsada sa loob ng 30 m
+Put on a road	Ilagay sa kalsada
+The object is gone	Wala na ang object
+It stands on no road	Wala ito sa anumang kalsada
+There is no tile there	Walang tile doon
+Take off the road	Alisin sa kalsada
+Beside it (right +)	Sa tabi nito (kanan +)
+Above the road	Sa ibabaw ng kalsada
+Distance between two copies; 0: one object only	Layo sa pagitan ng dalawang kopya; 0: isang object lang
+How many copies stand along the road	Ilang kopya ang nakatayo sa kahabaan ng kalsada
+Detach from the road	Ikalas mula sa kalsada
+It becomes a free object where it stands. A row of several copies becomes one object; an object at an absolute height keeps the height above the ground there.	Nagiging malayang object ito kung saan ito nakatayo. Ang isang hilera ng maraming kopya ay nagiging isang object; ang object na may ganap na taas ay pinapanatili ang taas sa ibabaw ng lupa doon.
+Attach to the road	Ikabit sa kalsada
+It stands on the nearest road and follows it (as OMSI's [splineAttachement]); its IDCode stays	Nakatayo ito sa pinakamalapit na kalsada at sumusunod dito (tulad ng [splineAttachement] ng OMSI); nananatili ang IDCode nito

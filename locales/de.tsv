@@ -2499,3 +2499,20 @@ a drawing is on the road	Eine Zeichnung liegt auf der Straße
 Across the roadway from its middle (right of the road's way is plus)	Quer über die Fahrbahn ab ihrer Mitte (rechts der Straßenrichtung ist plus)
 Double solid	Doppelt durchgezogen
 The line's width	Breite der Linie
+Delete object along a road	Objekt entlang einer Straße löschen
+Only a free object can be put on a road	Nur ein freies Objekt kann auf eine Straße gesetzt werden
+An object hanging on another cannot go onto a road	Ein Objekt, das an einem anderen hängt, kann nicht auf eine Straße
+There is no road within 30 m	In 30 m ist keine Straße
+Put on a road	Auf eine Straße setzen
+The object is gone	Das Objekt ist weg
+It stands on no road	Es steht auf keiner Straße
+There is no tile there	Dort ist keine Kachel
+Take off the road	Von der Straße nehmen
+Beside it (right +)	Daneben (rechts +)
+Above the road	Über der Straße
+Distance between two copies; 0: one object only	Abstand zwischen zwei Kopien; 0: nur ein Objekt
+How many copies stand along the road	Wie viele Kopien entlang der Straße stehen
+Detach from the road	Von der Straße lösen
+It becomes a free object where it stands. A row of several copies becomes one object; an object at an absolute height keeps the height above the ground there.	Es wird ein freies Objekt, wo es steht. Eine Reihe mehrerer Kopien wird ein Objekt; ein Objekt mit absoluter Höhe behält dort die Höhe über dem Boden.
+Attach to the road	An die Straße hängen
+It stands on the nearest road and follows it (as OMSI's [splineAttachement]); its IDCode stays	Es steht auf der nächsten Straße und folgt ihr (wie OMSIs [splineAttachement]); seine IDCode bleibt

@@ -286,7 +286,7 @@ pub fn snap_controls(ui: &mut egui::Ui, ed: &mut Editor, room: f32) {
 /// The right panel with more than one thing selected.
 pub fn group_properties(ui: &mut egui::Ui, ed: &mut Editor, lib: &Library, actions: &mut Vec<crate::ui::Action>) {
     let sels = ed.selection();
-    let objects = sels.iter().filter(|s| matches!(s, Sel::Object(..))).count();
+    let objects = sels.iter().filter(|s| !matches!(s, Sel::Spline(..))).count();
     let splines = sels.len() - objects;
     section(ui, tr("Selection", "Выделение"));
     egui::Frame::new().inner_margin(Margin::same(8)).show(ui, |ui| {
@@ -525,6 +525,7 @@ pub fn rules_section(ui: &mut egui::Ui, ed: &mut Editor, sel: Sel) {
     let rules = match sel {
         Sel::Object(k, id) => crate::selection::any_object(doc, k, id).map(|o| o.rules.clone()),
         Sel::Spline(k, id) => doc.spline(k, id).map(|s| s.rules.clone()),
+        Sel::Attached(k, id) => doc.attachment(k, id).map(|a| a.rules.clone()),
     };
     let Some(mut rules) = rules else { return };
     let mut changed = false;

@@ -2499,3 +2499,20 @@ a drawing is on the road	có hình vẽ trên đường
 Across the roadway from its middle (right of the road's way is plus)	Ngang qua mặt đường từ giữa (bên phải hướng của đường là dương)
 Double solid	Vạch liền đôi
 The line's width	Độ rộng của vạch
+Delete object along a road	Xoá đối tượng dọc theo con đường
+Only a free object can be put on a road	Chỉ đối tượng tự do mới đặt được lên đường
+An object hanging on another cannot go onto a road	Đối tượng treo trên đối tượng khác không thể lên đường
+There is no road within 30 m	Không có con đường nào trong 30 m
+Put on a road	Đặt lên đường
+The object is gone	Đối tượng đã mất
+It stands on no road	Nó không đứng trên con đường nào
+There is no tile there	Ở đó không có ô nào
+Take off the road	Bỏ khỏi đường
+Beside it (right +)	Bên cạnh (phải +)
+Above the road	Trên con đường
+Distance between two copies; 0: one object only	Khoảng cách giữa hai bản sao; 0: chỉ một đối tượng
+How many copies stand along the road	Bao nhiêu bản sao đứng dọc theo con đường
+Detach from the road	Tách khỏi đường
+It becomes a free object where it stands. A row of several copies becomes one object; an object at an absolute height keeps the height above the ground there.	Nó thành một đối tượng tự do ngay tại chỗ nó đứng. Một hàng nhiều bản sao thành một đối tượng; đối tượng ở độ cao tuyệt đối giữ độ cao so với mặt đất ở đó.
+Attach to the road	Gắn vào đường
+It stands on the nearest road and follows it (as OMSI's [splineAttachement]); its IDCode stays	Nó đứng trên con đường gần nhất và đi theo (như [splineAttachement] của OMSI); IDCode của nó giữ nguyên

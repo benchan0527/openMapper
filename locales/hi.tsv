@@ -2499,3 +2499,20 @@ a drawing is on the road	सड़क पर एक चित्र है
 Across the roadway from its middle (right of the road's way is plus)	सड़क के आर-पार, उसके बीच से (सड़क की दिशा के दाएँ ओर धन है)
 Double solid	दोहरी अखंड
 The line's width	रेखा की चौड़ाई
+Delete object along a road	सड़क के साथ ऑब्जेक्ट हटाएँ
+Only a free object can be put on a road	सड़क पर सिर्फ़ एक मुक्त ऑब्जेक्ट रखा जा सकता है
+An object hanging on another cannot go onto a road	दूसरे पर टँगा ऑब्जेक्ट सड़क पर नहीं जा सकता
+There is no road within 30 m	30 मीटर के भीतर कोई सड़क नहीं है
+Put on a road	सड़क पर रखें
+The object is gone	ऑब्जेक्ट चला गया
+It stands on no road	यह किसी सड़क पर नहीं है
+There is no tile there	वहाँ कोई टाइल नहीं है
+Take off the road	सड़क से हटाएँ
+Beside it (right +)	इसके बगल में (दाएँ +)
+Above the road	सड़क के ऊपर
+Distance between two copies; 0: one object only	दो कॉपियों के बीच की दूरी; 0: सिर्फ़ एक ऑब्जेक्ट
+How many copies stand along the road	सड़क के साथ कितनी कॉपियाँ हैं
+Detach from the road	सड़क से अलग करें
+It becomes a free object where it stands. A row of several copies becomes one object; an object at an absolute height keeps the height above the ground there.	यह जहाँ है वहीं एक मुक्त ऑब्जेक्ट बन जाता है। कई कॉपियों की एक कतार एक ऑब्जेक्ट बन जाती है; पूर्ण ऊँचाई वाला ऑब्जेक्ट वहाँ ज़मीन से वही ऊँचाई रखता है।
+Attach to the road	सड़क से जोड़ें
+It stands on the nearest road and follows it (as OMSI's [splineAttachement]); its IDCode stays	यह सबसे नज़दीकी सड़क पर रहता है और उसका पीछा करता है (OMSI के [splineAttachement] की तरह); इसका IDCode वही रहता है
