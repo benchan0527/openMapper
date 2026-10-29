@@ -119,6 +119,8 @@ pub enum Action {
     /// How the mouse moves the camera ("map" or "fly").
     SetCamera(String),
     SetOmsiControls(bool),
+    /// The set of keys to start from (openMapper's, OMSI 2's editor's or Blender's).
+    SetKeySet(crate::controls::Preset),
     SetTileStreaming(bool),
     /// How many tiles the streaming window holds (it is switched on too).
     SetStreamTiles(u32),
@@ -810,7 +812,7 @@ pub fn editor(root: &mut egui::Ui, st: &mut UiState, u: EditorUi, actions: &mut 
         view = (rect, resp.contains_pointer());
         ui.painter().rect_stroke(rect, CornerRadius::ZERO, Stroke::new(1.0, BORDER), egui::StrokeKind::Inside);
         if let (Some(doc), Some(cam)) = (&ed.doc, status.cam) {
-            if let Some(p) = st.minimap.show(ui, rect, doc, lib, cam) {
+            if let Some(p) = st.minimap.show(ui, rect, doc, lib, cam, ed.moving()) {
                 actions.push(Action::LookAt(p));
             }
         }
@@ -994,10 +996,16 @@ fn menu_bar(root: &mut egui::Ui, st: &mut UiState, ed: &mut Editor, can_undo: bo
                         actions.push(Action::SetCamera("map".into()));
                     }
                 });
-                ui.menu_button(tr("Advanced users", "Для опытных"), |ui| {
+                ui.menu_button(tr("Preset Key Shortcut (from other applications)", "Готовые наборы клавиш других программ"), |ui| {
                     let mut on = prefs.omsi_controls;
-                    if check(ui, &mut on, tr("Controls as in OMSI 2's editor", "Управление как в редакторе OMSI 2")).on_hover_text(tr("Off by default. The middle button turns the view, the right button held and moved up and down zooms, a right click on the ground goes there (Shift + right click: the menu), the arrows move the camera, the wheel zooms", "Выключено по умолчанию. Средняя кнопка вращает вид, правая кнопка с движением вверх-вниз приближает, правый клик по земле переходит туда (Shift + правый клик: меню), стрелки двигают камеру, колесо приближает")).clicked() {
+                    if check(ui, &mut on, tr("OMSI 2's editor: mouse and keys", "Редактор OMSI 2: мышь и клавиши")).on_hover_text(format!("{}
+
+{}", tr("Off by default. The middle button turns the view, the right button held and moved up and down zooms, a right click on the ground goes there (Shift + right click: the menu), the arrows move the camera, the wheel zooms", "Выключено по умолчанию. Средняя кнопка вращает вид, правая кнопка с движением вверх-вниз приближает, правый клик по земле переходит туда (Shift + правый клик: меню), стрелки двигают камеру, колесо приближает"), tr("Its keys too: G moves the selection, R turns it, N makes a new object, Enter confirms, Del deletes, the tile grid is on Shift+G", "И его клавиши: G двигает выделенное, R поворачивает, N создаёт объект, Enter подтверждает, Del удаляет, сетка тайлов на Shift+G"))).clicked() {
                         actions.push(Action::SetOmsiControls(on));
+                    }
+                    let mut b = crate::controls::Preset::of(&prefs.keys_set, prefs.omsi_controls) == crate::controls::Preset::Blender;
+                    if check(ui, &mut b, tr("Blender's keys", "Клавиши Blender")).on_hover_text(tr("G moves the selection, Shift+S scales it, X deletes, Tab edits the mesh, Shift+A adds an object, Shift+D duplicates, F3 searches, Numpad 7 looks straight down. W A S D and Q E move the camera as they always do; the mouse as openMapper's own", "G двигает выделенное, Shift+S масштабирует, X удаляет, Tab правит меш, Shift+A добавляет объект, Shift+D дублирует, F3 ищет, Num 7 смотрит сверху. W A S D и Q E двигают камеру, как всегда; мышь как у openMapper")).clicked() {
+                        actions.push(Action::SetKeySet(if b { crate::controls::Preset::Blender } else { crate::controls::Preset::Mapper }));
                     }
                 });
                 let mut streaming = prefs.tile_streaming == Some(true);
@@ -2282,12 +2290,12 @@ fn properties(ui: &mut egui::Ui, st: &mut UiState, ed: &mut Editor, lib: &Librar
                         new_row = Some((i, c.map(|c| c * every.max(1e-6)), t));
                     }
                     ui.horizontal_wrapped(|ui| {
-                        if ui.button(icons::labelled(Icon::Road, tr("Detach from the road", "Снять с дороги"))).on_hover_text(tr("It becomes a free object where it stands. A row of several copies becomes one object; an object at an absolute height keeps the height above the ground there.", "Он становится свободным объектом там, где стоит. Ряд из нескольких копий станет одним объектом; объект с абсолютной высотой сохранит высоту над землёй там.")).clicked() {
+                        if ui.button(icons::labelled(Icon::Road, tr("Detach from the spline", "Отделить от сплайна"))).on_hover_text(tr("It becomes a free object where it stands. A row of several copies becomes one object; an object at an absolute height keeps the height above the ground there.", "Он становится свободным объектом там, где стоит. Ряд из нескольких копий станет одним объектом; объект с абсолютной высотой сохранит высоту над землёй там.")).clicked() {
                             detach_road = true;
                         }
                     });
                 }
-                if att.is_none() && o.parent_id.is_none() && ui.small_button(icons::labelled(Icon::Road, tr("Attach to the road", "Поставить на дорогу"))).on_hover_text(tr("It stands on the nearest road and follows it (as OMSI's [splineAttachement]); its IDCode stays", "Он встаёт на ближайшую дорогу и следует за ней (как [splineAttachement] в OMSI); IDCode сохраняется")).clicked() {
+                if att.is_none() && o.parent_id.is_none() && ui.small_button(icons::labelled(Icon::Road, tr("Attach to the spline", "Прикрепить к сплайну"))).on_hover_text(tr("It stands on the nearest road and follows it (as OMSI's [splineAttachement]); its IDCode stays", "Он встаёт на ближайшую дорогу и следует за ней (как [splineAttachement] в OMSI); IDCode сохраняется")).clicked() {
                     attach_road = true;
                 }
                 let is_stop = att.is_none() && a.map(|a| a.is_bus_stop).unwrap_or(false);
@@ -3008,8 +3016,24 @@ fn controls(ctx: &egui::Context, st: &mut UiState, prefs: &Prefs, actions: &mut 
     egui::Window::new(tr("Controls", "Управление")).open(&mut open).collapsible(false).default_height(560.0).show(ctx, |ui| {
         egui::ScrollArea::vertical().auto_shrink([true, false]).show(ui, |ui| {
         ui.label(RichText::new(tr("Keyboard", "Клавиатура")).strong().color(ACCENT));
+        let preset = crate::controls::Preset::of(&prefs.keys_set, prefs.omsi_controls);
+        ui.horizontal(|ui| {
+            ui.label(RichText::new(tr("Keys", "Клавиши")).color(TEXT_DIM));
+            for p in crate::controls::Preset::ALL {
+                let r = ui.add(egui::Button::new(p.label()).selected(preset == p).min_size(Vec2::new(0.0, 22.0)));
+                let h = match p {
+                    crate::controls::Preset::Mapper => tr("openMapper's own keys", "Собственные клавиши openMapper"),
+                    crate::controls::Preset::Omsi => tr("G moves the selection, R turns it, N makes a new object, Enter confirms, Del deletes, the tile grid is on Shift+G; the mouse as in OMSI 2's editor too", "G двигает выделенное, R поворачивает, N создаёт объект, Enter подтверждает, Del удаляет, сетка тайлов на Shift+G; мышь тоже как в редакторе OMSI 2"),
+                    crate::controls::Preset::Blender => tr("G moves the selection, Shift+S scales it, X deletes, Tab edits the mesh, Shift+A adds an object, Shift+D duplicates, F3 searches, Numpad 7 looks straight down. W A S D and Q E move the camera as they always do; the mouse as openMapper's own", "G двигает выделенное, S масштабирует, X удаляет, A выделяет всё, Tab правит меш, Shift+A добавляет объект, Shift+D дублирует, F3 ищет, Num 7 смотрит сверху. W A S D свободны для них, поэтому камеру двигают стрелки; мышь как у openMapper"),
+                };
+                help(st, &r, h);
+                if r.clicked() && preset != p {
+                    actions.push(Action::SetKeySet(p));
+                }
+            }
+        });
         ui.label(RichText::new(tr("Click a key, then press the new one (Esc: leave it). A key already in use is taken from its command.", "Нажмите на клавишу, затем новую (Esc: оставить). Занятая клавиша отбирается у своей команды.")).small().color(TEXT_DIM));
-        let map = crate::controls::Keymap::of(&prefs.keys);
+        let map = crate::controls::Keymap::of(&prefs.keys, preset);
         egui::Grid::new("key bindings").striped(true).num_columns(3).show(ui, |ui| {
             for cmd in crate::controls::ALL {
                 ui.label(cmd.label());
@@ -3024,7 +3048,7 @@ fn controls(ctx: &egui::Context, st: &mut UiState, prefs: &Prefs, actions: &mut 
                     st.key_capture = if waiting { None } else { Some(*cmd) };
                 }
                 if ui.small_button(icons::labelled(Icon::Delete, "")).on_hover_text(tr("Back to the default key", "Вернуть клавишу по умолчанию")).clicked() {
-                    actions.push(Action::BindKey(*cmd, Some(cmd.default())));
+                    actions.push(Action::BindKey(*cmd, preset.chord(*cmd)));
                 }
                 ui.end_row();
             }

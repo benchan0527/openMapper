@@ -2507,12 +2507,32 @@ Put on a road	Паставіць на дарогу
 The object is gone	Аб'ект знік
 It stands on no road	Ён не стаіць ні на якой дарозе
 There is no tile there	Там няма пліткі
-Take off the road	Зняць з дарогі
+Take off the spline	Зняць з дарогі
 Beside it (right +)	Побач (справа +)
 Above the road	Над дарогай
 Distance between two copies; 0: one object only	Адлегласць паміж двума копіямі; 0: толькі адзін аб'ект
 How many copies stand along the road	Колькі копій стаяць уздоўж дарогі
-Detach from the road	Адчапіць ад дарогі
+Detach from the spline	Адчапіць ад дарогі
 It becomes a free object where it stands. A row of several copies becomes one object; an object at an absolute height keeps the height above the ground there.	Ён робіцца свабодным аб'ектам там, дзе стаіць. Рад з некалькіх копій робіцца адным аб'ектам; аб'ект з абсалютнай вышынёй захоўвае вышыню над зямлёй там.
-Attach to the road	Прычапіць да дарогі
+Attach to the spline	Прычапіць да дарогі
 It stands on the nearest road and follows it (as OMSI's [splineAttachement]); its IDCode stays	Ён стаіць на бліжэйшай дарозе і ідзе за ёй (як [splineAttachement] у OMSI); яго IDCode застаецца
+OMSI 2's editor: the middle button turns, the right button held and moved zooms, a right click goes there (Shift: menu); G moves the selection, N makes a new object, Enter confirms, the tile grid is on Shift+G	Рэдактар OMSI 2: сярэдняя кнопка паварочвае, правая заціснутая з рухам набліжае, правы клік пераносіць туды (Shift: меню); G рухае выдзеленае, N стварае аб'ект, Enter пацвярджае, сетка плітак на Shift+G
+openMapper's own controls: the camera as chosen under Camera, the keys as in View → Controls	Уласнае кіраванне openMapper: камера як выбрана ў «Камера», клавішы як у «Выгляд → Кіраванне»
+OMSI 2's editor	Рэдактар OMSI 2
+Place a new object at the cursor	Паставіць новы аб'ект ля курсора
+Confirm (finish what is being drawn)	Пацвердзіць (закончыць пачатае)
+Point at the ground where the object is to stand	Пакажыце на зямлю, дзе мусіць стаяць аб'ект
+OMSI 2's editor: mouse and keys	Рэдактар OMSI 2: мыш і клавішы
+Its keys too: G moves the selection, R turns it, N makes a new object, Enter confirms, Del deletes, the tile grid is on Shift+G	І яго клавішы: G рухае выдзеленае, R паварочвае, N стварае аб'ект, Enter пацвярджае, Del выдаляе, сетка плітак на Shift+G
+Keys	Клавішы
+openMapper's own keys	Уласныя клавішы openMapper
+G moves the selection, R turns it, N makes a new object, Enter confirms, Del deletes, the tile grid is on Shift+G; the mouse as in OMSI 2's editor too	G рухае выдзеленае, R паварочвае, N стварае аб'ект, Enter пацвярджае, Del выдаляе, сетка плітак на Shift+G; мыш таксама як у рэдактары OMSI 2
+Blender's keys: G moves the selection, S scales it, X deletes, A selects all, Tab edits the mesh, Shift+A adds an object, Shift+D duplicates, F3 searches. W A S D are free for them: the arrows move the camera	Клавішы Blender: G рухае выдзеленае, S маштабуе, X выдаляе, A вылучае ўсё, Tab правіць меш, Shift+A дадае аб'ект, Shift+D дубліруе, F3 шукае. W A S D свабодныя для іх: камеру рухаюць стрэлкі
+The keys as in View → Controls	Клавішы як у «Выгляд → Кіраванне»
+Blender's keys	Клавішы Blender
+G moves the selection, S scales it, X deletes, A selects all, Tab edits the mesh, Shift+A adds an object, Shift+D duplicates, F3 searches, Numpad 7 looks straight down. W A S D are free for them, so the arrows move the camera; the mouse as openMapper's own	G рухае выдзеленае, S маштабуе, X выдаляе, A вылучае ўсё, Tab правіць меш, Shift+A дадае аб'ект, Shift+D дубліруе, F3 шукае, Num 7 глядзіць зверху. W A S D свабодныя для іх, таму камеру рухаюць стрэлкі; мыш як у openMapper
+Grab	Захват
+X / Y / Z: lock the axis, numbers: how far, Enter or a click: done, Esc: cancel	X / Y / Z: замацаваць вось, лічбы: наколькі, Enter або пстрычка: гатова, Esc: адмена
+Preset Key Shortcut (from other applications)	Хуткія клавішы з іншых праграм
+Blender's keys: G moves the selection, Shift+S scales it, X deletes, Tab edits the mesh, Shift+A adds an object, Shift+D duplicates, F3 searches. W A S D and Q E move the camera as they always do	Клавішы Blender: G перамяшчае вылучанае, Shift+S маштабуе, X выдаляе, Tab правіць меш, Shift+A дадае аб'ект, Shift+D дубліруе, F3 шукае. W A S D і Q E рухаюць камеру, як заўсёды
+G moves the selection, Shift+S scales it, X deletes, Tab edits the mesh, Shift+A adds an object, Shift+D duplicates, F3 searches, Numpad 7 looks straight down. W A S D and Q E move the camera as they always do; the mouse as openMapper's own	G перамяшчае вылучанае, Shift+S маштабуе, X выдаляе, Tab правіць меш, Shift+A дадае аб'ект, Shift+D дубліруе, F3 шукае, Num 7 глядзіць уніз. W A S D і Q E рухаюць камеру, як заўсёды; мыш — як у openMapper

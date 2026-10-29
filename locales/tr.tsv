@@ -2507,12 +2507,32 @@ Put on a road	Yola koy
 The object is gone	Nesne artık yok
 It stands on no road	Hiçbir yolun üzerinde değil
 There is no tile there	Orada karo yok
-Take off the road	Yoldan al
+Take off the spline	Yoldan al
 Beside it (right +)	Yanında (sağ +)
 Above the road	Yolun üstünde
 Distance between two copies; 0: one object only	İki kopya arasındaki uzaklık; 0: yalnızca bir nesne
 How many copies stand along the road	Yol boyunca kaç kopya duruyor
-Detach from the road	Yoldan ayır
+Detach from the spline	Yoldan ayır
 It becomes a free object where it stands. A row of several copies becomes one object; an object at an absolute height keeps the height above the ground there.	Durduğu yerde serbest bir nesne olur. Birkaç kopyanın oluşturduğu sıra tek bir nesne olur; mutlak yükseklikteki bir nesne oradaki yerden yüksekliğini korur.
-Attach to the road	Yola bağla
+Attach to the spline	Yola bağla
 It stands on the nearest road and follows it (as OMSI's [splineAttachement]); its IDCode stays	En yakın yolun üzerinde durur ve onu izler (OMSI'nin [splineAttachement] gibi); IDCode'u kalır
+OMSI 2's editor: the middle button turns, the right button held and moved zooms, a right click goes there (Shift: menu); G moves the selection, N makes a new object, Enter confirms, the tile grid is on Shift+G	OMSI 2 düzenleyicisi: orta düğme döndürür, sağ düğme basılı tutulup hareket ettirilince yakınlaştırır, sağ tıklama oraya gider (Shift: menü); G seçimi taşır, N nesne oluşturur, Enter onaylar, karo ızgarası Shift+G'de
+openMapper's own controls: the camera as chosen under Camera, the keys as in View → Controls	openMapper'ın kendi denetimleri: kamera «Kamera» altında seçildiği gibi, tuşlar «Görünüm → Denetimler» gibi
+OMSI 2's editor	OMSI 2 düzenleyicisi
+Place a new object at the cursor	İmleçte yeni bir nesne koy
+Confirm (finish what is being drawn)	Onayla (çizilmekte olanı bitir)
+Point at the ground where the object is to stand	Nesnenin duracağı zemini göster
+OMSI 2's editor: mouse and keys	OMSI 2 düzenleyicisi: fare ve tuşlar
+Its keys too: G moves the selection, R turns it, N makes a new object, Enter confirms, Del deletes, the tile grid is on Shift+G	Tuşları da: G seçimi taşır, R döndürür, N nesne oluşturur, Enter onaylar, Del siler, karo ızgarası Shift+G'de
+Keys	Tuşlar
+openMapper's own keys	openMapper'ın kendi tuşları
+G moves the selection, R turns it, N makes a new object, Enter confirms, Del deletes, the tile grid is on Shift+G; the mouse as in OMSI 2's editor too	G seçimi taşır, R döndürür, N nesne oluşturur, Enter onaylar, Del siler, karo ızgarası Shift+G'de; fare de OMSI 2 düzenleyicisindeki gibi
+Blender's keys: G moves the selection, S scales it, X deletes, A selects all, Tab edits the mesh, Shift+A adds an object, Shift+D duplicates, F3 searches. W A S D are free for them: the arrows move the camera	Blender'ın tuşları: G seçimi taşır, S ölçekler, X siler, A tümünü seçer, Tab ağı düzenler, Shift+A nesne ekler, Shift+D çoğaltır, F3 arar. W A S D bunlar için boştur: kamerayı oklar hareket ettirir
+The keys as in View → Controls	Tuşlar «Görünüm → Denetimler» gibi
+Blender's keys	Blender'ın tuşları
+G moves the selection, S scales it, X deletes, A selects all, Tab edits the mesh, Shift+A adds an object, Shift+D duplicates, F3 searches, Numpad 7 looks straight down. W A S D are free for them, so the arrows move the camera; the mouse as openMapper's own	G seçimi taşır, S ölçekler, X siler, A tümünü seçer, Tab ağı düzenler, Shift+A nesne ekler, Shift+D çoğaltır, F3 arar, Num 7 yukarıdan bakar. W A S D bunlar için boştur, bu yüzden kamerayı oklar hareket ettirir; fare openMapper'ınki gibi
+Grab	Kavra
+X / Y / Z: lock the axis, numbers: how far, Enter or a click: done, Esc: cancel	X / Y / Z: ekseni kilitle, sayılar: ne kadar, Enter veya tıklama: tamam, Esc: iptal
+Preset Key Shortcut (from other applications)	Diğer programların kısayolları
+Blender's keys: G moves the selection, Shift+S scales it, X deletes, Tab edits the mesh, Shift+A adds an object, Shift+D duplicates, F3 searches. W A S D and Q E move the camera as they always do	Blender tuşları: G seçimi taşır, Shift+S ölçekler, X siler, Tab ağı düzenler, Shift+A nesne ekler, Shift+D çoğaltır, F3 arar. W A S D ve Q E kamerayı her zamanki gibi hareket ettirir
+G moves the selection, Shift+S scales it, X deletes, Tab edits the mesh, Shift+A adds an object, Shift+D duplicates, F3 searches, Numpad 7 looks straight down. W A S D and Q E move the camera as they always do; the mouse as openMapper's own	G seçimi taşır, Shift+S ölçekler, X siler, Tab ağı düzenler, Shift+A nesne ekler, Shift+D çoğaltır, F3 arar, Num 7 aşağı bakar. W A S D ve Q E kamerayı her zamanki gibi hareket ettirir; fare openMapper'daki gibi

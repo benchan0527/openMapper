@@ -2507,12 +2507,32 @@ Put on a road	Posa a una carretera
 The object is gone	L'objecte ha desaparegut
 It stands on no road	No està sobre cap carretera
 There is no tile there	Allà no hi ha cap rajola
-Take off the road	Treu de la carretera
+Take off the spline	Treu de la carretera
 Beside it (right +)	Al costat (dreta +)
 Above the road	Sobre la carretera
 Distance between two copies; 0: one object only	Distància entre dues còpies; 0: només un objecte
 How many copies stand along the road	Quantes còpies hi ha al llarg de la carretera
-Detach from the road	Desenganxa de la carretera
+Detach from the spline	Desenganxa de la carretera
 It becomes a free object where it stands. A row of several copies becomes one object; an object at an absolute height keeps the height above the ground there.	Es converteix en un objecte lliure on és. Una fila de diverses còpies es converteix en un sol objecte; un objecte amb altura absoluta conserva l'altura sobre el terra d'allà.
-Attach to the road	Enganxa a la carretera
+Attach to the spline	Enganxa a la carretera
 It stands on the nearest road and follows it (as OMSI's [splineAttachement]); its IDCode stays	Està sobre la carretera més propera i la segueix (com el [splineAttachement] d'OMSI); el seu IDCode es manté
+OMSI 2's editor: the middle button turns, the right button held and moved zooms, a right click goes there (Shift: menu); G moves the selection, N makes a new object, Enter confirms, the tile grid is on Shift+G	Editor de l'OMSI 2: el botó central gira, el dret premut i mogut apropa, un clic dret hi va (Shift: menú); G mou la selecció, N crea un objecte, Enter confirma, la quadrícula de rajoles és a Shift+G
+openMapper's own controls: the camera as chosen under Camera, the keys as in View → Controls	Controls propis de l'openMapper: la càmera com s'ha triat a «Càmera», les tecles com a «Vista → Controls»
+OMSI 2's editor	Editor de l'OMSI 2
+Place a new object at the cursor	Col·loca un objecte nou al cursor
+Confirm (finish what is being drawn)	Confirma (acaba el que s'està dibuixant)
+Point at the ground where the object is to stand	Assenyala el terra on ha de ser l'objecte
+OMSI 2's editor: mouse and keys	Editor de l'OMSI 2: ratolí i tecles
+Its keys too: G moves the selection, R turns it, N makes a new object, Enter confirms, Del deletes, the tile grid is on Shift+G	També les seves tecles: G mou la selecció, R la gira, N crea un objecte, Enter confirma, Del esborra, la quadrícula de rajoles és a Shift+G
+Keys	Tecles
+openMapper's own keys	Tecles pròpies de l'openMapper
+G moves the selection, R turns it, N makes a new object, Enter confirms, Del deletes, the tile grid is on Shift+G; the mouse as in OMSI 2's editor too	G mou la selecció, R la gira, N crea un objecte, Enter confirma, Del esborra, la quadrícula de rajoles és a Shift+G; el ratolí també com a l'editor de l'OMSI 2
+Blender's keys: G moves the selection, S scales it, X deletes, A selects all, Tab edits the mesh, Shift+A adds an object, Shift+D duplicates, F3 searches. W A S D are free for them: the arrows move the camera	Tecles del Blender: G mou la selecció, S l'escala, X esborra, A ho selecciona tot, Tab edita la malla, Shift+A afegeix un objecte, Shift+D duplica, F3 cerca. W A S D queden lliures per a elles: les fletxes mouen la càmera
+The keys as in View → Controls	Les tecles com a «Vista → Controls»
+Blender's keys	Tecles del Blender
+G moves the selection, S scales it, X deletes, A selects all, Tab edits the mesh, Shift+A adds an object, Shift+D duplicates, F3 searches, Numpad 7 looks straight down. W A S D are free for them, so the arrows move the camera; the mouse as openMapper's own	G mou la selecció, S l'escala, X esborra, A ho selecciona tot, Tab edita la malla, Shift+A afegeix un objecte, Shift+D duplica, F3 cerca, Num 7 mira des de dalt. W A S D queden lliures per a elles, així que les fletxes mouen la càmera; el ratolí com el propi de l'openMapper
+Grab	Agafar
+X / Y / Z: lock the axis, numbers: how far, Enter or a click: done, Esc: cancel	X / Y / Z: fixa l'eix, números: quant lluny, Enter o un clic: fet, Esc: cancel·la
+Preset Key Shortcut (from other applications)	Dreceres de tecles d'altres programes
+Blender's keys: G moves the selection, Shift+S scales it, X deletes, Tab edits the mesh, Shift+A adds an object, Shift+D duplicates, F3 searches. W A S D and Q E move the camera as they always do	Tecles del Blender: G mou la selecció, Shift+S l'escala, X esborra, Tab edita la malla, Shift+A afegeix un objecte, Shift+D duplica, F3 cerca. W A S D i Q E mouen la càmera com sempre
+G moves the selection, Shift+S scales it, X deletes, Tab edits the mesh, Shift+A adds an object, Shift+D duplicates, F3 searches, Numpad 7 looks straight down. W A S D and Q E move the camera as they always do; the mouse as openMapper's own	G mou la selecció, Shift+S l'escala, X esborra, Tab edita la malla, Shift+A afegeix un objecte, Shift+D duplica, F3 cerca, Num 7 mira cap avall. W A S D i Q E mouen la càmera com sempre; el ratolí, com el de l'openMapper

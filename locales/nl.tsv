@@ -2547,12 +2547,32 @@ Put on a road	Op een weg zetten
 The object is gone	Het object is weg
 It stands on no road	Het staat op geen enkele weg
 There is no tile there	Daar is geen tegel
-Take off the road	Van de weg halen
+Take off the spline	Van de weg halen
 Beside it (right +)	Ernaast (rechts +)
 Above the road	Boven de weg
 Distance between two copies; 0: one object only	Afstand tussen twee kopieën; 0: één object
 How many copies stand along the road	Hoeveel kopieën langs de weg staan
-Detach from the road	Losmaken van de weg
+Detach from the spline	Losmaken van de weg
 It becomes a free object where it stands. A row of several copies becomes one object; an object at an absolute height keeps the height above the ground there.	Het wordt een vrij object waar het staat. Een rij van meerdere kopieën wordt één object; een object op absolute hoogte houdt daar de hoogte boven de grond.
-Attach to the road	Aan de weg hangen
+Attach to the spline	Aan de weg hangen
 It stands on the nearest road and follows it (as OMSI's [splineAttachement]); its IDCode stays	Het staat op de dichtstbijzijnde weg en volgt die (zoals OMSI's [splineAttachement]); zijn IDCode blijft
+OMSI 2's editor: the middle button turns, the right button held and moved zooms, a right click goes there (Shift: menu); G moves the selection, N makes a new object, Enter confirms, the tile grid is on Shift+G	OMSI 2's editor: de middelste knop draait, de rechter ingedrukt en bewogen zoomt, een rechtsklik gaat daarheen (Shift: menu); G verplaatst de selectie, N maakt een object, Enter bevestigt, het tegelraster staat op Shift+G
+openMapper's own controls: the camera as chosen under Camera, the keys as in View → Controls	openMappers eigen besturing: de camera zoals gekozen onder 'Camera', de toetsen zoals onder 'Beeld → Besturing'
+OMSI 2's editor	OMSI 2's editor
+Place a new object at the cursor	Een nieuw object bij de cursor zetten
+Confirm (finish what is being drawn)	Bevestigen (afmaken wat getekend wordt)
+Point at the ground where the object is to stand	Wijs de grond aan waar het object moet staan
+OMSI 2's editor: mouse and keys	OMSI 2's editor: muis en toetsen
+Its keys too: G moves the selection, R turns it, N makes a new object, Enter confirms, Del deletes, the tile grid is on Shift+G	Ook zijn toetsen: G verplaatst de selectie, R draait hem, N maakt een object, Enter bevestigt, Del verwijdert, het tegelraster staat op Shift+G
+Keys	Toetsen
+openMapper's own keys	openMappers eigen toetsen
+G moves the selection, R turns it, N makes a new object, Enter confirms, Del deletes, the tile grid is on Shift+G; the mouse as in OMSI 2's editor too	G verplaatst de selectie, R draait hem, N maakt een object, Enter bevestigt, Del verwijdert, het tegelraster staat op Shift+G; de muis ook als in OMSI 2's editor
+Blender's keys: G moves the selection, S scales it, X deletes, A selects all, Tab edits the mesh, Shift+A adds an object, Shift+D duplicates, F3 searches. W A S D are free for them: the arrows move the camera	Blenders toetsen: G verplaatst de selectie, S schaalt hem, X verwijdert, A selecteert alles, Tab bewerkt de mesh, Shift+A voegt een object toe, Shift+D dupliceert, F3 zoekt. W A S D zijn daarvoor vrij: de pijltjes bewegen de camera
+The keys as in View → Controls	De toetsen zoals onder 'Beeld → Besturing'
+Blender's keys	Blenders toetsen
+G moves the selection, S scales it, X deletes, A selects all, Tab edits the mesh, Shift+A adds an object, Shift+D duplicates, F3 searches, Numpad 7 looks straight down. W A S D are free for them, so the arrows move the camera; the mouse as openMapper's own	G verplaatst de selectie, S schaalt hem, X verwijdert, A selecteert alles, Tab bewerkt de mesh, Shift+A voegt een object toe, Shift+D dupliceert, F3 zoekt, Num 7 kijkt van boven. W A S D zijn daarvoor vrij, dus de pijltjes bewegen de camera; de muis als openMappers eigen
+Grab	Vastpakken
+X / Y / Z: lock the axis, numbers: how far, Enter or a click: done, Esc: cancel	X / Y / Z: as vastzetten, cijfers: hoe ver, Enter of een klik: klaar, Esc: annuleren
+Preset Key Shortcut (from other applications)	Sneltoetsen van andere programma's
+Blender's keys: G moves the selection, Shift+S scales it, X deletes, Tab edits the mesh, Shift+A adds an object, Shift+D duplicates, F3 searches. W A S D and Q E move the camera as they always do	Blender-toetsen: G verplaatst de selectie, Shift+S schaalt hem, X verwijdert, Tab bewerkt de mesh, Shift+A voegt een object toe, Shift+D dupliceert, F3 zoekt. W A S D en Q E bewegen de camera zoals altijd
+G moves the selection, Shift+S scales it, X deletes, Tab edits the mesh, Shift+A adds an object, Shift+D duplicates, F3 searches, Numpad 7 looks straight down. W A S D and Q E move the camera as they always do; the mouse as openMapper's own	G verplaatst de selectie, Shift+S schaalt hem, X verwijdert, Tab bewerkt de mesh, Shift+A voegt een object toe, Shift+D dupliceert, F3 zoekt, Num 7 kijkt recht naar beneden. W A S D en Q E bewegen de camera zoals altijd; de muis als in openMapper

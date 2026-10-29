@@ -101,7 +101,7 @@ fn commands() -> Vec<Command> {
         cmd!(Icon::Focus, "Go to selection", "К выделенному", "focus фокус", "F", |_, _, a| a.push(Action::FocusSelection)),
         cmd!(Icon::Map, "Overview map", "Обзорная карта", "minimap миникарта", "M", |st, _, _| st.minimap.open = !st.minimap.open),
         cmd!(Icon::Objects, "Assets", "Ассеты", "catalogue browser каталог", "B", |st, _, _| st.assets.open = !st.assets.open),
-        cmd!(Icon::Tiles, "Tile grid", "Сетка тайлов", "show показать", "G", |_, ed, _| ed.show_grid = !ed.show_grid),
+        cmd!(Icon::Tiles, "Tile grid", "Сетка тайлов", "show показать", "G / Shift+G", |_, ed, _| ed.show_grid = !ed.show_grid),
         cmd!(Icon::Visible, "What the game does not show", "То, чего не видно в игре", "technical helpers invisible технические помощники", "", |_, ed, _| ed.show_technical = !ed.show_technical),
         cmd!(Icon::Route, "AI lanes", "Полосы ИИ", "paths arrows пути стрелки", "", |_, ed, _| ed.show_lanes = !ed.show_lanes),
         cmd!(Icon::Save, "Save a picture of the view", "Сохранить картинку вида", "screenshot скриншот", "F12", |_, _, a| a.push(Action::ViewPicture)),

@@ -9,7 +9,7 @@ use glam::{DVec2, DVec3};
 use winit::application::ApplicationHandler;
 use winit::event::{ElementState, MouseButton, MouseScrollDelta, WindowEvent};
 use winit::event_loop::{ActiveEventLoop, ControlFlow};
-use crate::controls::{Cmd, Keymap};
+use crate::controls::{Cmd, Keymap, Preset};
 use winit::keyboard::{Key, KeyCode, NamedKey, PhysicalKey};
 use winit::window::{Window, WindowId};
 
@@ -243,6 +243,15 @@ impl App {
         }
         // OPENMAPPER_MULTIPLAYER: File > Multiplayer open at the start
         app.collab.open = std::env::var_os("OPENMAPPER_MULTIPLAYER").is_some();
+        // OPENMAPPER_HELP=1: View > Controls open (checks of the keys without a person at the
+        // screen); OPENMAPPER_KEYS=mapper|omsi|blender: that set of keys (and OMSI 2's mouse)
+        if let Ok(k) = std::env::var("OPENMAPPER_KEYS") {
+            app.prefs.omsi_controls = k == "omsi";
+            app.prefs.keys_set = k;
+        }
+        if std::env::var_os("OPENMAPPER_HELP").is_some() {
+            app.ui.help_open = true;
+        }
         app
     }
 
@@ -322,13 +331,18 @@ impl App {
         if self.ed.doc.is_some() && self.recover.is_none() {
             crate::doc::autosave::clear(&roots.content);
         }
-        match Document::load(roots, cfg, |_| {}) {
+        // (a big map is read and its tiles made ready for the view here, the window waiting:
+        // the log says so if that wait is long enough for the watchdog to write)
+        crate::logging::busy("opening the map");
+        let loaded = Document::load(roots, cfg, |_| {});
+        match loaded {
             Ok(doc) => {
                 self.prefs.push_recent(cfg);
                 self.after_open(doc);
             }
             Err(e) => self.ed.error(format!("{}: {e}", tr("Could not open the map", "Не удалось открыть карту"))),
         }
+        crate::logging::busy("");
     }
 
     /// The camera kept for the map open now, to open it there next time.
@@ -999,7 +1013,10 @@ impl App {
                 }
             }
         }
-        match crate::doc::save(doc) {
+        crate::logging::busy("saving the map");
+        let saved = crate::doc::save(doc);
+        crate::logging::busy("");
+        match saved {
             Ok(()) => {
                 omsi_cfg::content_changed();
                 if let (Some(r), None) = (&self.roots, &self.recover) {
@@ -1355,7 +1372,8 @@ impl App {
                 el.exit();
             }
             Action::BindKey(cmd, chord) => {
-                crate::controls::bind(&mut self.prefs.keys, cmd, chord);
+                let preset = Preset::of(&self.prefs.keys_set, self.prefs.omsi_controls);
+                crate::controls::bind(&mut self.prefs.keys, preset, cmd, chord);
                 self.prefs.save();
             }
             Action::ResetKeys => {
@@ -1617,8 +1635,24 @@ impl App {
             }
             Action::SetOmsiControls(on) => {
                 self.prefs.omsi_controls = on;
+                self.prefs.keys_set = if on { "omsi" } else { "mapper" }.into();
                 self.prefs.save();
-                self.ed.toast(if on { tr("Controls as in OMSI 2's editor: middle button turns, right button held and moved zooms, a right click goes there (Shift: menu)", "Управление как в редакторе OMSI 2: средняя кнопка вращает, правая зажатая с движением приближает, правый клик переходит туда (Shift: меню)") } else { tr("Controls as chosen under Camera", "Управление как выбрано в «Камера»") }.to_string());
+                self.ed.toast(if on {
+                    tr("OMSI 2's editor: the middle button turns, the right button held and moved zooms, a right click goes there (Shift: menu); G moves the selection, N makes a new object, Enter confirms, the tile grid is on Shift+G", "Редактор OMSI 2: средняя кнопка вращает, правая зажатая с движением приближает, правый клик переходит туда (Shift: меню); G двигает выделенное, N создаёт объект, Enter подтверждает, сетка тайлов на Shift+G").to_string()
+                } else {
+                    tr("openMapper's own controls: the camera as chosen under Camera, the keys as in View → Controls", "Собственное управление openMapper: камера как выбрано в «Камера», клавиши как в «Вид → Управление»").to_string()
+                });
+            }
+            Action::SetKeySet(p) => {
+                self.prefs.keys_set = p.id().to_string();
+                // (OMSI 2's editor is its mouse and its keys together; the other two sets go
+                // with openMapper's own mouse)
+                self.prefs.omsi_controls = p == Preset::Omsi;
+                self.prefs.save();
+                self.ed.toast(match p {
+                    Preset::Blender => tr("Blender's keys: G moves the selection, Shift+S scales it, X deletes, Tab edits the mesh, Shift+A adds an object, Shift+D duplicates, F3 searches. W A S D and Q E move the camera as they always do", "Клавиши Blender: G двигает выделенное, Shift+S масштабирует, X удаляет, Tab правит меш, Shift+A добавляет объект, Shift+D дублирует, F3 ищет. W A S D и Q E двигают камеру, как всегда"),
+                    _ => tr("The keys as in View → Controls", "Клавиши как в «Вид → Управление»"),
+                }.to_string());
             }
             Action::SetCamera(c) => {
                 self.prefs.camera = c;
@@ -1740,7 +1774,7 @@ impl App {
     // ------------------------------------------------------------------ input
 
     fn key(&mut self, code: Option<KeyCode>, logical: &Key, pressed: bool, el: &ActiveEventLoop) {
-        let map = Keymap::of(&self.prefs.keys);
+        let map = Keymap::of(&self.prefs.keys, Preset::of(&self.prefs.keys_set, self.prefs.omsi_controls));
         if let Some(code) = code {
             if pressed && self.ui.key_capture.is_some() {
                 self.capture_key(code);
@@ -1772,6 +1806,12 @@ impl App {
             }
         }
         if !pressed || self.ed.doc.is_none() {
+            return;
+        }
+        // (a grab holds the keyboard, as Blender's does: X, Y, Z lock it, numbers say how far,
+        // Enter or Esc lets it go; Ctrl is left to the rest, for an undo)
+        if self.ed.grab.is_some() && !self.keys.ctrl {
+            self.grab_key(code);
             return;
         }
         let ctrl = self.keys.ctrl;
@@ -1812,8 +1852,7 @@ impl App {
                 let step = if shift { 1.0 } else { 0.1 };
                 self.ed.raise_selection(if k == KeyCode::PageUp { step } else { -step });
             }
-            Some(KeyCode::NumpadEnter) => actions.push(Action::BuildRoad),
-            Some(KeyCode::Backspace) => self.ed.delete_selected(),
+            Some(KeyCode::Backspace) | Some(KeyCode::Delete) => self.ed.delete_selected(),
             _ => {
                 if let Some(c) = cmd {
                     self.run_cmd(c, shift, &mut actions);
@@ -1842,6 +1881,38 @@ impl App {
         }
     }
 
+    /// The keys a grab takes (Blender's G in the Blender and OMSI key sets): the axis to lock
+    /// it to, the distance typed, and the end of it. Everything else is held off meanwhile.
+    fn grab_key(&mut self, code: Option<KeyCode>) {
+        let Some(code) = code else { return };
+        let digit = |c: KeyCode| -> Option<u8> {
+            let rows = [
+                [KeyCode::Digit0, KeyCode::Digit1, KeyCode::Digit2, KeyCode::Digit3, KeyCode::Digit4, KeyCode::Digit5, KeyCode::Digit6, KeyCode::Digit7, KeyCode::Digit8, KeyCode::Digit9],
+                [KeyCode::Numpad0, KeyCode::Numpad1, KeyCode::Numpad2, KeyCode::Numpad3, KeyCode::Numpad4, KeyCode::Numpad5, KeyCode::Numpad6, KeyCode::Numpad7, KeyCode::Numpad8, KeyCode::Numpad9],
+            ];
+            rows.iter().find_map(|r| r.iter().position(|k| *k == c).map(|n| n as u8))
+        };
+        match code {
+            KeyCode::Escape => {
+                self.ed.grab_cancel();
+            }
+            KeyCode::Enter | KeyCode::NumpadEnter => {
+                self.ed.grab_confirm();
+            }
+            KeyCode::KeyX => self.ed.grab_axis(0),
+            KeyCode::KeyY => self.ed.grab_axis(1),
+            KeyCode::KeyZ => self.ed.grab_axis(2),
+            KeyCode::Backspace => self.ed.grab_backspace(),
+            KeyCode::Minus | KeyCode::NumpadSubtract => self.ed.grab_type('-'),
+            KeyCode::Period | KeyCode::Comma | KeyCode::NumpadDecimal => self.ed.grab_type('.'),
+            _ => {
+                if let Some(n) = digit(code) {
+                    self.ed.grab_type((b'0' + n) as char);
+                }
+            }
+        }
+    }
+
     /// Puts the command being set on the key just pressed (Esc: leaves it as it was).
     fn capture_key(&mut self, code: KeyCode) {
         if code == KeyCode::Escape {
@@ -1849,7 +1920,8 @@ impl App {
         } else if crate::controls::bindable(code) {
             if let Some(cmd) = self.ui.key_capture.take() {
                 let chord = crate::controls::Chord { code, ctrl: self.keys.ctrl, shift: self.keys.shift };
-                crate::controls::bind(&mut self.prefs.keys, cmd, Some(chord));
+                let preset = Preset::of(&self.prefs.keys_set, self.prefs.omsi_controls);
+                crate::controls::bind(&mut self.prefs.keys, preset, cmd, Some(chord));
                 self.prefs.save();
             }
         }
@@ -1884,10 +1956,22 @@ impl App {
             Cmd::XformMove | Cmd::XformRotate | Cmd::XformScale => {
                 use crate::editor::Xform;
                 let x = match c { Cmd::XformMove => Xform::Move, Cmd::XformRotate => Xform::Rotate, _ => Xform::Scale };
-                self.ed.set_tool(Tool::Select);
-                self.ed.xform = if self.ed.xform == x { Xform::Select } else { x };
+                // (Blender's G, in the Blender and OMSI key sets: the selection is taken hold of
+                // and follows the pointer at once; X, Y, Z lock it. Nothing selected: the
+                // handles come up instead, as openMapper has them)
+                let grab = x == Xform::Move && matches!(Preset::of(&self.prefs.keys_set, self.prefs.omsi_controls), Preset::Omsi | Preset::Blender);
+                if grab {
+                    self.ed.set_tool(Tool::Select);
+                }
+                if !(grab && self.ed.grab_begin(self.mouse.pos)) {
+                    self.ed.set_tool(Tool::Select);
+                    self.ed.xform = if self.ed.xform == x { Xform::Select } else { x };
+                }
             }
             Cmd::BuildRoad => actions.push(Action::BuildRoad),
+            // (Enter, as OMSI 2's editor has it: what is being drawn is finished)
+            Cmd::Confirm => actions.push(Action::BuildRoad),
+            Cmd::NewObject => self.ed.new_object(&self.lib),
             Cmd::TileGrid => self.ed.show_grid = !self.ed.show_grid,
             Cmd::Group => self.ed.group_selection(),
             Cmd::Ungroup => self.ed.ungroup_selection(),
@@ -1942,6 +2026,12 @@ impl App {
 
     fn frame(&mut self, el: &ActiveEventLoop) {
         let now = Instant::now();
+        let gap = (now - self.last).as_secs_f64();
+        // (a frame that took far longer than a frame: the first ones build the map's picture
+        // and its models, so only those after them are worth a word)
+        if gap > 0.4 && self.frames > 10 {
+            log::warn!("a frame took {gap:.2} s (frame {})", self.frames);
+        }
         let dt = (now - self.last).as_secs_f64().min(0.1);
         self.last = now;
         // (the view's hour when the View menu lets it run: a minute of the map's day a
@@ -1955,6 +2045,9 @@ impl App {
             a.poll();
         }
         self.lib.poll();
+        // (what a press on the selection does: OMSI 2's and Blender's key sets move it with G
+        // alone, so a press there only picks, as it does in those editors)
+        self.ed.press_drags = Preset::of(&self.prefs.keys_set, self.prefs.omsi_controls) == Preset::Mapper;
         self.collab.tick(&mut self.ed, self.roots.as_ref());
         if let Some(doc) = self.collab.take_joined() {
             self.after_open(doc);
@@ -2055,6 +2148,21 @@ impl App {
             }
             self.mouse.moved = false;
         }
+        // (a grab: the selection follows the pointer, from where it was taken)
+        if self.ed.grab.is_some() {
+            if let Some(at) = self.ed.cursor {
+                // (the pieces a grab carries: a whole chain can be many, and what each frame
+                // of it costs is what a big map answers slowly with)
+                let t = Instant::now();
+                crate::logging::busy("the grab: the selection following the pointer");
+                self.ed.grab_follow(at, self.mouse.pos);
+                crate::logging::busy("");
+                let ms = t.elapsed().as_millis();
+                if ms > 50 {
+                    log::warn!("the grab took {ms} ms");
+                }
+            }
+        }
         if let (Some((pieces, at)), Some(assets), Some(roots)) = (self.ed.lane_detach_request.take(), self.assets.as_mut(), &self.roots) {
             self.ed.set_selection(pieces.into_iter().map(|(k, id)| Sel::Spline(k, id)).collect());
             self.ed.detach_lanes(assets, roots);
@@ -2149,6 +2257,7 @@ impl App {
         let mut guide: Vec<crate::ui_guide::Go> = Vec::new();
         self.geo.fill_bridge(&mut self.ui.geo, &self.ed);
         self.ui.minimap.imagery = self.geo.minimap_tiles();
+        g.renderer.profile.add("ui.before", crate::render::profile::ms(t_ui));
         let full = g.egui_ctx.run_ui(raw, |ui| {
             let ctx = ui.ctx().clone();
             if self.ed.doc.is_none() {
@@ -2425,11 +2534,68 @@ impl App {
             g.renderer.profile.end_frame();
             self.frames += 1;
             crate::logging::beat();
+            // (the start is behind: a wait now is not "first frames")
+            if self.frames == 3 {
+                crate::logging::busy("");
+            }
             // OPENMAPPER_SAVE=1: what the checks above did saved at the third frame (a larger
             // number: at that frame, after what is built a few frames in)
             let save_at = std::env::var("OPENMAPPER_SAVE").ok().map(|v| v.parse::<u64>().ok().filter(|n| *n > 1).unwrap_or(3));
             if save_at == Some(self.frames as u64) {
                 self.save();
+            }
+            // OPENMAPPER_PRESS=G:Y:2:Enter: those keys pressed one a frame, from
+            // OPENMAPPER_PRESS_AT (the frame, 30 unless given), what it came to logged: the
+            // keys checked with no one at the screen
+            if let Ok(s) = std::env::var("OPENMAPPER_PRESS") {
+                let at = std::env::var("OPENMAPPER_PRESS_AT").ok().and_then(|v| v.parse::<u64>().ok()).unwrap_or(30);
+                let n = self.frames.wrapping_sub(at);
+                if self.frames >= at && n % 2 == 0 {
+                    if let Some(code) = s.split(':').filter(|x| !x.is_empty()).nth((n / 2) as usize).map(|x| if x.eq_ignore_ascii_case("Escape") || x.eq_ignore_ascii_case("Esc") { Some(KeyCode::Escape) } else { crate::controls::code_of(x) }).unwrap_or(None) {
+                        let t = std::time::Instant::now();
+                        let key = Key::Named(NamedKey::Space);
+                        self.key(Some(code), &key, true, el);
+                        self.key(Some(code), &key, false, el);
+                        let ms = t.elapsed().as_millis();
+                        let grab = self.ed.grab.as_ref().map(|g| (g.axis_name(), g.delta.to_array()));
+                        let sel = self.ed.doc.as_ref().and_then(|d| crate::selection::origin_of(d, self.ed.selected?)).map(|o| o.pos.to_array());
+                        log::info!("press {} in {ms} ms: grab {grab:?}, the selection at {sel:?}, readout {:?}", crate::controls::code_name(code), self.ed.drag_readout());
+                    }
+                }
+            }
+            // OPENMAPPER_DRAG=dx,dy: with a grab going, the pointer walked that many points a
+            // frame and the cursor with it (a drag with no one at the screen: what a grab of
+            // a big selection costs is seen in the frame times it logs)
+            if let Ok(d) = std::env::var("OPENMAPPER_DRAG").map(|c| c.split(',').filter_map(|x| x.trim().parse::<f32>().ok()).collect::<Vec<_>>()).map_err(|_| ()).and_then(|v| if v.len() == 2 { Ok(v) } else { Err(()) }) {
+                if self.ed.grab.is_some() {
+                    self.mouse.pos.0 += d[0];
+                    self.mouse.pos.1 += d[1];
+                    self.mouse.moved = true;
+                    // (no pointer of a person here: the cursor is walked over the map by the
+                    // few centimetres a frame the points stand for)
+                    if let Some(c) = self.ed.cursor {
+                        self.ed.cursor = Some(c + DVec3::new(d[0] as f64 * 0.02, d[1] as f64 * 0.02, 0.0));
+                    }
+                }
+            }
+            // OPENMAPPER_SELECT_ALL=o|s|*: every object (o), every road (s) or both selected at
+            // the second frame (a check of a move of a whole map, with no one at the screen)
+            if self.frames == 2 {
+                if let Ok(what) = std::env::var("OPENMAPPER_SELECT_ALL") {
+                    if let Some(doc) = self.ed.doc.as_ref() {
+                        let mut v = Vec::new();
+                        for (k, t) in &doc.tiles {
+                            if what.contains('o') || what == "*" {
+                                v.extend(t.tile.objects.iter().map(|o| Sel::Object(*k, o.id)));
+                            }
+                            if what.contains('s') || what == "*" {
+                                v.extend(t.tile.splines.iter().map(|s| Sel::Spline(*k, s.id)));
+                            }
+                        }
+                        log::info!("select all: {} things", v.len());
+                        self.ed.set_selection(v);
+                    }
+                }
             }
             if self.frames == 3 {
                 if let Ok(d) = std::env::var("OPENMAPPER_DEMO") {
@@ -3054,7 +3220,10 @@ impl ApplicationHandler for App {
                 let over_ui = self.mouse.over_ui;
                 match button {
                     MouseButton::Left => {
-                        if pressed && !over_ui && self.prefs.tile_streaming == Some(true) && !self.keys.alt && self.stream_click() {
+                        if pressed && !over_ui && self.ed.grab.is_some() {
+                            // (a click lets the grab go, as Blender's does)
+                            self.ed.grab_confirm();
+                        } else if pressed && !over_ui && self.prefs.tile_streaming == Some(true) && !self.keys.alt && self.stream_click() {
                             // (loaded another window of tiles)
                         } else if pressed && !over_ui {
                             // (a handle of the Move / Rotate / Scale gizmo is taken, wherever it is)
@@ -3119,7 +3288,10 @@ impl ApplicationHandler for App {
                         }
                     }
                     MouseButton::Right => {
-                        if pressed && !over_ui {
+                        if pressed && !over_ui && self.ed.grab.is_some() {
+                            // (a right click calls the grab off, as Blender's does)
+                            self.ed.grab_cancel();
+                        } else if pressed && !over_ui {
                             self.mouse.right = true;
                             self.mouse.right_moved = 0.0;
                             self.mouse.look_acc = (0.0, 0.0);

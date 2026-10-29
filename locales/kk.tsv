@@ -2507,12 +2507,32 @@ Put on a road	Жолға қою
 The object is gone	Нысан жоғалды
 It stands on no road	Ол ешқандай жолда тұрған жоқ
 There is no tile there	Онда плитка жоқ
-Take off the road	Жолдан алу
+Take off the spline	Жолдан алу
 Beside it (right +)	Қасында (оңға +)
 Above the road	Жол үстінде
 Distance between two copies; 0: one object only	Екі көшірме арасындағы қашықтық; 0: тек бір нысан
 How many copies stand along the road	Жол бойымен қанша көшірме тұр
-Detach from the road	Жолдан ажырату
+Detach from the spline	Жолдан ажырату
 It becomes a free object where it stands. A row of several copies becomes one object; an object at an absolute height keeps the height above the ground there.	Ол тұрған жерінде бос нысанға айналады. Бірнеше көшірмеден тұратын қатар бір нысанға айналады; абсолюттік биіктігі бар нысан онда жерден биіктігін сақтайды.
-Attach to the road	Жолға бекіту
+Attach to the spline	Жолға бекіту
 It stands on the nearest road and follows it (as OMSI's [splineAttachement]); its IDCode stays	Ол ең жақын жолда тұрып, сонымен жүреді (OMSI-дің [splineAttachement] сияқты); оның IDCode өзгермейді
+OMSI 2's editor: the middle button turns, the right button held and moved zooms, a right click goes there (Shift: menu); G moves the selection, N makes a new object, Enter confirms, the tile grid is on Shift+G	OMSI 2 редакторы: ортаңғы түйме айналдырады, оң түймені басып жылжытқанда жақындайды, оң басу сол жерге барады (Shift: мәзір); G таңдауды жылжытады, N нысан жасайды, Enter растайды, плитка торы Shift+G-де
+openMapper's own controls: the camera as chosen under Camera, the keys as in View → Controls	openMapper-дің өз басқаруы: камера «Камера» таңдауы бойынша, пернелер «Көрініс → Басқару» бойынша
+OMSI 2's editor	OMSI 2 редакторы
+Place a new object at the cursor	Курсорға жаңа нысан қою
+Confirm (finish what is being drawn)	Растау (салынып жатқанды аяқтау)
+Point at the ground where the object is to stand	Нысан тұратын жерді нұсқаңыз
+OMSI 2's editor: mouse and keys	OMSI 2 редакторы: тінтуір және пернелер
+Its keys too: G moves the selection, R turns it, N makes a new object, Enter confirms, Del deletes, the tile grid is on Shift+G	Оның пернелері де: G таңдауды жылжытады, R айналдырады, N нысан жасайды, Enter растайды, Del жояды, плитка торы Shift+G-де
+Keys	Пернелер
+openMapper's own keys	openMapper-дің өз пернелері
+G moves the selection, R turns it, N makes a new object, Enter confirms, Del deletes, the tile grid is on Shift+G; the mouse as in OMSI 2's editor too	G таңдауды жылжытады, R айналдырады, N нысан жасайды, Enter растайды, Del жояды, плитка торы Shift+G-де; тінтуір де OMSI 2 редакторындағыдай
+Blender's keys: G moves the selection, S scales it, X deletes, A selects all, Tab edits the mesh, Shift+A adds an object, Shift+D duplicates, F3 searches. W A S D are free for them: the arrows move the camera	Blender пернелері: G таңдауды жылжытады, S өлшейді, X жояды, A бәрін таңдайды, Tab мешті өңдейді, Shift+A нысан қосады, Shift+D көшіреді, F3 іздейді. W A S D олар үшін бос: камераны бағыттауыштар жылжытады
+The keys as in View → Controls	Пернелер «Көрініс → Басқару» бойынша
+Blender's keys	Blender пернелері
+G moves the selection, S scales it, X deletes, A selects all, Tab edits the mesh, Shift+A adds an object, Shift+D duplicates, F3 searches, Numpad 7 looks straight down. W A S D are free for them, so the arrows move the camera; the mouse as openMapper's own	G таңдауды жылжытады, S өлшейді, X жояды, A бәрін таңдайды, Tab мешті өңдейді, Shift+A нысан қосады, Shift+D көшіреді, F3 іздейді, Num 7 жоғарыдан қарайды. W A S D олар үшін бос, сондықтан камераны бағыттауыштар жылжытады; тінтуір openMapper-дікіндей
+Grab	Ұстау
+X / Y / Z: lock the axis, numbers: how far, Enter or a click: done, Esc: cancel	X / Y / Z: осьті бекіту, сандар: қанша, Enter немесе басу: дайын, Esc: болдырмау
+Preset Key Shortcut (from other applications)	Басқа бағдарламалардың пернелері
+Blender's keys: G moves the selection, Shift+S scales it, X deletes, Tab edits the mesh, Shift+A adds an object, Shift+D duplicates, F3 searches. W A S D and Q E move the camera as they always do	Blender пернелері: G таңдауды жылжытады, Shift+S өлшемін өзгертеді, X жояды, Tab торды өңдейді, Shift+A нысан қосады, Shift+D көшіреді, F3 іздейді. W A S D және Q E камераны әдеттегідей жылжытады
+G moves the selection, Shift+S scales it, X deletes, Tab edits the mesh, Shift+A adds an object, Shift+D duplicates, F3 searches, Numpad 7 looks straight down. W A S D and Q E move the camera as they always do; the mouse as openMapper's own	G таңдауды жылжытады, Shift+S өлшемін өзгертеді, X жояды, Tab торды өңдейді, Shift+A нысан қосады, Shift+D көшіреді, F3 іздейді, Num 7 төмен қарайды. W A S D және Q E камераны әдеттегідей жылжытады; тінтуір openMapper сияқты

@@ -2507,12 +2507,32 @@ Put on a road	सड़क पर रखें
 The object is gone	ऑब्जेक्ट चला गया
 It stands on no road	यह किसी सड़क पर नहीं है
 There is no tile there	वहाँ कोई टाइल नहीं है
-Take off the road	सड़क से हटाएँ
+Take off the spline	सड़क से हटाएँ
 Beside it (right +)	इसके बगल में (दाएँ +)
 Above the road	सड़क के ऊपर
 Distance between two copies; 0: one object only	दो कॉपियों के बीच की दूरी; 0: सिर्फ़ एक ऑब्जेक्ट
 How many copies stand along the road	सड़क के साथ कितनी कॉपियाँ हैं
-Detach from the road	सड़क से अलग करें
+Detach from the spline	सड़क से अलग करें
 It becomes a free object where it stands. A row of several copies becomes one object; an object at an absolute height keeps the height above the ground there.	यह जहाँ है वहीं एक मुक्त ऑब्जेक्ट बन जाता है। कई कॉपियों की एक कतार एक ऑब्जेक्ट बन जाती है; पूर्ण ऊँचाई वाला ऑब्जेक्ट वहाँ ज़मीन से वही ऊँचाई रखता है।
-Attach to the road	सड़क से जोड़ें
+Attach to the spline	सड़क से जोड़ें
 It stands on the nearest road and follows it (as OMSI's [splineAttachement]); its IDCode stays	यह सबसे नज़दीकी सड़क पर रहता है और उसका पीछा करता है (OMSI के [splineAttachement] की तरह); इसका IDCode वही रहता है
+OMSI 2's editor: the middle button turns, the right button held and moved zooms, a right click goes there (Shift: menu); G moves the selection, N makes a new object, Enter confirms, the tile grid is on Shift+G	OMSI 2 का एडिटर: बीच का बटन घुमाता है, दायाँ दबाकर खींचने से ज़ूम होता है, दायाँ क्लिक वहाँ जाता है (Shift: मेन्यू); G चयन को हिलाता है, N नया ऑब्जेक्ट बनाता है, Enter पुष्टि करता है, टाइल ग्रिड Shift+G पर है
+openMapper's own controls: the camera as chosen under Camera, the keys as in View → Controls	openMapper के अपने नियंत्रण: कैमरा वैसा जैसा «कैमरा» में चुना है, कुंजियाँ वैसी जैसी «देखें → नियंत्रण» में
+OMSI 2's editor	OMSI 2 का एडिटर
+Place a new object at the cursor	कर्सर पर नया ऑब्जेक्ट रखें
+Confirm (finish what is being drawn)	पुष्टि करें (जो बन रहा है उसे पूरा करें)
+Point at the ground where the object is to stand	उस ज़मीन पर इंगित करें जहाँ ऑब्जेक्ट खड़ा होगा
+OMSI 2's editor: mouse and keys	OMSI 2 का एडिटर: माउस और कुंजियाँ
+Its keys too: G moves the selection, R turns it, N makes a new object, Enter confirms, Del deletes, the tile grid is on Shift+G	उसकी कुंजियाँ भी: G चयन को हिलाता है, R उसे घुमाता है, N नया ऑब्जेक्ट बनाता है, Enter पुष्टि करता है, Del मिटाता है, टाइल ग्रिड Shift+G पर है
+Keys	कुंजियाँ
+openMapper's own keys	openMapper की अपनी कुंजियाँ
+G moves the selection, R turns it, N makes a new object, Enter confirms, Del deletes, the tile grid is on Shift+G; the mouse as in OMSI 2's editor too	G चयन को हिलाता है, R उसे घुमाता है, N नया ऑब्जेक्ट बनाता है, Enter पुष्टि करता है, Del मिटाता है, टाइल ग्रिड Shift+G पर है; माउस भी OMSI 2 के एडिटर जैसा
+Blender's keys: G moves the selection, S scales it, X deletes, A selects all, Tab edits the mesh, Shift+A adds an object, Shift+D duplicates, F3 searches. W A S D are free for them: the arrows move the camera	Blender की कुंजियाँ: G चयन को हिलाता है, S उसका आकार बदलता है, X मिटाता है, A सब चुनता है, Tab मेश संपादित करता है, Shift+A ऑब्जेक्ट जोड़ता है, Shift+D प्रतिलिपि बनाता है, F3 खोजता है। W A S D इनके लिए खाली हैं: कैमरा तीरों से चलता है
+The keys as in View → Controls	कुंजियाँ वैसी जैसी «देखें → नियंत्रण» में
+Blender's keys	Blender की कुंजियाँ
+G moves the selection, S scales it, X deletes, A selects all, Tab edits the mesh, Shift+A adds an object, Shift+D duplicates, F3 searches, Numpad 7 looks straight down. W A S D are free for them, so the arrows move the camera; the mouse as openMapper's own	G चयन को हिलाता है, S उसका आकार बदलता है, X मिटाता है, A सब चुनता है, Tab मेश संपादित करता है, Shift+A ऑब्जेक्ट जोड़ता है, Shift+D प्रतिलिपि बनाता है, F3 खोजता है, Num 7 ऊपर से देखता है। W A S D इनके लिए खाली हैं, इसलिए कैमरा तीरों से चलता है; माउस openMapper की तरह
+Grab	पकड़ें
+X / Y / Z: lock the axis, numbers: how far, Enter or a click: done, Esc: cancel	X / Y / Z: अक्ष लॉक करें, अंक: कितना दूर, Enter या क्लिक: हो गया, Esc: रद्द करें
+Preset Key Shortcut (from other applications)	दूसरे प्रोग्रामों के शॉर्टकट
+Blender's keys: G moves the selection, Shift+S scales it, X deletes, Tab edits the mesh, Shift+A adds an object, Shift+D duplicates, F3 searches. W A S D and Q E move the camera as they always do	Blender की कुंजियाँ: G चयन को हिलाता है, Shift+S उसका आकार बदलता है, X मिटाता है, Tab मेश संपादित करता है, Shift+A ऑब्जेक्ट जोड़ता है, Shift+D नकल बनाता है, F3 खोजता है। W A S D और Q E कैमरा हमेशा की तरह हिलाते हैं
+G moves the selection, Shift+S scales it, X deletes, Tab edits the mesh, Shift+A adds an object, Shift+D duplicates, F3 searches, Numpad 7 looks straight down. W A S D and Q E move the camera as they always do; the mouse as openMapper's own	G चयन को हिलाता है, Shift+S उसका आकार बदलता है, X मिटाता है, Tab मेश संपादित करता है, Shift+A ऑब्जेक्ट जोड़ता है, Shift+D नकल बनाता है, F3 खोजता है, Num 7 नीचे देखता है। W A S D और Q E कैमरा हमेशा की तरह हिलाते हैं; माउस openMapper जैसा

@@ -17,7 +17,7 @@ The complete list. A short overview is in the [README](../README.md).
 | Move, Rotate, Scale | V, C, X | next to Select in the toolbar: handles on the selection as in Blender, the same size on the screen however far the camera is: arrows along X, Y and Z (up) and squares to move in a plane, the circle over the ground; rings to turn about X, Y or Z (snapping to the angle step; a road turns only about Z); arrows ending in cubes to scale along an axis, squares for two, the circle for all three (one object along its own axes). An OMSI 2 map keeps no size for an object, so a scaled one becomes a scaled copy of its type beside the original (`name~s1.5_1.5_2.sco` in the content folder: its meshes, collision mesh, lamps and paths scaled; scaled back to 1 it is the original again) |
 | Location, rotation, scale | - | an object's properties: X, Y and Z (the height above sea level, whatever the object keeps it as; its height above the ground under it shown beneath), rotation about X, Y and Z, and its size along each axis (proportions kept or not), each on a row of its own to drag or type |
 | Auto-Switch, Auto-Junction, Auto-Align | - | status bar: switches where a track branches off, junctions where roads meet, objects lined up with the nearest road (an imported model is never lined up) |
-| Controls | - | File > Controls: every key, each one changeable (click it, press the new key; kept in the settings), and the mouse |
+| Controls | - | File > Controls: every key, each one changeable (click it, press the new key; kept in the settings), the mouse, and which set of keys to start from: openMapper's own, OMSI 2's editor's (with its mouse too) or Blender's |
 | Ruler | U | status bar: click two points for the distance, the height between them and the gradient, written on the line in the view |
 | Snapping | - | status bar: `Grid` (0.5–10 m) for placing, moving, road ends and reshaping, the grid drawn on the ground round the cursor while it is on; `Angle` with its step (1° to 90°) for headings, also what `R` turns by |
 | Roads | 2 | click the start, then the end: the arc builds itself. A road continues smoothly from a road end it starts at, joins another end with an S-curve or bend (biarc), is cut into OMSI splines and linked with its neighbours. It can shape the ground under itself. |
@@ -362,4 +362,20 @@ The complete list. A short overview is in the [README](../README.md).
 * **Keyboard:** `W A S D` / arrows move, `Q / E` turn, `1–7` tools, `V / C / X` move, rotate and scale handles, `Tab` edit the selected object's mesh, `Ctrl+J` join objects, `M` overview map, `B` assets, `L` lines, `T` traffic, `I` satellite and terrain, `R` turn object, `Del`,
   `F` go to selection, `[ ]` brush size, `G` tile grid, `Ctrl+Z`, `Ctrl+Shift+Z`, `Ctrl+S`,
   `Ctrl+C / X / V / D` copy, cut, paste, duplicate, `Ctrl+A` select all, `Ctrl+F` find in map, `Ctrl+K` search for a command, `Alt + arrows` nudge the selection a grid step (`Shift`: 10 cm), `Alt + Page Up / Down` raise or lower it, `U` ruler, `Home` look straight down, `F5` test drive (`Shift+F5`: from the start point nearest the view), `F12` save a picture of the view (into `~/Pictures/openMapper`), `Ctrl+1…9` go to a saved view (`Ctrl+Shift`: keep the view there).
+* **OMSI 2's editor (View > Preset Key Shortcut (from other applications) > "OMSI 2's editor: mouse and keys"):** the mouse
+  and the keys of OMSI 2's own map editor in one switch: the middle button turns the view, the
+  right button held and moved up and down zooms, a right click on the ground goes there
+  (`Shift` + right click: the menu), the wheel zooms. `G` moves the selection (the tile grid
+  moves to `Shift+G`), `R` turns it, `N` puts the object chosen in the catalogue at the cursor
+  and goes into move mode for it, `Enter` confirms what is being drawn (the road is built on
+  `Ctrl+Enter`), `Del` deletes. View > Controls shows the set and every key is changeable
+  there; one's own keys are kept when the set is changed.
+* **Blender (View > Preset Key Shortcut (from other applications) > "Blender's keys"):** Blender's own keys over the map:
+  `G` moves the selection (the tile grid moves to `Shift+G`), `Shift+S` scales it, `R` turns it,
+  `X` deletes (as `Del` does), `Shift+A` puts a new object at the cursor, `Shift+D` duplicates,
+  `Tab` edits the mesh (its keys were Blender's already: `E`, `I`, `Ctrl+B`, `Ctrl+R`, `M`, `F`,
+  `P`, `Alt+Z`…), `F3` searches for a command, `Numpad 7` looks straight down. `W A S D` and
+  `Q / E` move the camera here as they do in every other set (the camera is first, as it is
+  everywhere in openMapper), so Blender's scale is on `Shift+S` and its select all is left to
+  the menu; the mouse stays openMapper's own. Every key is changeable in View > Controls.
 

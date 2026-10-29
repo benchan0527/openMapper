@@ -2507,12 +2507,32 @@ Put on a road	Đặt lên đường
 The object is gone	Đối tượng đã mất
 It stands on no road	Nó không đứng trên con đường nào
 There is no tile there	Ở đó không có ô nào
-Take off the road	Bỏ khỏi đường
+Take off the spline	Bỏ khỏi đường
 Beside it (right +)	Bên cạnh (phải +)
 Above the road	Trên con đường
 Distance between two copies; 0: one object only	Khoảng cách giữa hai bản sao; 0: chỉ một đối tượng
 How many copies stand along the road	Bao nhiêu bản sao đứng dọc theo con đường
-Detach from the road	Tách khỏi đường
+Detach from the spline	Tách khỏi đường
 It becomes a free object where it stands. A row of several copies becomes one object; an object at an absolute height keeps the height above the ground there.	Nó thành một đối tượng tự do ngay tại chỗ nó đứng. Một hàng nhiều bản sao thành một đối tượng; đối tượng ở độ cao tuyệt đối giữ độ cao so với mặt đất ở đó.
-Attach to the road	Gắn vào đường
+Attach to the spline	Gắn vào đường
 It stands on the nearest road and follows it (as OMSI's [splineAttachement]); its IDCode stays	Nó đứng trên con đường gần nhất và đi theo (như [splineAttachement] của OMSI); IDCode của nó giữ nguyên
+OMSI 2's editor: the middle button turns, the right button held and moved zooms, a right click goes there (Shift: menu); G moves the selection, N makes a new object, Enter confirms, the tile grid is on Shift+G	Trình biên tập của OMSI 2: nút giữa xoay, nút phải giữ và di chuyển để thu phóng, nhấp phải để đến đó (Shift: menu); G di chuyển vùng chọn, N tạo đối tượng, Enter xác nhận, lưới ô ở Shift+G
+openMapper's own controls: the camera as chosen under Camera, the keys as in View → Controls	Điều khiển riêng của openMapper: camera như chọn trong «Camera», phím như trong «Xem → Điều khiển»
+OMSI 2's editor	Trình biên tập của OMSI 2
+Place a new object at the cursor	Đặt đối tượng mới tại con trỏ
+Confirm (finish what is being drawn)	Xác nhận (hoàn tất thứ đang vẽ)
+Point at the ground where the object is to stand	Chỉ vào mặt đất nơi đối tượng sẽ đứng
+OMSI 2's editor: mouse and keys	Trình biên tập của OMSI 2: chuột và phím
+Its keys too: G moves the selection, R turns it, N makes a new object, Enter confirms, Del deletes, the tile grid is on Shift+G	Cả phím của nó: G di chuyển vùng chọn, R xoay, N tạo đối tượng, Enter xác nhận, Del xoá, lưới ô ở Shift+G
+Keys	Phím
+openMapper's own keys	Phím riêng của openMapper
+G moves the selection, R turns it, N makes a new object, Enter confirms, Del deletes, the tile grid is on Shift+G; the mouse as in OMSI 2's editor too	G di chuyển vùng chọn, R xoay, N tạo đối tượng, Enter xác nhận, Del xoá, lưới ô ở Shift+G; chuột cũng như trong trình biên tập của OMSI 2
+Blender's keys: G moves the selection, S scales it, X deletes, A selects all, Tab edits the mesh, Shift+A adds an object, Shift+D duplicates, F3 searches. W A S D are free for them: the arrows move the camera	Phím của Blender: G di chuyển vùng chọn, S đổi tỉ lệ, X xoá, A chọn tất cả, Tab sửa lưới, Shift+A thêm đối tượng, Shift+D nhân bản, F3 tìm kiếm. W A S D được để trống cho chúng: phím mũi tên di chuyển camera
+The keys as in View → Controls	Phím như trong «Xem → Điều khiển»
+Blender's keys	Phím của Blender
+G moves the selection, S scales it, X deletes, A selects all, Tab edits the mesh, Shift+A adds an object, Shift+D duplicates, F3 searches, Numpad 7 looks straight down. W A S D are free for them, so the arrows move the camera; the mouse as openMapper's own	G di chuyển vùng chọn, S đổi tỉ lệ, X xoá, A chọn tất cả, Tab sửa lưới, Shift+A thêm đối tượng, Shift+D nhân bản, F3 tìm kiếm, Num 7 nhìn từ trên xuống. W A S D được để trống cho chúng nên phím mũi tên di chuyển camera; chuột như của openMapper
+Grab	Nắm
+X / Y / Z: lock the axis, numbers: how far, Enter or a click: done, Esc: cancel	X / Y / Z: khóa trục, số: bao xa, Enter hoặc nhấp: xong, Esc: hủy
+Preset Key Shortcut (from other applications)	Phím tắt của chương trình khác
+Blender's keys: G moves the selection, Shift+S scales it, X deletes, Tab edits the mesh, Shift+A adds an object, Shift+D duplicates, F3 searches. W A S D and Q E move the camera as they always do	Phím của Blender: G di chuyển vùng chọn, Shift+S đổi kích thước, X xóa, Tab sửa lưới, Shift+A thêm đối tượng, Shift+D nhân bản, F3 tìm kiếm. W A S D và Q E di chuyển camera như thường lệ
+G moves the selection, Shift+S scales it, X deletes, Tab edits the mesh, Shift+A adds an object, Shift+D duplicates, F3 searches, Numpad 7 looks straight down. W A S D and Q E move the camera as they always do; the mouse as openMapper's own	G di chuyển vùng chọn, Shift+S đổi kích thước, X xóa, Tab sửa lưới, Shift+A thêm đối tượng, Shift+D nhân bản, F3 tìm kiếm, Num 7 nhìn thẳng xuống. W A S D và Q E di chuyển camera như thường lệ; chuột như của openMapper

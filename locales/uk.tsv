@@ -2507,12 +2507,30 @@ Put on a road	Поставити на дорогу
 The object is gone	Об'єкт зник
 It stands on no road	Він не стоїть на жодній дорозі
 There is no tile there	Там немає плитки
-Take off the road	Зняти з дороги
+Take off the spline	Зняти з дороги
 Beside it (right +)	Поруч (праворуч +)
 Above the road	Над дорогою
 Distance between two copies; 0: one object only	Відстань між двома копіями; 0: лише один об'єкт
 How many copies stand along the road	Скільки копій стоїть уздовж дороги
-Detach from the road	Від'єднати від дороги
+Detach from the spline	Від'єднати від дороги
 It becomes a free object where it stands. A row of several copies becomes one object; an object at an absolute height keeps the height above the ground there.	Він стає вільним об'єктом там, де стоїть. Ряд із кількох копій стає одним об'єктом; об'єкт з абсолютною висотою зберігає висоту над землею там.
-Attach to the road	Прикріпити до дороги
+Attach to the spline	Прикріпити до дороги
 It stands on the nearest road and follows it (as OMSI's [splineAttachement]); its IDCode stays	Він стоїть на найближчій дорозі й іде за нею (як [splineAttachement] в OMSI); його IDCode лишається
+OMSI 2's editor: the middle button turns, the right button held and moved zooms, a right click goes there (Shift: menu); G moves the selection, N makes a new object, Enter confirms, the tile grid is on Shift+G	Редактор OMSI 2: середня кнопка обертає, права затиснута з рухом наближає, правий клік переносить туди (Shift: меню); G рухає виділене, N створює об'єкт, Enter підтверджує, сітка плиток на Shift+G
+openMapper's own controls: the camera as chosen under Camera, the keys as in View → Controls	Власне керування openMapper: камера як вибрано в «Камера», клавіші як у «Вигляд → Керування»
+OMSI 2's editor	Редактор OMSI 2
+Place a new object at the cursor	Поставити новий об'єкт біля курсора
+Confirm (finish what is being drawn)	Підтвердити (закінчити почате)
+Point at the ground where the object is to stand	Вкажіть на землю, де має стояти об'єкт
+OMSI 2's editor: mouse and keys	Редактор OMSI 2: миша й клавіші
+Its keys too: G moves the selection, R turns it, N makes a new object, Enter confirms, Del deletes, the tile grid is on Shift+G	І його клавіші: G рухає виділене, R обертає, N створює об'єкт, Enter підтверджує, Del вилучає, сітка плиток на Shift+G
+Keys	Клавіші
+openMapper's own keys	Власні клавіші openMapper
+G moves the selection, R turns it, N makes a new object, Enter confirms, Del deletes, the tile grid is on Shift+G; the mouse as in OMSI 2's editor too	G рухає виділене, R обертає, N створює об'єкт, Enter підтверджує, Del вилучає, сітка плиток на Shift+G; миша також як у редакторі OMSI 2
+The keys as in View → Controls	Клавіші як у «Вигляд → Керування»
+Blender's keys	Клавіші Blender
+Grab	Захоплення
+X / Y / Z: lock the axis, numbers: how far, Enter or a click: done, Esc: cancel	X / Y / Z: закріпити вісь, числа: наскільки, Enter або клацання: готово, Esc: скасувати
+Preset Key Shortcut (from other applications)	Сполучення клавіш з інших програм
+Blender's keys: G moves the selection, Shift+S scales it, X deletes, Tab edits the mesh, Shift+A adds an object, Shift+D duplicates, F3 searches. W A S D and Q E move the camera as they always do	Клавіші Blender: G переміщує вибране, Shift+S масштабує, X видаляє, Tab редагує сітку, Shift+A додає об'єкт, Shift+D дублює, F3 шукає. W A S D і Q E рухають камеру, як завжди
+G moves the selection, Shift+S scales it, X deletes, Tab edits the mesh, Shift+A adds an object, Shift+D duplicates, F3 searches, Numpad 7 looks straight down. W A S D and Q E move the camera as they always do; the mouse as openMapper's own	G переміщує вибране, Shift+S масштабує, X видаляє, Tab редагує сітку, Shift+A додає об'єкт, Shift+D дублює, F3 шукає, Num 7 дивиться вниз. W A S D і Q E рухають камеру, як завжди; миша — як в openMapper

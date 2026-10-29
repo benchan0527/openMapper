@@ -246,6 +246,49 @@ enum Drag {
 /// How far the mouse must go before a press on the selection moves it (m).
 const MOVE_THRESHOLD: f64 = 0.3;
 
+/// Blender's grab (G, in the Blender and OMSI key sets): the selection is taken hold of and
+/// follows the pointer until Enter or a click lets it go (Esc or a right click calls it off).
+/// X, Y or Z lock it to that axis (the same one again lets it go free); numbers typed say how
+/// far it goes.
+pub struct Grab {
+    /// Where the selection stood when it was taken.
+    from: Vec<Origin>,
+    /// The height each thing had, for the Z lock.
+    z: Vec<(Sel, f64)>,
+    /// The road ends whose junctions follow it.
+    arms: Vec<(Sel, Vec<selection::Arm>)>,
+    /// The point the pointer was at when the grab began, and its place on the screen.
+    start: DVec3,
+    start_mouse: (f32, f32),
+    /// Where the pointer is now (world, and its place on the screen).
+    at: DVec3,
+    mouse: (f32, f32),
+    /// The axis locked to (0, 1, 2; None: the ground plane).
+    pub axis: Option<u8>,
+    /// A distance typed in: it says where it goes, the pointer no more, until it is cleared.
+    typed: String,
+    /// How far it has gone from where it was taken (m).
+    pub delta: DVec3,
+    /// What it was last asked to go (before the grid had its say): a frame that asks for the
+    /// same again, as every frame does while the pointer is still, has nothing to move.
+    asked: DVec3,
+    /// Where what it carries is linked (read once, when it takes hold: reading it again every
+    /// frame is walking the whole map for every piece moved).
+    links: Option<selection::SplineWhere>,
+}
+
+impl Grab {
+    /// The axis as it is written: "X", "Y", "Z", or nothing (free on the ground).
+    pub fn axis_name(&self) -> &'static str {
+        match self.axis {
+            Some(0) => "X",
+            Some(1) => "Y",
+            Some(2) => "Z",
+            _ => "",
+        }
+    }
+}
+
 pub struct Editor {
     pub doc: Option<Document>,
     pub history: History,
@@ -286,6 +329,11 @@ pub struct Editor {
     /// go; then the app gives them scaled copies of their files.
     pub scale_preview: Vec<(Sel, DVec3)>,
     pub scale_requests: Vec<(Sel, DVec3)>,
+    /// What takes its state from an object and what that one takes its from (`[varparent]`),
+    /// read from the whole map once and kept until the map or that object changes: the
+    /// properties panel asks on every frame of a drag, and walking a map of a hundred
+    /// thousand things for it was most of the frame.
+    links_cache: Option<(u64, i64, (Option<(TileKey, i64)>, Vec<(TileKey, i64)>))>,
     /// The selected openMapper object's source, and its mesh being edited (Tab).
     pub mesh: Option<crate::meshedit::Session>,
     /// What a drag has come to, for the status bar: metres, degrees or a factor.
@@ -455,6 +503,11 @@ pub struct Editor {
     align_guide: Option<(DVec3, DVec3)>,
     /// Shift is held (places an object freely, not aligned).
     pub shift_held: bool,
+    /// A press on what is selected and a drag of it moves it. False in OMSI 2's and Blender's
+    /// key sets, where the move is G alone: a press there only picks (a drag of one piece
+    /// never carries the whole selection off, which is what a hand used to those editors
+    /// does not expect of a click).
+    pub press_drags: bool,
     /// The Objects tool sows plants with a brush (or clears them).
     pub plant_brush: bool,
     pub plant_erase: bool,
@@ -488,6 +541,9 @@ pub struct Editor {
     /// The tile clicked last with the Tiles tool (its overlay shown in the panel).
     pub picked_tile: Option<TileKey>,
     drag: Drag,
+    /// The selection taken hold of by G (Blender's grab): it follows the pointer until Enter,
+    /// a click, or Esc.
+    pub grab: Option<Grab>,
     pub toasts: Vec<Toast>,
     pub show_grid: bool,
     // game logic
@@ -532,6 +588,7 @@ impl Default for Editor {
             select_box: None,
             clip: None,
             move_from: Vec::new(),
+            press_drags: true,
             reshape: None,
             known_helpers: Default::default(),
             known_half: Default::default(),
@@ -543,6 +600,7 @@ impl Default for Editor {
             move_rot_from: Vec::new(),
             move_world_from: Vec::new(),
             scale_preview: Vec::new(),
+            links_cache: None,
             scale_requests: Vec::new(),
             mesh: None,
             xform_value: 0.0,
@@ -653,6 +711,7 @@ impl Default for Editor {
             hover_tile: None,
             picked_tile: None,
             drag: Drag::None,
+            grab: None,
             toasts: Vec::new(),
             show_grid: true,
             logic: LogicMode::Start,
@@ -797,7 +856,7 @@ fn ray_model_masked(ov: glam::Vec3, dv: glam::Vec3, m: &glam::Mat4, model: &crat
 /// The piece's own closest point to the ray is taken (the ray is a line, so this is a small
 /// closed form), and then its height against the ray's, as the pick measures a road's surface:
 /// a slanted aim meets a road's height at a different place than it passes closest to it.
-/// Where a ray meets the vertical face a spline standing up from `a`–`b` is drawn as, over the
+/// Where a ray meets the vertical face a spline standing up from `a` to `b` is drawn as, over the
 /// height `top`: `(lat, along)`, the first how far it passes to the side of that face.
 ///
 /// A wall, a fence, a hedge or a railing is a *plane standing on its line*, and a click has to
@@ -1029,6 +1088,12 @@ impl Editor {
 
     /// Stop what the tool is in the middle of.
     pub fn cancel(&mut self) {
+        // (a grab is called off: nothing of it stands)
+        if self.grab.take().is_some() {
+            if let Some(doc) = &mut self.doc {
+                self.history.rollback(doc);
+            }
+        }
         self.road_start = None;
         self.road_plan = None;
         self.parking_start = None;
@@ -1144,7 +1209,7 @@ impl Editor {
             self.toast(tr("Select two things or more to group them", "Выделите два объекта или больше, чтобы сгруппировать"));
             return;
         }
-        let name = crate::mapgroups::free_name(self.groups(), tr("Group", "Группа"));
+        let name = crate::mapgroups::free_name(self.groups(), tr("Group", "Сгруппировать"));
         let n2 = name.clone();
         self.change_groups(tr("Group", "Сгруппировать"), move |groups| {
             for g in groups.iter_mut() {
@@ -1623,7 +1688,7 @@ impl Editor {
                 let all: Vec<selection::Arm> = self.move_arms.iter().flat_map(|g| g.1.iter().copied()).collect();
                 self.carry_preview = selection::carry_plans(doc, &all, DVec2::ZERO, 0.0, delta, 0.0, &|_| false).into_iter().flatten().collect();
                 self.move_delta = delta;
-                self.set_selection(now);
+                self.set_selection_unique(now);
             }
             Drag::Gizmo { grab, started } => self.drag_gizmo(grab, started),
             Drag::MeshGizmo { grab, started } => {
@@ -1778,7 +1843,9 @@ impl Editor {
                 self.history.begin(if self.plant_erase { tr("Clear plants", "Убрать растения") } else { tr("Plant", "Посадка") });
                 self.drag = Drag::Brush;
             }
-            Tool::Objects => self.place_object(lib, shift),
+            Tool::Objects => {
+                self.place_object(lib, shift);
+            }
             Tool::Tiles => self.tile_click(),
             Tool::Logic => {}
         }
@@ -1885,7 +1952,7 @@ impl Editor {
                 self.history.begin(if sels.len() > 1 { tr("Rotate selection", "Поворот выделенного") } else { tr("Rotate", "Поворот") });
                 let now = selection::transform(doc, &mut self.history, &from, pivot, deg, DVec2::ZERO);
                 selection::unlink_outside(doc, &mut self.history, &now);
-                self.set_selection(now);
+                self.set_selection_unique(now);
                 self.carry(&arms, pivot, deg, DVec2::ZERO, 0.0);
                 self.ground_to_selection();
                 self.finish_step();
@@ -2184,30 +2251,55 @@ impl Editor {
         let z = if abs { at.z } else { at.z.max(doc.ground(at.truncate())) };
         self.object_type = Some(piece.to_string());
         self.ghost_pos = Some((DVec3::new(at.x, at.y, z), turn));
-        self.place_object(lib, false);
+        let _ = self.place_object(lib, false);
         Ok(())
     }
 
     /// Place the object chosen at the cursor now (dropped from the asset browser).
     pub fn place_now(&mut self, assets: &mut Assets, lib: &Library) {
         self.plan_object(assets, lib);
-        self.place_object(lib, false);
+        let _ = self.place_object(lib, false);
     }
 
-    fn place_object(&mut self, lib: &Library, keep: bool) {
+    /// OMSI 2's editor's N: put the object chosen in the catalogue at the cursor and go into
+    /// move mode for it, as that editor does.
+    pub fn new_object(&mut self, lib: &Library) {
+        if self.object_type.is_none() {
+            self.toast(tr("Pick an object in the catalogue first", "Сначала выберите объект в каталоге"));
+            return;
+        }
+        match self.cursor {
+            // (the object goes where the cursor is, turned the way the last one was)
+            Some(c) => {
+                let heading = self.ghost_pos.map(|g| g.1).unwrap_or(0.0);
+                self.ghost_pos = Some((c, heading));
+            }
+            None => {
+                self.toast(tr("Point at the ground where the object is to stand", "Укажите на землю, где должен стоять объект"));
+                return;
+            }
+        }
+        if let Some(sel) = self.place_object(lib, false) {
+            self.set_tool(Tool::Select);
+            self.xform = Xform::Move;
+            self.select(Some(sel));
+        }
+    }
+
+    fn place_object(&mut self, lib: &Library, keep: bool) -> Option<Sel> {
         let _ = keep;
         let (Some((pos, heading)), Some(rel)) = (self.ghost_pos, self.object_type.clone()) else {
             if self.object_type.is_none() {
                 self.toast(tr("Pick an object in the catalogue first", "Сначала выберите объект в каталоге"));
             }
-            return;
+            return None;
         };
         let asset = lib.find(&rel).cloned();
-        let Some(doc) = self.doc.as_mut() else { return };
+        let Some(doc) = self.doc.as_mut() else { return None };
         let k = tile_of(pos.truncate());
         if !doc.tiles.contains_key(&k) {
             self.error(tr("There is no tile here: add one with the Tiles tool", "Здесь нет тайла: добавьте его инструментом «Тайлы»"));
-            return;
+            return None;
         }
         self.history.begin(tr("Place object", "Установка объекта"));
         self.history.touch_tile(doc, k);
@@ -2270,7 +2362,8 @@ impl Editor {
         if let Some(n) = linked_to {
             self.toast(format!("{} «{n}»: {}", tr("Linked to", "Связан с"), tr("choose its light in its properties", "сигнал выберите в его свойствах")));
         }
-        // (the tool goes on placing: nothing is selected)
+        // (the tool goes on placing: the caller chooses whether to take what was put)
+        Some(Sel::Object(k, id))
     }
 
     /// Plants of `mix` put at `spots` (OpenStreetMap's trees and woods), each a random one
@@ -4333,9 +4426,13 @@ impl Editor {
             }
         }
         // an AI path has nothing to see: the picked and the hovered one drawn as lines
+        // (a selection of thousands has no lines to show - the tint says what is picked, and
+        // every one of them would be looked up in the assets for a path that is not drawn)
         {
             let editing = self.editing_paths();
-            for (sel, color) in self.selection().into_iter().map(|s| (s, ORANGE)).chain(self.hover.map(|h| (h, WHITE))) {
+            let sels = self.selection();
+            let shown: Vec<Sel> = if editing || sels.len() <= 512 { sels } else { sels.into_iter().take(512).collect() };
+            for (sel, color) in shown.into_iter().map(|s| (s, ORANGE)).chain(self.hover.map(|h| (h, WHITE))) {
                 let Sel::Spline(k, id) = sel else { continue };
                 let Some(s) = doc.spline(k, id) else { continue };
                 if !editing && !assets.spline(&s.file).map(|m| m.is_ai_path()).unwrap_or(false) {
@@ -4686,15 +4783,47 @@ pub fn snap_deg(h: f64, step: f64) -> f64 {
 // -------------------------------------------------------------------- selection and editing
 
 impl Editor {
-    /// Everything selected, the one shown in the properties first.
-    pub fn selection(&self) -> Vec<Sel> {
-        let Some(p) = self.selected else { return Vec::new() };
-        let mut v = vec![p];
-        for s in &self.also {
-            if !v.contains(s) {
-                v.push(*s);
+    /// The parent an object takes its state from, and the objects that take theirs from it
+    /// (`[varparent]`), both by tile and IDCode. Read from the whole map the first time it is
+    /// asked for and kept while the map does not change.
+    pub fn links_of(&mut self, id: i64, parent: Option<i64>) -> (Option<(TileKey, i64)>, Vec<(TileKey, i64)>) {
+        let Some(doc) = self.doc.as_ref() else { return (None, Vec::new()) };
+        let rev = doc.content_rev();
+        if let Some((cached_rev, cached_id, got)) = &self.links_cache {
+            if *cached_rev == rev && *cached_id == id {
+                return got.clone();
             }
         }
+        let parent = parent.and_then(|p| doc.tiles.iter().find_map(|(k, t)| (t.tile.objects.iter().chain(&t.tile.attach_objects)).any(|o| o.id == p).then_some((*k, p))));
+        let mut children = Vec::new();
+        for (k, t) in &doc.tiles {
+            for o in t.tile.objects.iter().chain(&t.tile.attach_objects) {
+                if o.var_parent == Some(id) {
+                    children.push((*k, o.id));
+                }
+            }
+        }
+        let got = (parent, children);
+        self.links_cache = Some((rev, id, got.clone()));
+        got
+    }
+
+    /// Everything selected, the one shown in the properties first.
+    ///
+    /// `also` is kept free of duplicates and of the one shown first (see
+    /// [`set_selection`](Self::set_selection)), so this is a copy and nothing more: the windows
+    /// and the view read the selection several times a frame, and a selection of a hundred
+    /// thousand deduplicated on each read was most of a frame.
+    /// The selection grows and the map's picture with it: the minimap can wait.
+    pub fn moving(&self) -> bool {
+        self.grab.is_some() || !matches!(self.drag, Drag::None)
+    }
+
+    pub fn selection(&self) -> Vec<Sel> {
+        let Some(p) = self.selected else { return Vec::new() };
+        let mut v: Vec<Sel> = Vec::with_capacity(1 + self.also.len());
+        v.push(p);
+        v.extend_from_slice(&self.also);
         v
     }
 
@@ -4713,7 +4842,31 @@ impl Editor {
         let mut v = v.into_iter();
         self.selected = v.next();
         self.path_point = None;
-        self.also = v.collect();
+        let rest: Vec<Sel> = v.collect();
+        // (deduplicated here once, so every read of the selection is a copy and nothing more:
+        // the windows and the view read it several times a frame, and a selection of a
+        // hundred thousand deduplicated on each read was most of a frame)
+        self.also.clear();
+        if rest.len() <= 1 {
+            self.also.extend(rest.into_iter().filter(|s| Some(*s) != self.selected));
+            return;
+        }
+        let mut seen: std::collections::HashSet<Sel> = std::collections::HashSet::with_capacity(rest.len());
+        if let Some(p) = self.selected {
+            seen.insert(p);
+        }
+        self.also.extend(rest.into_iter().filter(|s| seen.insert(*s)));
+    }
+
+    /// As [`set_selection`](Self::set_selection), for a list already free of duplicates and of
+    /// the one that goes first (what a drag or a grab carries: it was read from a selection
+    /// and moved, so nothing of it is twice).
+    pub fn set_selection_unique(&mut self, v: Vec<Sel>) {
+        let mut v = v.into_iter();
+        self.selected = v.next();
+        self.path_point = None;
+        self.also.clear();
+        self.also.extend(v);
     }
 
     /// Shift-click: in the selection if it was not, out if it was.
@@ -4910,12 +5063,20 @@ impl Editor {
         if self.tool != Tool::Select || self.xform == Xform::Select || self.cutting || self.ruler.is_some() {
             return None;
         }
+        // (a road selected alone has no handles: read from the selection kept rather than from a
+        // copy of it made again - copies of a selection of thousands were most of a frame)
+        if matches!(self.selected, Some(Sel::Spline(..))) && self.also.iter().all(|s| Some(*s) == self.selected) {
+            return None;
+        }
         let sels = self.selection();
-        if sels.is_empty() || self.single_spline().is_some() {
+        if sels.is_empty() {
             return None;
         }
         let doc = self.doc.as_ref()?;
-        let pts: Vec<DVec3> = sels.iter().filter_map(|s| self.world_of(doc, *s)).collect();
+        // (a selection of thousands: its middle read from every so many of them - a reading of
+        // each, the whole map walked each frame, was most of a frame)
+        let step = (sels.len() / 1024).max(1);
+        let pts: Vec<DVec3> = sels.iter().step_by(step).filter_map(|s| self.world_of(doc, *s)).collect();
         if pts.is_empty() {
             return None;
         }
@@ -4962,6 +5123,23 @@ impl Editor {
     /// What a drag of the handles or a sized operation has come to, for the status bar.
     pub fn drag_readout(&self) -> Option<String> {
         use crate::gizmo::Mode;
+        // (the grab: how far it has gone, and the keys that steer it)
+        if let Some(g) = &self.grab {
+            let axis = match g.axis_name() {
+                "" => String::new(),
+                a => format!(" {a}"),
+            };
+            let d = g.delta;
+            return Some(format!(
+                "{} {axis} {:.3} m ({:.3}, {:.3}, {:.3}) · {}",
+                tr("Grab", "Захват"),
+                d.length(),
+                d.x,
+                d.y,
+                d.z,
+                tr("X / Y / Z: lock the axis, numbers: how far, Enter or a click: done, Esc: cancel", "X / Y / Z: закрепить ось, цифры: как далеко, Enter или клик: готово, Esc: отмена")
+            ));
+        }
         if let Some((kind, v)) = self.mesh.as_ref().and_then(|m| m.modal_value()) {
             let what = match kind {
                 crate::meshedit::Sizing::Extrude => tr("Extrude", "Выдавливание"),
@@ -5071,7 +5249,7 @@ impl Editor {
         self.carry_preview = selection::carry_plans(doc, &all, DVec2::ZERO, 0.0, delta, 0.0, &|_| false).into_iter().flatten().collect();
         self.move_delta = delta;
         self.xform_value = DVec3::new(delta.x, delta.y, dz).length();
-        self.set_selection(now);
+        self.set_selection_unique(now);
     }
 
     fn gizmo_turn(&mut self, pivot: DVec3, axis: DVec3, deg: f64) {
@@ -5083,7 +5261,7 @@ impl Editor {
             let all: Vec<selection::Arm> = self.move_arms.iter().flat_map(|g| g.1.iter().copied()).collect();
             self.carry_preview = selection::carry_plans(doc, &all, pivot.truncate(), cw, DVec2::ZERO, 0.0, &|_| false).into_iter().flatten().collect();
             self.xform_value = cw;
-            self.set_selection(now);
+            self.set_selection_unique(now);
             return;
         }
         let q = glam::DQuat::from_axis_angle(axis, deg.to_radians());
@@ -5097,7 +5275,7 @@ impl Editor {
             }
         }
         self.xform_value = deg;
-        self.set_selection(now);
+        self.set_selection_unique(now);
     }
 
     fn gizmo_scale(&mut self, gz: &crate::gizmo::Gizmo, s: DVec3) {
@@ -5120,7 +5298,7 @@ impl Editor {
         }
         self.xform_value = if (s.x - s.y).abs() < 1e-9 && (s.y - s.z).abs() < 1e-9 { s.x } else { s.max_element().max(s.min_element()) };
         self.scale_preview = preview;
-        self.set_selection(now);
+        self.set_selection_unique(now);
     }
 
     /// A handle let go: the roads the selection holds follow it, the ground under roads is
@@ -5279,8 +5457,9 @@ impl Editor {
         if let (true, false, Sel::Spline(k, id)) = (self.editing_paths(), was_selected, hit) {
             self.select_path_pieces(k, id);
         }
-        // a press on the selection may become a move of all of it
-        if let (Some(c), Some(doc)) = (self.cursor, self.doc.as_ref()) {
+        // a press on the selection may become a move of all of it (not in OMSI 2's and
+        // Blender's key sets: there the move is G, and a click only picks)
+        if let (true, Some(c), Some(doc)) = (self.press_drags, self.cursor, self.doc.as_ref()) {
             let mut sels = self.selection();
             // (the one grabbed leads: the grid holds its place)
             if let Some(i) = sels.iter().position(|s| *s == hit) {
@@ -5650,6 +5829,226 @@ impl Editor {
     }
 
 
+    // ------------------------------------------------------------ the grab (G)
+
+    /// Take hold of the selection, as Blender's G does: it follows the pointer from where it
+    /// is until [`grab_confirm`](Self::grab_confirm) (Enter or a click) or
+    /// [`grab_cancel`](Self::grab_cancel) (Esc or a right click). False: there is nothing
+    /// selected to take hold of, or the pointer is not over the map.
+    pub fn grab_begin(&mut self, mouse: (f32, f32)) -> bool {
+        let Some(at) = self.cursor else { return false };
+        let sels = self.selection();
+        if sels.is_empty() {
+            return false;
+        }
+        let Some(doc) = self.doc.as_ref() else { return false };
+        let from: Vec<Origin> = sels.iter().filter_map(|s| selection::origin_of(doc, *s)).collect();
+        if from.is_empty() {
+            return false;
+        }
+        // (the heights: the Z lock puts them back where they were and lifts them from there)
+        let z: Vec<(Sel, f64)> = sels
+            .iter()
+            .filter_map(|s| match *s {
+                Sel::Object(k, id) => doc.object(k, id).map(|o| (*s, o.pos[2])),
+                Sel::Spline(k, id) => doc.spline(k, id).map(|sp| (*s, sp.pos[2])),
+                Sel::Attached(k, id) => doc.attachment(k, id).map(|a| (*s, a.offset[1])),
+            })
+            .collect();
+        // (a chain of thousands: its links read now, not on every frame of the drag)
+        let links = (from.len() > 16).then(|| selection::SplineWhere::of(doc));
+        let arms = self.arms_for(&sels);
+        // (a move of a great many is worth a line: what a big map answers slowly with)
+        if from.len() > 100 {
+            log::info!("grab of {} things", from.len());
+        }
+        if self.grab.is_some() {
+            self.grab_cancel();
+        }
+        self.history.begin(tr("Move", "Перемещение"));
+        self.grab = Some(Grab { from, z, arms, start: at, start_mouse: mouse, at, mouse, axis: None, typed: String::new(), delta: DVec3::ZERO, asked: DVec3::ZERO, links });
+        self.xform_value = 0.0;
+        true
+    }
+
+    /// The pointer has gone to `at` (world) / `mouse` (window points): the selection follows
+    /// it, as the axis locked allows.
+    pub fn grab_follow(&mut self, at: DVec3, mouse: (f32, f32)) {
+        let Some(g) = self.grab.as_mut() else { return };
+        g.at = at;
+        g.mouse = mouse;
+        let mpp = self.gizmo_view.as_ref().map(|v| v.metres_per_point(g.start)).unwrap_or(1.0);
+        let mut d = DVec3::new(at.x - g.start.x, at.y - g.start.y, 0.0);
+        match g.axis {
+            // (Blender's Z: the pointer up the screen lifts it)
+            Some(2) => {
+                d.x = 0.0;
+                d.y = 0.0;
+                d.z = -(mouse.1 - g.start_mouse.1) as f64 * mpp;
+            }
+            Some(0) => d.y = 0.0,
+            Some(1) => d.x = 0.0,
+            _ => {}
+        }
+        // a distance typed in says how far it goes, the pointer no more
+        if let Ok(v) = g.typed.parse::<f64>() {
+            d = match g.axis {
+                Some(2) => DVec3::new(0.0, 0.0, v),
+                Some(0) => DVec3::new(v, 0.0, 0.0),
+                Some(1) => DVec3::new(0.0, v, 0.0),
+                // (no axis locked: the way the pointer has gone)
+                _ => (d.truncate().normalize_or(DVec2::X) * v).extend(0.0),
+            };
+        }
+        // (nothing asked for that is not already done: the selection is not moved again, which
+        // on a map of many tiles and a road of many pieces is the frame's whole cost)
+        if (d - g.asked).length() < 1e-12 {
+            return;
+        }
+        g.asked = d;
+        self.grab_to(d);
+    }
+
+    /// Lock the grab to an axis (0: X, 1: Y, 2: Z): pressing that axis again lets it go free.
+    pub fn grab_axis(&mut self, axis: u8) {
+        let Some(g) = self.grab.as_mut() else { return };
+        g.axis = if g.axis == Some(axis) { None } else { Some(axis) };
+        g.typed.clear();
+        let (at, mouse) = (g.at, g.mouse);
+        // (it goes there at once: the pointer itself may not have moved)
+        self.grab_follow(at, mouse);
+    }
+
+    /// A character typed while grabbing: a distance (m) it goes along the axis locked.
+    pub fn grab_type(&mut self, ch: char) {
+        let Some(g) = self.grab.as_mut() else { return };
+        match ch {
+            '0'..='9' => g.typed.push(ch),
+            '.' | ',' => {
+                if !g.typed.contains('.') {
+                    g.typed.push('.');
+                }
+            }
+            '-' => {
+                if g.typed.starts_with('-') {
+                    g.typed.remove(0);
+                } else {
+                    g.typed.insert(0, '-');
+                }
+            }
+            _ => return,
+        }
+        let (at, mouse) = (g.at, g.mouse);
+        self.grab_follow(at, mouse);
+    }
+
+    /// A digit rubbed out of the distance typed.
+    pub fn grab_backspace(&mut self) {
+        let Some(g) = self.grab.as_mut() else { return };
+        g.typed.pop();
+        let (at, mouse) = (g.at, g.mouse);
+        self.grab_follow(at, mouse);
+    }
+
+    /// Let the selection go where it is: the move stands.
+    pub fn grab_confirm(&mut self) -> bool {
+        if self.grab.take().is_none() {
+            return false;
+        }
+        self.carry_preview.clear();
+        self.finish_step();
+        true
+    }
+
+    /// Call the grab off: everything back where it was taken.
+    pub fn grab_cancel(&mut self) -> bool {
+        let Some(g) = self.grab.take() else { return false };
+        self.carry_preview.clear();
+        if let Some(doc) = self.doc.as_mut() {
+            self.history.rollback(doc);
+        }
+        self.set_selection(g.from.iter().map(|o| o.sel).collect());
+        self.xform_value = 0.0;
+        true
+    }
+
+    /// Put the selection where `d` (m) says, from where it was taken.
+    fn grab_to(&mut self, d: DVec3) {
+        let Some(g) = self.grab.as_ref() else { return };
+        // (nothing has moved yet: nothing is put anywhere, the grid's snapping included, so
+        // taking hold of something and locking an axis leaves it where it stands)
+        if d.length() < 1e-9 {
+            self.xform_value = 0.0;
+            return;
+        }
+        // (the grid holds the first one's place, as a drag does)
+        let first = g.from[0].pos;
+        let snapped = self.snap_point(first + d.truncate()) - first;
+        let delta = DVec2::new(snapped.x, snapped.y);
+        let dz = if self.snap_grid && self.grid_step > 0.0 { (d.z / self.grid_step).round() * self.grid_step } else { d.z };
+        // (what it carries is moved out and back: a selection of a hundred thousand pieces
+        // copied on every frame of a drag is a frame's work for nothing)
+        let arms: Vec<selection::Arm> = g.arms.iter().flat_map(|(_, a)| a.iter().copied()).collect();
+        let Some(doc) = self.doc.as_mut() else { return };
+        let Some(carried) = self.grab.as_mut() else { return };
+        let from = std::mem::take(&mut carried.from);
+        let z = std::mem::take(&mut carried.z);
+        let n = from.len();
+        let links = self.grab.as_ref().and_then(|g| g.links.as_ref());
+        let t0 = std::time::Instant::now();
+        let now = selection::transform_known(doc, &mut self.history, &from, DVec2::ZERO, 0.0, delta, links);
+        let t_move = t0.elapsed();
+        // (the roads the selected junctions hold follow, shown as they would be)
+        self.carry_preview = selection::carry_plans(doc, &arms, DVec2::ZERO, 0.0, delta, dz, &|_| false).into_iter().flatten().collect();
+        let t_preview = t0.elapsed() - t_move;
+        self.set_selection_unique(now);
+        if dz.abs() > 1e-9 {
+            self.set_height_from(&z, dz);
+        }
+        if let Some(g) = self.grab.as_mut() {
+            g.from = from;
+            g.z = z;
+            g.delta = delta.extend(dz);
+        }
+        self.xform_value = delta.extend(dz).length();
+        let total = t0.elapsed();
+        if total.as_millis() > 200 {
+            log::warn!("the grab of {n} things took {:.0} ms (the move {:.0}, the preview {:.0}, the heights {:.0})", total.as_secs_f64() * 1000.0, t_move.as_secs_f64() * 1000.0, t_preview.as_secs_f64() * 1000.0, (total - t_move - t_preview).as_secs_f64() * 1000.0);
+        }
+    }
+
+    /// Put the height of what is being grabbed at its own plus `dz` (the Z lock).
+    fn set_height_from(&mut self, z: &[(Sel, f64)], dz: f64) {
+        let Some(doc) = self.doc.as_mut() else { return };
+        for (sel, z0) in z {
+            match *sel {
+                Sel::Object(k, id) => {
+                    // (it may have gone over into another tile: it is found by its IDCode)
+                    let k = if doc.object(k, id).is_some() { k } else { match doc.tiles.iter().find(|(_, t)| t.tile.objects.iter().any(|o| o.id == id)) { Some((k, _)) => *k, None => continue } };
+                    self.history.touch_tile(doc, k);
+                    if let Some(o) = doc.object_mut(k, id) {
+                        o.pos[2] = z0 + dz;
+                    }
+                    doc.tiles.get_mut(&k).map(|t| t.touch_content());
+                }
+                Sel::Spline(k, id) => {
+                    self.history.touch_tile(doc, k);
+                    if let Some(sp) = doc.tiles.get_mut(&k).and_then(|t| t.tile.splines.iter_mut().find(|x| x.id == id)) {
+                        sp.pos[2] = z0 + dz;
+                    }
+                    doc.tiles.get_mut(&k).map(|t| t.touch_content());
+                }
+                Sel::Attached(k, id) => {
+                    self.history.touch_tile(doc, k);
+                    if let Some(a) = doc.attachment_mut(k, id) {
+                        a.offset[1] = z0 + dz;
+                    }
+                    doc.tiles.get_mut(&k).map(|t| t.touch_content());
+                }
+            }
+        }
+    }
+
     /// Move the selection by `delta` (m), as one step.
     pub fn move_selection_by(&mut self, delta: DVec2) {
         let sels = self.selection();
@@ -5662,7 +6061,7 @@ impl Editor {
         self.history.begin(tr("Move", "Перемещение"));
         let now = selection::transform(doc, &mut self.history, &from, DVec2::ZERO, 0.0, delta);
         selection::unlink_outside(doc, &mut self.history, &now);
-        self.set_selection(now);
+        self.set_selection_unique(now);
         self.carry(&arms, DVec2::ZERO, 0.0, delta, 0.0);
         self.ground_to_selection();
         self.finish_step();
@@ -6195,7 +6594,7 @@ impl Editor {
             ..Default::default()
         };
         let Some(doc) = self.doc.as_mut() else { return Err("") };
-        self.history.begin(tr("Take off the road", "Снять с дороги"));
+        self.history.begin(tr("Take off the spline", "Снять со сплайна"));
         self.history.touch_tile(doc, k);
         self.history.touch_tile(doc, tk);
         // (what hangs on its IDCode keeps hanging on it: the free object has the same IDCode)
@@ -7219,12 +7618,14 @@ impl Editor {
     fn selection_extras(&self, x: &mut FrameExtras, cam: &crate::camera::Camera, w: f32, assets: &mut Assets) {
         let Some(doc) = self.doc.as_ref() else { return };
         let sels = self.selection();
-        // (the handles are about as long as the selection is big)
-        let size = sels.iter().map(|s| match *s {
+        // (the handles are about as long as the selection is big: read for the one thing it is
+        // about, never for a selection of thousands, whose every record would be looked up
+        // and its model found for a number then thrown away)
+        let size = if sels.len() != 1 { f64::INFINITY } else { sels.iter().map(|s| match *s {
             Sel::Object(k, id) => doc.object(k, id).and_then(|o| assets.object(&o.file)).map(|m| m.radius() as f64 * 1.3).unwrap_or(f64::INFINITY),
             Sel::Attached(k, id) => doc.attachment(k, id).and_then(|a| assets.object(&a.file)).map(|m| m.radius() as f64 * 1.3).unwrap_or(f64::INFINITY),
             Sel::Spline(..) => f64::INFINITY,
-        }).fold(0.0, f64::max);
+        }).fold(0.0, f64::max) };
         self.gizmo_cap.set(if sels.len() == 1 { size.max(2.0) } else { f64::INFINITY });
         // (what is selected glows in the scene itself: no outline or ball is drawn over it)
         // what one object takes its state from (cyan) and what takes it from it
@@ -7480,18 +7881,30 @@ pub fn lean_rotation(heading: f64, ground: &dyn Fn(DVec2) -> f64, at: DVec2) -> 
 }
 
 pub fn sync_entry_points(doc: &mut Document) {
-    let order = doc.order.clone();
+    // (nothing names an entry point: the walk of the whole map is not worth making, and a move
+    // of a big selection makes it every frame)
+    if doc.global.entry_points.is_empty() {
+        doc.global_dirty = true;
+        return;
+    }
+    // (each IDCode's place and tile read once: a map of a hundred thousand objects walked for
+    // every entry point is what a grab of them answered with)
+    let mut at: std::collections::HashMap<i64, (TileKey, usize)> = std::collections::HashMap::new();
+    for (k, t) in &doc.tiles {
+        for (i, o) in t.tile.objects.iter().enumerate() {
+            at.insert(o.id, (*k, i));
+        }
+    }
+    let groups: std::collections::HashMap<TileKey, i32> = doc.order.iter().enumerate().map(|(i, k)| (*k, i as i32)).collect();
     let mut eps = std::mem::take(&mut doc.global.entry_points);
     for e in &mut eps {
-        for (k, t) in &doc.tiles {
-            if let Some((i, o)) = t.tile.objects.iter().enumerate().find(|(_, o)| o.id == e.object_id) {
-                e.index = i as i32;
-                e.pos = [o.pos[0], o.pos[1], o.pos[2]];
-                let h = (o.rot[0] / 2.0).to_radians();
-                e.quat = [0.0, h.sin(), 0.0, h.cos()];
-                e.group = order.iter().position(|x| x == k).unwrap_or(0) as i32;
-            }
-        }
+        let Some((k, i)) = at.get(&e.object_id).copied() else { continue };
+        let Some(o) = doc.tiles.get(&k).and_then(|t| t.tile.objects.get(i)) else { continue };
+        e.index = i as i32;
+        e.pos = [o.pos[0], o.pos[1], o.pos[2]];
+        let h = (o.rot[0] / 2.0).to_radians();
+        e.quat = [0.0, h.sin(), 0.0, h.cos()];
+        e.group = groups.get(&k).copied().unwrap_or(0);
     }
     doc.global.entry_points = eps;
     doc.global_dirty = true;
@@ -9341,14 +9754,35 @@ mod tests {
         ed.open(doc);
         ed.object_type = Some("Sceneryobjects\\Verkehrszeichen_MC\\Ampel_Kfz_1.sco".into());
         ed.ghost_pos = Some((DVec3::new(112.0, 100.0, 0.0), 0.0));
-        ed.place_object(&lib, false);
+        let _ = ed.place_object(&lib, false);
         let d = ed.doc.as_ref().unwrap();
         let head = d.tiles[&(0, 0)].tile.objects.iter().find(|o| o.file.contains("Ampel")).unwrap();
         assert_eq!((head.var_parent, head.extra.clone()), (Some(1), vec!["0".to_string()]));
         // (far from any crossing: linked to nothing)
         ed.ghost_pos = Some((DVec3::new(250.0, 250.0, 0.0), 0.0));
-        ed.place_object(&lib, false);
+        let _ = ed.place_object(&lib, false);
         assert!(ed.doc.as_ref().unwrap().tiles[&(0, 0)].tile.objects.iter().filter(|o| o.file.contains("Ampel")).any(|o| o.var_parent.is_none()));
+    }
+
+    #[test]
+    fn omsis_n_puts_the_chosen_object_at_the_cursor_and_takes_it() {
+        let lib = Library::default();
+        let mut ed = Editor::default();
+        ed.open(flat_map(1));
+        ed.object_type = Some("Sceneryobjects\\Test\\Test.sco".into());
+        ed.cursor = Some(DVec3::new(120.0, 130.0, 0.0));
+        ed.new_object(&lib);
+        let d = ed.doc.as_ref().unwrap();
+        let o = d.tiles[&(0, 0)].tile.objects.iter().find(|o| o.file.ends_with("Test.sco")).expect("put down");
+        assert_eq!((o.pos[0].round(), o.pos[1].round()), (120.0, 130.0));
+        let (id, n) = (o.id, d.tiles[&(0, 0)].tile.objects.len());
+        // (as in OMSI 2's editor: the new object is taken and can be moved at once)
+        assert_eq!(ed.selected, Some(Sel::Object((0, 0), id)));
+        assert_eq!(ed.xform, Xform::Move);
+        // (nothing chosen in the catalogue: nothing put down)
+        ed.object_type = None;
+        ed.new_object(&lib);
+        assert_eq!(ed.doc.as_ref().unwrap().tiles[&(0, 0)].tile.objects.len(), n);
     }
 
     #[test]
@@ -9573,6 +10007,194 @@ mod tests {
         // and back with one undo
         ed.undo();
         assert_eq!(ed.doc.as_ref().unwrap().spline((0, 0), 1).unwrap().length, 30.0);
+    }
+
+    #[test]
+    fn a_grab_follows_the_pointer() {
+        let mut ed = editor();
+        ed.snap_grid = false;
+        ed.set_selection(vec![Sel::Object((0, 0), 1)]);
+        // (the pointer over the object it takes hold of)
+        ed.cursor = Some(DVec3::new(100.0, 100.0, 0.0));
+        assert!(ed.grab_begin((10.0, 10.0)));
+        ed.grab_follow(DVec3::new(103.0, 104.0, 0.0), (13.0, 14.0));
+        let o = ed.doc.as_ref().unwrap().object((0, 0), 1).unwrap();
+        assert!((o.pos[0] - 103.0).abs() < 1e-6 && (o.pos[1] - 104.0).abs() < 1e-6, "{:?}", o.pos);
+        // (let go: it stands, and one undo puts it back)
+        assert!(ed.grab_confirm());
+        assert!(ed.grab.is_none());
+        ed.undo();
+        let o = ed.doc.as_ref().unwrap().object((0, 0), 1).unwrap();
+        assert!((o.pos[0] - 100.0).abs() < 1e-6 && (o.pos[1] - 100.0).abs() < 1e-6, "{:?}", o.pos);
+    }
+
+    /// In OMSI 2's and Blender's key sets a press on something and a drag of it picks it and
+    /// nothing more: the move there is G, as it is in those editors (a hand used to them does
+    /// not expect a click to carry a whole selection off). The map's own key set drags it as
+    /// it always did, and G moves it in every set.
+    #[test]
+    fn a_press_drags_only_where_the_key_set_says_so() {
+        let mut assets = Assets::new(std::env::temp_dir().join("openmapper-no-omsi"), std::env::temp_dir().join("openmapper-no-content"));
+        let lib = Library::default();
+        for press_drags in [true, false] {
+            let mut ed = editor();
+            ed.snap_grid = false;
+            ed.press_drags = press_drags;
+            ed.set_selection(vec![Sel::Object((0, 0), 1)]);
+            // (the pointer over the object, pressed, then dragged 5 m east)
+            ed.cursor = Some(DVec3::new(100.0, 100.0, 0.0));
+            ed.hover = Some(Sel::Object((0, 0), 1));
+            ed.left_press(&mut assets, &lib, false);
+            ed.cursor = Some(DVec3::new(105.0, 100.0, 0.0));
+            ed.tick(&mut assets, 1.0 / 60.0, true);
+            ed.left_release(&mut assets, &lib, true);
+            let o = ed.doc.as_ref().unwrap().object((0, 0), 1).unwrap();
+            let moved = (o.pos[0] - 100.0).abs() > 1e-6;
+            assert_eq!(moved, press_drags, "press_drags {press_drags}: the object is at {:?}", o.pos);
+            // (G moves it either way)
+            ed.press_drags = false;
+            let (x, y) = (o.pos[0], o.pos[1]);
+            ed.cursor = Some(DVec3::new(x, y, 0.0));
+            assert!(ed.grab_begin((10.0, 10.0)), "the grab did not take hold");
+            ed.grab_follow(DVec3::new(x, y + 7.0, 0.0), (10.0, 40.0));
+            assert!(ed.grab_confirm());
+            let o = ed.doc.as_ref().unwrap().object((0, 0), 1).unwrap();
+            assert!((o.pos[1] - 107.0).abs() < 1e-6, "{:?}", o.pos);
+        }
+    }
+
+    /// A whole chain taken hold of moves as one: every piece comes along, its links looked up
+    /// once for the move, and one undo puts every one of them back.
+    #[test]
+    fn a_grab_of_a_whole_chain_moves_every_piece() {
+        let mut doc = flat_map(2);
+        let mut id = 1;
+        let mut y = 20.0;
+        for i in 0..20 {
+            let next = if i == 19 { 0 } else { id + 1 };
+            let prev = if i == 0 { 0 } else { id - 1 };
+            add_spline(&mut doc, (0, 0), id, 20.0, y, 0.0, 10.0, prev, next);
+            id += 1;
+            y += 10.0;
+        }
+        let mut ed = Editor::default();
+        ed.open(doc);
+        ed.snap_grid = false;
+        ed.set_selection((1..=20).map(|i| Sel::Spline((0, 0), i)).collect());
+        ed.cursor = Some(DVec3::new(20.0, 20.0, 0.0));
+        assert!(ed.grab_begin((10.0, 10.0)));
+        ed.grab_follow(DVec3::new(23.0, 24.0, 0.0), (13.0, 14.0));
+        assert!(ed.grab_confirm());
+        let doc = ed.doc.as_ref().unwrap();
+        for i in 1..=20 {
+            let s = doc.spline((0, 0), i).unwrap();
+            assert!((s.pos[0] - 23.0).abs() < 1e-6, "piece {i} east: {:?}", s.pos);
+            assert!((s.pos[1] - (24.0 + (i - 1) as f64 * 10.0)).abs() < 1e-6, "piece {i} north: {:?}", s.pos);
+        }
+        ed.undo();
+        let doc = ed.doc.as_ref().unwrap();
+        for i in 1..=20 {
+            let s = doc.spline((0, 0), i).unwrap();
+            assert!((s.pos[0] - 20.0).abs() < 1e-6 && (s.pos[1] - (20.0 + (i - 1) as f64 * 10.0)).abs() < 1e-6, "piece {i} back: {:?}", s.pos);
+        }
+    }
+
+    /// X, Y and Z lock the grab to that axis: the pointer's other ways are not taken.
+    #[test]
+    fn a_grab_locks_to_one_axis() {
+        let mut ed = editor();
+        ed.snap_grid = false;
+        ed.set_selection(vec![Sel::Object((0, 0), 1)]);
+        ed.cursor = Some(DVec3::new(100.0, 100.0, 0.0));
+        assert!(ed.grab_begin((10.0, 10.0)));
+        ed.grab_axis(1);
+        ed.grab_follow(DVec3::new(105.0, 106.0, 0.0), (15.0, 16.0));
+        let o = ed.doc.as_ref().unwrap().object((0, 0), 1).unwrap();
+        assert!((o.pos[0] - 100.0).abs() < 1e-6, "x stays: {:?}", o.pos);
+        assert!((o.pos[1] - 106.0).abs() < 1e-6, "y follows: {:?}", o.pos);
+        // (the same axis again lets it go free)
+        ed.grab_axis(1);
+        ed.grab_follow(DVec3::new(105.0, 106.0, 0.0), (15.0, 16.0));
+        let o = ed.doc.as_ref().unwrap().object((0, 0), 1).unwrap();
+        assert!((o.pos[0] - 105.0).abs() < 1e-6, "{:?}", o.pos);
+    }
+
+    /// Z lifts it: the pointer up the screen, and a distance typed.
+    #[test]
+    fn a_grab_lifts_with_z() {
+        let mut ed = editor();
+        ed.snap_grid = false;
+        ed.set_selection(vec![Sel::Object((0, 0), 1)]);
+        ed.cursor = Some(DVec3::new(100.0, 100.0, 0.0));
+        assert!(ed.grab_begin((10.0, 10.0)));
+        ed.grab_axis(2);
+        // (20 points up the screen, a metre a point)
+        ed.grab_follow(DVec3::new(140.0, 140.0, 0.0), (30.0, -10.0));
+        let o = ed.doc.as_ref().unwrap().object((0, 0), 1).unwrap();
+        assert!((o.pos[2] - 20.0).abs() < 1e-6, "lifted: {:?}", o.pos);
+        assert!((o.pos[0] - 100.0).abs() < 1e-6 && (o.pos[1] - 100.0).abs() < 1e-6, "and not moved: {:?}", o.pos);
+        // a distance typed says how far, not the pointer
+        ed.grab_type('2');
+        ed.grab_type('.');
+        ed.grab_type('5');
+        let o = ed.doc.as_ref().unwrap().object((0, 0), 1).unwrap();
+        assert!((o.pos[2] - 2.5).abs() < 1e-6, "typed: {:?}", o.pos);
+    }
+
+    /// Taking hold of something and locking an axis moves nothing: the grid's rounding is not
+    /// let loose until the pointer (or a number typed) says how far.
+    #[test]
+    fn a_grab_that_is_not_moved_stands_still() {
+        let mut ed = editor();
+        ed.snap_grid = true;
+        ed.grid_step = 1.0;
+        ed.doc.as_mut().unwrap().object_mut((0, 0), 1).unwrap().pos = [100.4, 100.4, 0.0];
+        ed.set_selection(vec![Sel::Object((0, 0), 1)]);
+        ed.cursor = Some(DVec3::new(100.4, 100.4, 0.0));
+        assert!(ed.grab_begin((10.0, 10.0)));
+        ed.grab_axis(1);
+        let o = ed.doc.as_ref().unwrap().object((0, 0), 1).unwrap();
+        assert!((o.pos[0] - 100.4).abs() < 1e-9 && (o.pos[1] - 100.4).abs() < 1e-9, "not moved: {:?}", o.pos);
+        // (a distance typed does move it, to the grid's whole metres along the axis)
+        ed.grab_type('2');
+        let o = ed.doc.as_ref().unwrap().object((0, 0), 1).unwrap();
+        assert!((o.pos[0] - 100.0).abs() < 1e-6, "the grid's x: {:?}", o.pos);
+        assert!((o.pos[1] - 102.0).abs() < 1e-6, "two along y: {:?}", o.pos);
+    }
+
+    /// Calling a grab off puts everything back where it was, with nothing left to undo.
+    #[test]
+    fn a_grab_called_off_leaves_no_trace() {
+        let mut ed = editor();
+        ed.snap_grid = false;
+        ed.set_selection(vec![Sel::Object((0, 0), 1)]);
+        ed.cursor = Some(DVec3::new(100.0, 100.0, 0.0));
+        let before = ed.history.undo_label().map(|s| s.to_string());
+        assert!(ed.grab_begin((10.0, 10.0)));
+        ed.grab_follow(DVec3::new(130.0, 140.0, 0.0), (40.0, 50.0));
+        assert!(ed.grab_cancel());
+        let o = ed.doc.as_ref().unwrap().object((0, 0), 1).unwrap();
+        assert!((o.pos[0] - 100.0).abs() < 1e-6 && (o.pos[1] - 100.0).abs() < 1e-6, "{:?}", o.pos);
+        assert_eq!(ed.history.undo_label().map(|s| s.to_string()), before, "nothing to undo");
+        assert_eq!(ed.selection(), vec![Sel::Object((0, 0), 1)]);
+    }
+
+    /// A road is grabbed as a thing, its height as well.
+    #[test]
+    fn a_grab_moves_a_road_and_its_height() {
+        let mut ed = editor();
+        ed.snap_grid = false;
+        ed.set_selection(vec![Sel::Spline((0, 0), 3)]);
+        ed.cursor = Some(DVec3::new(50.0, 50.0, 0.0));
+        assert!(ed.grab_begin((10.0, 10.0)));
+        ed.grab_axis(2);
+        ed.grab_type('3');
+        ed.grab_axis(0);
+        ed.grab_follow(DVec3::new(56.0, 50.0, 0.0), (16.0, 10.0));
+        let sp = ed.doc.as_ref().unwrap().spline((0, 0), 3).unwrap();
+        assert!((sp.pos[0] - 56.0).abs() < 1e-6, "{:?}", sp.pos);
+        assert!((sp.pos[2] - 3.0).abs() < 1e-6, "{:?}", sp.pos);
+        assert!(ed.grab_confirm());
     }
 
     #[test]
@@ -10998,5 +11620,123 @@ mod tests {
             }
             cur = n.clone();
         }
+    }
+
+    /// A measurement, not a check: what a frame costs with a whole big map selected, and what
+    /// a grab of it costs as the pointer goes (`cargo test what_a_big_selection_costs --
+    /// --ignored --nocapture`). Selecting everything is what a map of 485 tiles answers
+    /// slowly with: the parts timed here are the ones that must not look at the map's size
+    /// for every thing selected.
+    #[test]
+    #[ignore]
+    fn what_a_big_selection_costs() {
+        let _map = crate::doc::one_map();
+        let Some(omsi) = crate::install::find_omsi_root(&crate::install::Prefs::default()) else {
+            eprintln!("no OMSI 2 installation: skipped");
+            return;
+        };
+        let mut cfg = omsi.join("maps").join("NT_merged_v2").join("global.cfg");
+        if !cfg.is_file() {
+            cfg = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("..").join("world").join("NT_merged_v2").join("global.cfg");
+        }
+        if !cfg.is_file() {
+            eprintln!("no NT_merged_v2: skipped");
+            return;
+        }
+        let roots = crate::install::Roots { omsi: omsi.clone(), content: std::env::temp_dir().join("openmapper-pick-content") };
+        let doc = crate::doc::Document::load(&roots, &cfg, |_| {}).unwrap();
+        let mut assets = Assets::new(omsi, roots.content);
+        let mut ed = Editor::default();
+        ed.open(doc);
+        ed.set_tool(Tool::Select);
+        let now = || std::time::Instant::now();
+        let t = now();
+        ed.select_all();
+        eprintln!("\nselect all: {} things in {:?}", ed.also.len() + 1, t.elapsed());
+        let t = now();
+        let s = ed.selection();
+        eprintln!("the selection read: {} in {:?}", s.len(), t.elapsed());
+        // (the middle of the map, high enough to see a good part of it)
+        let (mut lo, mut hi) = (DVec2::new(f64::MAX, f64::MAX), DVec2::new(f64::MIN, f64::MIN));
+        for k in ed.doc.as_ref().unwrap().tiles.keys() {
+            let o = crate::doc::tile_origin(*k);
+            lo = DVec2::new(lo.x.min(o.x), lo.y.min(o.y));
+            hi = DVec2::new(hi.x.max(o.x), hi.y.max(o.y));
+        }
+        let mut cam = crate::camera::Camera::default();
+        cam.target = ((lo + hi) * 0.5).extend(0.0);
+        cam.distance = 900.0;
+        let t = now();
+        let x = ed.extras(&cam, &mut assets);
+        eprintln!("extras: {:?} ({} overlay, {} ghosts)", t.elapsed(), x.overlay.len(), x.ghosts.len());
+        // (which part of it: the selection read, the records looked up one by one, the paths)
+        {
+            let t = now();
+            let s = ed.selection();
+            let _more: std::collections::HashSet<Sel> = s.iter().skip(1).copied().collect();
+            eprintln!("  the picked set built: {:?}", t.elapsed());
+            let doc = ed.doc.as_ref().unwrap();
+            let t = now();
+            let mut n = 0;
+            for s in &s {
+                if let Sel::Spline(k, id) = *s {
+                    if doc.spline(k, id).is_some() {
+                        n += 1;
+                    }
+                }
+            }
+            eprintln!("  a spline looked up for each ({n}): {:?}", t.elapsed());
+            let t = now();
+            let mut n = 0;
+            for s in &s {
+                if let Sel::Object(k, id) = *s {
+                    if doc.object(k, id).is_some() {
+                        n += 1;
+                    }
+                }
+            }
+            eprintln!("  an object looked up for each ({n}): {:?}", t.elapsed());
+            let t = now();
+            let mut x2 = FrameExtras::default();
+            ed.selection_extras(&mut x2, &cam, 1.0, &mut assets);
+            eprintln!("  the selection's own extras: {:?}", t.elapsed());
+        }
+        ed.cursor = Some(cam.target);
+        let t = now();
+        ed.grab_begin((100.0, 100.0));
+        eprintln!("grab begin: {:?}", t.elapsed());
+        for i in 1..4 {
+            let t = now();
+            ed.grab_follow(cam.target + DVec3::new(i as f64, 0.0, 0.0), (100.0 + i as f32, 100.0));
+            eprintln!("grab follow {i}: {:?}", t.elapsed());
+        }
+        ed.grab_cancel();
+        // (a chain: one road's pieces, which is what a drag of a road carries)
+        let chain: Vec<Sel> = {
+            let doc = ed.doc.as_ref().unwrap();
+            let (k, t) = doc.tiles.iter().find(|(_, t)| t.tile.splines.len() > 40).unwrap();
+            let mut id = t.tile.splines.iter().find(|s| !s.deleted).unwrap().id;
+            let mut v = Vec::new();
+            while v.len() < 40 {
+                let Some(sp) = doc.spline(*k, id) else { break };
+                v.push(Sel::Spline(*k, id));
+                if sp.next_id == 0 || v.iter().any(|s| *s == Sel::Spline(*k, sp.next_id)) {
+                    break;
+                }
+                id = sp.next_id;
+            }
+            v
+        };
+        eprintln!("a chain of {} pieces", chain.len());
+        ed.set_selection(chain);
+        let t = now();
+        ed.grab_begin((100.0, 100.0));
+        eprintln!("grab begin (chain): {:?}", t.elapsed());
+        for i in 1..4 {
+            let t = now();
+            ed.grab_follow(cam.target + DVec3::new(i as f64, 0.0, 0.0), (100.0 + i as f32, 100.0));
+            eprintln!("grab follow (chain) {i}: {:?}", t.elapsed());
+        }
+        ed.grab_cancel();
     }
 }

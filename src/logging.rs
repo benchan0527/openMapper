@@ -95,6 +95,13 @@ pub fn beat() {
     BEAT.store(now_ms(), std::sync::atomic::Ordering::Relaxed);
 }
 
+/// What the window's thread is taken up with for a while (opening a map, saving it, a grab
+/// of many pieces): the watchdog names it when the window stops answering, so a log of a long
+/// wait says what it was waiting for. `busy("")` when that is done.
+pub fn busy(what: &str) {
+    *STAGE.lock().unwrap_or_else(|e| e.into_inner()) = what.to_string();
+}
+
 /// A thread that writes to the log when the window's thread has not drawn a frame for ten
 /// seconds, with the stage it was last at: a program that hangs at its start then leaves a
 /// log saying where.
