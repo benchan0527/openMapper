@@ -132,11 +132,51 @@ impl SplineModel {
         !self.def.paths.is_empty() && (self.def.only_editor || !self.def.profiles.iter().any(|p| p.points.len() >= 2))
     }
 
+    /// How far above its line a spline is drawn (a wall, a fence, a hedge stand up from the
+    /// line; a road, a marking and a kerb lie on it).
+    pub fn top(&self) -> f32 {
+        self.def.profiles.iter().flat_map(|p| p.points.iter()).map(|q| q.z).fold(0.0, f32::max).max(0.0)
+    }
+
     pub fn joinable(&self) -> bool {
         let drawn = !self.def.only_editor && self.def.profiles.iter().any(|p| p.points.len() >= 2);
         let across = self.def.profiles.iter().any(|p| p.points.iter().any(|q| q.x < -0.5) && p.points.iter().any(|q| q.x > 0.5))
             || (self.def.profiles.iter().any(|p| p.points.iter().any(|q| q.x.abs() < 0.05)) && self.half_width > 2.5);
         drawn && (self.def.paths.iter().any(|q| q.kind == 0) || across)
+    }
+}
+
+/// A tree's picture reduced to *where it is solid*: a click on a tree goes by the picture, as
+/// the view cuts its transparent parts away. `w` × `h` texels, alpha only, `u` left to right,
+/// `v` top to bottom.
+pub struct TreeMask {
+    pub w: usize,
+    pub h: usize,
+    pub alpha: Vec<u8>,
+}
+
+impl TreeMask {
+    fn of(image: &Image) -> TreeMask {
+        // (a click needs the shape, not the picture: 96 texels across is well under a pixel)
+        let side = 96usize;
+        let (w, h) = (image.width.max(1) as usize, image.height.max(1) as usize);
+        let (mw, mh) = if w >= h { (side, (side * h / w).max(1)) } else { ((side * w / h).max(1), side) };
+        let mut alpha = Vec::with_capacity(mw * mh);
+        for y in 0..mh {
+            let sy = (y * h / mh).min(h - 1);
+            for x in 0..mw {
+                let sx = (x * w / mw).min(w - 1);
+                alpha.push(image.rgba[(sy * w + sx) * 4 + 3]);
+            }
+        }
+        TreeMask { w: mw, h: mh, alpha }
+    }
+
+    /// Is the picture solid at `(u, v)`, each from 0 to 1?
+    pub fn solid(&self, u: f32, v: f32) -> bool {
+        let x = ((u * self.w as f32) as isize).clamp(0, self.w as isize - 1) as usize;
+        let y = ((v * self.h as f32) as isize).clamp(0, self.h as isize - 1) as usize;
+        self.alpha[y * self.w + x] > 100
     }
 }
 
@@ -175,6 +215,9 @@ pub struct Assets {
     pub textures: HashMap<PathBuf, Slot<TextureImage>>,
     /// Textures that arrived since the renderer last looked.
     pub new_textures: Vec<PathBuf>,
+    /// The solid part of each tree's picture, by its path (None: the picture says nothing,
+    /// a tree drawn solid).
+    tree_masks: HashMap<PathBuf, Option<Arc<TreeMask>>>,
     pub pending: usize,
     omsi: PathBuf,
     content: PathBuf,
@@ -209,7 +252,7 @@ impl Assets {
                 }
             });
         }
-        Assets { tx, rx, objects: HashMap::new(), splines: HashMap::new(), textures: HashMap::new(), new_textures: Vec::new(), pending: 0, omsi, content }
+        Assets { tx, rx, objects: HashMap::new(), splines: HashMap::new(), textures: HashMap::new(), new_textures: Vec::new(), tree_masks: HashMap::new(), pending: 0, omsi, content }
     }
 
     pub(crate) fn resolve(&self, rel: &str) -> PathBuf {
@@ -280,6 +323,30 @@ impl Assets {
                 None
             }
         }
+    }
+
+    /// Where a tree's picture is solid, for the pick: read once per picture.
+    ///
+    /// A tree is drawn as two crossed cards cut by the picture's alpha (`Alpha::Test` in the
+    /// view). The pick goes by the same picture, so a click through the gap between two
+    /// branches, or through the empty corners of the card, reaches the road behind it - and a
+    /// click on the leaves does not.
+    pub fn tree_mask(&mut self, dirs: &[PathBuf], tex: &str) -> Option<Arc<TreeMask>> {
+        if std::env::var_os("OPENMAPPER_TREE_SOLID").is_some() {
+            return None;
+        }
+        let refs: Vec<&Path> = dirs.iter().map(PathBuf::as_path).collect();
+        let path = omsi_texture::find_texture(tex, &refs)?;
+        if let Some(m) = self.tree_masks.get(&path) {
+            return m.clone();
+        }
+        // (a picture with no alpha is drawn as a solid card: no shape to go by)
+        let mask = omsi_texture::decode_file(&path)
+            .ok()
+            .filter(|i| i.has_alpha)
+            .map(|i| Arc::new(TreeMask::of(&i)));
+        self.tree_masks.insert(path, mask.clone());
+        mask
     }
 
     /// The picture a `[matl_freetex]` label of `object` names: looked for where the object's
@@ -837,6 +904,32 @@ mod tests {
         assert_eq!(phases, [(3, 2.0), (6, 20.0), (9, 3.0), (0, 0.0)]);
         assert_eq!(m.lights[1].phases.len(), 4, "the side road's light keeps its own");
         assert!(!m.light_head, "it runs a program of its own");
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    /// A wall, a fence or a hedge is drawn *up* from its line; a road and a marking lie on it.
+    /// What a click is matched against is that drawn height: London's 4 m retaining walls were
+    /// unclickable down their faces - a click two metres up was a click on the air above the
+    /// line - until the pick went by it.
+    #[test]
+    fn a_spline_is_as_tall_as_it_is_drawn() {
+        let dir = std::env::temp_dir().join(format!("om-sli-top-{}", std::process::id()));
+        let _ = std::fs::create_dir_all(&dir);
+        let load = |name: &str, text: &str| {
+            let path = dir.join(name);
+            std::fs::write(&path, text).expect("the spline writes");
+            let def = Spline::load(&path).expect("the spline reads");
+            // (as `load_spline` measures it)
+            let half_width = def.profiles.iter().flat_map(|p| p.points.iter()).map(|q| q.x.abs()).fold(0.0, f32::max);
+            SplineModel { def, materials: Vec::new(), half_width }
+        };
+        // (3 m of wall on its line, nothing across)
+        let wall = load("wall.sli", "[profile]\n0\n[profilepnt]\n0.0\n0.0\n0\n0.3\n[profilepnt]\n0.0\n3.0\n1\n0.3\n");
+        assert_eq!(wall.top(), 3.0, "the wall stands up from its line");
+        // (a road: 7 m across, flat on its line)
+        let road = load("road.sli", "[profile]\n0\n[profilepnt]\n-3.5\n0.0\n0\n0.3\n[profilepnt]\n3.5\n0.0\n1\n0.3\n");
+        assert_eq!(road.top(), 0.0, "a road lies on its line");
+        assert_eq!(road.half_width, 3.5, "and is as wide as it is drawn");
         let _ = std::fs::remove_dir_all(&dir);
     }
 }

@@ -678,17 +678,16 @@ const WHITE: [f32; 4] = [1.0, 1.0, 1.0, 0.9];
 const GREEN: [f32; 4] = [0.35, 0.85, 0.45, 1.0];
 /// Links between objects (`[varparent]`).
 const LINK: [f32; 4] = [0.3, 0.85, 0.95, 0.9];
-/// How far behind a road an object may be met and still be the one clicked: an object stands
-/// *on* the road, so the road's surface passes through its foot, and a click on the object is
-/// often a few centimetres behind the road's own surface along the same ray.
-const ON_THE_ROAD: f64 = 0.4;
+/// How near a road's own place a hit has to be to be that thing standing on the road: an
+/// object stands *on* the road, so its foot and the road's surface are the same place, though
+/// the aim meets the road's surface a few metres further along than the object's own face.
+const ON_THE_ROAD: f64 = 1.5;
 
 /// Where a ray enters a model's own box, seen through `m` (None: it does not pass through it).
 ///
-/// A tree is drawn as two crossed cards, a sign as one plane: aimed straight at such an
-/// object's middle, the ray lies *in* the drawn faces, finds no triangle at all, and the road
-/// behind it was picked instead - while the object was plainly under the cursor. The box the
-/// model was measured with answers for it (it is the cards' own size for a tree).
+/// Only a hint, and the crown of a tree: the box is far bigger than what a model draws (a
+/// building's courtyard, the space between two wings), so a hit on it is not a hit on the
+/// object - see `ray_model`.
 fn ray_object_box(origin: glam::Vec3, dir: glam::Vec3, m: &glam::Mat4, lo: glam::Vec3, hi: glam::Vec3) -> Option<f32> {
     let inv = m.inverse();
     let o = inv.transform_point3(origin);
@@ -715,6 +714,159 @@ fn ray_object_box(origin: glam::Vec3, dir: glam::Vec3, m: &glam::Mat4, lo: glam:
         }
     }
     (t1 >= 0.0).then_some(t0.max(0.0))
+}
+
+/// How far along a ray a model's own drawn faces are met (None: not met at all).
+///
+/// Three ways, in this order:
+/// 1. its meshes, as they are;
+/// 2. a tree's crown: a tree is drawn as two crossed cards of a texture, not as a mesh, so the
+///    cards themselves are met - not the box round them (a box is a square as wide as the
+///    crown, reaching the ground, so it stands in front of the pavement, the kerb, the road and
+///    the lamp *round and under* every tree on the map: nothing near a tree could be clicked);
+/// 3. a few centimetres to either side of the aim, as wide as a pixel is: a sign's board or a
+///    bay's picture seen almost edge-on is met by neither of the two above.
+/// Where a ray meets a tree, as it is drawn: two crossed cards `h` tall and `h * r` wide,
+/// standing on the object's origin (`assets::tree_mesh`, the mesh the view draws them with).
+///
+/// A tree's box is a square that wide and reaches the ground: it covered the pavement, the
+/// kerb and the road for metres round every trunk, and being nearer than the ground it took
+/// the click from them - so on a map lined with trees, "most of it cannot be selected under a
+/// tree". The cards are what a person sees, so they are what the aim is met against.
+fn ray_tree(ov: glam::Vec3, dv: glam::Vec3, m: &glam::Mat4, h: f32, r: f32, mask: Option<&crate::assets::TreeMask>) -> Option<f64> {
+    let w = (h * r * 0.5).max(0.05);
+    let corner = |x: f32, y: f32, z: f32| m.transform_point3(glam::Vec3::new(x, y, z));
+    let mut best: Option<f32> = None;
+    for (ax, ay) in [(-w, 0.0f32), (0.0, -w)] {
+        let (bx, by) = (-ax, -ay);
+        // (the two triangles as `assets::tree_mesh` lays them out, each with its picture
+        // coordinates: the card's left end is u 0, its foot v 1)
+        let (a, b, c, d) = (corner(ax, ay, 0.0), corner(bx, by, 0.0), corner(bx, by, h), corner(ax, ay, h));
+        let uvs = [(0.0f32, 1.0f32), (1.0, 1.0), (1.0, 0.0), (0.0, 0.0)];
+        for (tri, uv) in [([0usize, 1, 2], [uvs[0], uvs[1], uvs[2]]), ([0, 2, 3], [uvs[0], uvs[2], uvs[3]])] {
+            let corners = [a, b, c, d];
+            let Some((t, bu, bv)) = omsi_geometry::ray_triangle_bary(ov, dv, corners[tri[0]], corners[tri[1]], corners[tri[2]]) else { continue };
+            if let Some(mask) = mask {
+                // (the picture's own shape: a gap between two branches is not a click on the tree)
+                let u = uv[0].0 + (uv[1].0 - uv[0].0) * bu + (uv[2].0 - uv[0].0) * bv;
+                let v = uv[0].1 + (uv[1].1 - uv[0].1) * bu + (uv[2].1 - uv[0].1) * bv;
+                if !mask.solid(u, v) {
+                    continue;
+                }
+            }
+            best = Some(best.map(|q| q.min(t)).unwrap_or(t));
+        }
+    }
+    best.map(|t| t as f64)
+}
+
+fn ray_model(ov: glam::Vec3, dv: glam::Vec3, m: &glam::Mat4, model: &crate::assets::ObjectModel) -> Option<f64> {
+    ray_model_masked(ov, dv, m, model, None)
+}
+
+fn ray_model_masked(ov: glam::Vec3, dv: glam::Vec3, m: &glam::Mat4, model: &crate::assets::ObjectModel, mask: Option<&crate::assets::TreeMask>) -> Option<f64> {
+    let meshes = |o: glam::Vec3| model.parts.iter().filter_map(|p| omsi_geometry::ray_mesh(o, dv, &p.mesh, m)).reduce(f32::min);
+    if let Some(t) = meshes(ov) {
+        return Some(t as f64);
+    }
+    if model.parts.is_empty() {
+        return None;
+    }
+    if let Some((_, _, h, r)) = &model.tree {
+        return ray_tree(ov, dv, m, *h, *r, mask);
+    }
+    if model.parts.is_empty() {
+        return None;
+    }
+    // (the box only says how far away the aim is, so the aim's width there is known)
+    let t0 = ray_object_box(ov, dv, m, model.lo, model.hi)?;
+    let step = (t0 * 0.0025).clamp(0.01, 0.35);
+    // (two directions across the ray)
+    let up = if dv.z.abs() > 0.9 { glam::Vec3::X } else { glam::Vec3::Z };
+    let a = dv.cross(up).normalize_or_zero() * step;
+    let b = dv.cross(a).normalize_or_zero() * step;
+    [(a, 1.0), (a, -1.0), (b, 1.0), (b, -1.0), (a, 3.0), (a, -3.0), (b, 3.0), (b, -3.0)]
+        .into_iter()
+        .filter_map(|(n, k)| meshes(ov + n * k))
+        .reduce(f32::min)
+        .map(|t| t as f64)
+}
+
+/// Where a ray passes a piece of a road: `(how far to the side, how far along)`.
+///
+/// The piece's own closest point to the ray is taken (the ray is a line, so this is a small
+/// closed form), and then its height against the ray's, as the pick measures a road's surface:
+/// a slanted aim meets a road's height at a different place than it passes closest to it.
+/// Where a ray meets the vertical face a spline standing up from `a`–`b` is drawn as, over the
+/// height `top`: `(lat, along)`, the first how far it passes to the side of that face.
+///
+/// A wall, a fence, a hedge or a railing is a *plane standing on its line*, and a click has to
+/// meet that plane between the line and the top - not merely pass near the line. Measured as a
+/// distance to the line itself, the tolerance reaches straight up as well as sideways: a
+/// railing 1.2 m tall then took every click within a metre and a half *above* it, and the road,
+/// the crossing, the pavement and the lamps behind it could not be picked at all. What is to the
+/// side is a width; what is above is sky.
+fn ray_wall_piece(o: DVec3, d: DVec3, a: DVec3, b: DVec3, top: f64) -> Option<(f64, f64)> {
+    let u = b - a;
+    let flat_len = (u.truncate()).length();
+    if flat_len < 1e-9 {
+        return None;
+    }
+    // (the face's own normal, level: the plane holds the segment and the vertical)
+    let nu = DVec3::new(-u.y, u.x, 0.0) / flat_len;
+    let den = d.dot(nu);
+    let (lat, along) = if den.abs() < 1e-9 {
+        // (the aim runs along the face: wherever it comes within a hair of it is the same place)
+        ray_near_piece(o, d, a, b)?
+    } else {
+        let t = (a - o).dot(nu) / den;
+        if t <= 0.0 {
+            return None;
+        }
+        let p = o + d * t;
+        // (the side: the horizontal distance from the face, with the segment's own direction
+        // taken out - a slanted piece is a slanted plane, not a wider one)
+        let off = p - a;
+        let s = off.dot(u) / u.dot(u);
+        if !(-0.05..=1.05).contains(&s) {
+            return None;
+        }
+        let side = off - u * s.clamp(0.0, 1.0);
+        (DVec3::new(side.x, side.y, 0.0).length(), t)
+    };
+    // (how high above its own line the aim meets the face; below the line is the ground under it)
+    let p = o + d * along;
+    let base = a.z + (b.z - a.z) * (((p - a).dot(u)) / u.dot(u)).clamp(0.0, 1.0);
+    let h = p.z - base;
+    if h < -0.30 || h > top + 0.05 {
+        return None;
+    }
+    Some((lat, along))
+}
+
+fn ray_near_piece(o: DVec3, d: DVec3, a: DVec3, b: DVec3) -> Option<(f64, f64)> {
+    let u = b - a;
+    let au = u.length_squared();
+    let w = a - o;
+    let (bu, du, eu) = (u.dot(d), u.dot(w), d.dot(w));
+    let mut s = 0.0;
+    if au > 1e-12 {
+        // (t, the place along the ray, is not needed: only the piece's own place on it)
+        let den = bu * bu - au;
+        if den.abs() > 1e-12 {
+            let t = (bu * du - eu * au) / den;
+            s = ((bu * t - du) / au).clamp(0.0, 1.0);
+        }
+    }
+    let p = a + u * s;
+    let rel = p - o;
+    let along = rel.dot(d);
+    if along <= 0.0 {
+        return None;
+    }
+    let lat = (rel - d * along).length();
+    let cross = if d.z.abs() > 0.1 { rel.z / d.z } else { along };
+    Some((lat, cross))
 }
 
 impl Editor {
@@ -1106,16 +1258,22 @@ impl Editor {
                 if !omsi_geometry::ray_near_sphere(ov, dv, c, r) {
                     continue;
                 }
-                let hit = if model.parts.is_empty() {
-                    // a tree or a marker: its sphere
+                let hit = if let Some((dirs, tex, h, r)) = model.tree.clone() {
+                    // (a tree is its cards, cut by its picture, meshes and all)
+                    let mask = assets.tree_mask(&dirs, &tex);
+                    let cards = ray_tree(ov, dv, &m, h, r, mask.as_deref());
+                    let meshes = model.parts.iter().filter_map(|p| omsi_geometry::ray_mesh(ov, dv, &p.mesh, &m)).reduce(f32::min).map(|t| t as f64);
+                    match (cards, meshes) {
+                        (Some(a), Some(b)) => Some(a.min(b)),
+                        (a, b) => a.or(b),
+                    }
+                } else if model.parts.is_empty() {
+                    // a marker: its sphere
                     let oc = c.as_dvec3();
                     let tca = oc.dot(d);
                     (tca > 0.0).then_some(tca)
                 } else {
-                    // (a ray that lies in a card's or a plane's drawn face finds no triangle:
-                    // the model's box answers for it, so such an object can be clicked)
-                    model.parts.iter().filter_map(|p| omsi_geometry::ray_mesh(ov, dv, &p.mesh, &m)).map(|t| t as f64).reduce(f64::min)
-                        .or_else(|| ray_object_box(ov, dv, &m, model.lo, model.hi).map(|t| t as f64))
+                    ray_model(ov, dv, &m, &model)
                 };
                 if let Some(t) = hit {
                     if t < gdist + 2.0 && best.map(|b| t < b.0).unwrap_or(true) {
@@ -1161,10 +1319,7 @@ impl Editor {
                     let tca = c.as_dvec3().dot(d);
                     (tca > 0.0).then_some(tca)
                 } else {
-                    // (a sign, a mast or a lamp made of planes: a ray in their own face finds
-                    // no triangle, and the road behind them was picked - the box answers)
-                    model.parts.iter().filter_map(|p| omsi_geometry::ray_mesh(ov, dv, &p.mesh, &m)).map(|t| t as f64).reduce(f64::min)
-                        .or_else(|| ray_object_box(ov, dv, &m, model.lo, model.hi).map(|t| t as f64))
+                    ray_model(ov, dv, &m, &model)
                 };
                 if let Some(t) = hit {
                     if t < gdist + 2.0 && best.map(|b| t < b.0).unwrap_or(true) {
@@ -1189,14 +1344,14 @@ impl Editor {
                         if !omsi_geometry::ray_near_sphere(ov, dv, c, model.radius().max(0.5)) {
                             continue;
                         }
-                        let hit = if model.parts.is_empty() {
+                        let hit = if let Some((dirs, tex, h, r)) = model.tree.clone() {
+                            let mask = assets.tree_mask(&dirs, &tex);
+                            ray_tree(ov, dv, &m, h, r, mask.as_deref())
+                        } else if model.parts.is_empty() {
                             let tca = c.as_dvec3().dot(d);
                             (tca > 0.0).then_some(tca)
                         } else {
-                            // (a lamp post, a sign, a tree drawn as crossed cards: a ray in the
-                            // drawn face finds no triangle, and the road under it was picked)
-                            model.parts.iter().filter_map(|p| omsi_geometry::ray_mesh(ov, dv, &p.mesh, &m)).map(|t| t as f64).reduce(f64::min)
-                                .or_else(|| ray_object_box(ov, dv, &m, model.lo, model.hi).map(|t| t as f64))
+                            ray_model(ov, dv, &m, &model)
                         };
                         if let Some(t) = hit {
                             if t < gdist + 2.0 && best.map(|b| t < b.0).unwrap_or(true) {
@@ -1216,7 +1371,7 @@ impl Editor {
         // `limit` is as far as an object is taken: what the ray meets after it has met the
         // ground is behind the hillside, not under the cursor.
         let limit = gdist + 2.0;
-        let mut sbest: Option<(f64, Sel)> = None;
+        let mut sbest: Option<(f64, f64, Sel)> = None;
         for (k, t) in doc.tiles.iter().filter(|_| !self.hide[2] || paths_only) {
             let org = tile_origin(*k);
             for s in t.tile.splines.iter().filter(|s| !s.deleted) {
@@ -1230,7 +1385,16 @@ impl Editor {
                     continue;
                 }
                 // (an AI path has no width of its own: a metre and a half either side)
-                let hw = if ai { 1.5 } else { model.map(|m| m.half_width as f64).unwrap_or(3.0).max(1.5) };
+                //
+                // (something standing up from its line is a *face*, and a face has no
+                // thickness: a railing drawn on a line of no width is met by an aim that meets
+                // it, not by one that passes a quarter of a metre to the side of it. Something
+                // lying on its line - a road, a marking, a kerb - keeps a hand's width of
+                // tolerance, so that a line a hand's width wide can be clicked at all)
+                let top = model.as_ref().map(|m| m.top() as f64).unwrap_or(0.0).max(0.0);
+                let standing = top > 0.05;
+                let slack = if standing { 0.06 } else { 0.25 };
+                let hw = if ai { 1.5 } else { model.as_ref().map(|m| m.half_width as f64).unwrap_or(3.0).max(slack) };
                 let c = omsi_geometry::SplineCurve::from_map(s, org);
                 // (the box round the whole road first: a map of this size has tens of thousands
                 // of splines, and every mouse move looks at all of them)
@@ -1245,43 +1409,61 @@ impl Editor {
                 // lane's width of a road several metres before it reaches it, so an object stood
                 // on the road - a lamp, a bench, a low tree, a parking bay - was always behind
                 // the road and could not be clicked; the road under a bridge could not be picked
-                // either. The sample the ray passes nearest is the one whose height it meets.)
+                // either. The piece the ray passes nearest is the one whose height it meets.)
+                //
+                // (the pieces between the samples, not the samples themselves: a wall, a fence,
+                // a hedge or a painted line is a tenth of a metre wide, and samples a metre
+                // apart lie up to half a metre either side of the aim - so the thinnest splines,
+                // which are exactly the ones that need aiming at, could not be clicked at all)
+                //
+                // (a wall, a fence, a hedge stands *up* from its line and is drawn from it to
+                // `top`: clicking the middle of the face a person sees, two metres up, was a
+                // click on the air above the line, so the tallest and most visible things on
+                // the map - London's 4 m retaining walls - could not be picked at all. The aim
+                // is met against the whole drawn height, sampled as finely as the road is wide)
+                // (a thing standing up from its line is met as the face it is drawn as, over
+                // the height it is drawn to; a road, a marking, a kerb lies on the line and is
+                // met where the aim crosses its height)
                 let mut nearest: Option<(f64, f64, Sel)> = None;
-                for i in 0..=n {
-                    let rel = c.point_at(s.length * i as f64 / n as f64) - o;
-                    let along = rel.dot(d);
-                    if along <= 0.0 {
-                        continue;
+                let mut prev = c.point_at(0.0);
+                for i in 1..=n {
+                    let next = c.point_at(s.length * i as f64 / n as f64);
+                    let met = if standing { ray_wall_piece(o, d, prev, next, top) } else { ray_near_piece(o, d, prev, next) };
+                    if let Some((lat, cross)) = met {
+                        if lat <= hw && cross > 0.0 && cross <= limit && nearest.map(|b| lat < b.0 || (lat == b.0 && cross < b.1)).unwrap_or(true) {
+                            nearest = Some((lat, cross, Sel::Spline(*k, s.id)));
+                        }
                     }
-                    let lat = (rel - d * along).length();
-                    if lat > hw {
-                        continue;
-                    }
-                    // (looking flat along the road, its height places nothing: the nearest point
-                    // along the ray is as good as it gets)
-                    let cross = if d.z.abs() > 0.1 { rel.z / d.z } else { along };
-                    if cross <= 0.0 || cross > limit {
-                        continue;
-                    }
-                    if nearest.map(|b| lat < b.0 || (lat == b.0 && cross < b.1)).unwrap_or(true) {
-                        nearest = Some((lat, cross, Sel::Spline(*k, s.id)));
-                    }
+                    prev = next;
                 }
-                if let Some((_, t, sel)) = nearest {
-                    if sbest.map(|b| t < b.0).unwrap_or(true) {
-                        sbest = Some((t, sel));
+                if let Some((lat, t, sel)) = nearest {
+                    // (the nearest of two roads at the same place, not the first in the map: a
+                    // painted line, a kerb and a pavement run side by side at one height, and a
+                    // vertical aim meets all of them at the same distance - so the one the aim
+                    // is really over is the one it passes closest to)
+                    let better = match sbest {
+                        Some((bt, blat, _)) => t < bt - 1e-3 || ((t - bt).abs() <= 1e-3 && lat < blat),
+                        None => true,
+                    };
+                    if better {
+                        sbest = Some((t, lat, sel));
                     }
                 }
             }
         }
         // (whichever the ray reaches first: an object used to win over every spline, however far
         // behind it, so the road inside a tunnel of objects or under a canopy could not be picked)
-        // (an object standing on a road is its own thing: the road's surface passes through its
-        // foot, so a hit a few centimetres behind the road's is still the object's)
+        // (an object standing on a road is its own thing: the road's surface lies *under* its
+        // foot, so the aim meets the road that much further along than the object's own face -
+        // an object clicked over the road it stands on keeps the click)
         match (best, sbest) {
-            (Some((a, sel)), Some((b, ssel))) => Some(if a <= b + ON_THE_ROAD { sel } else { ssel }),
+            (Some((a, sel)), Some((b, _, ssel))) => {
+                let foot = (o + d * a).truncate();
+                let under = (o + d * b).truncate();
+                Some(if a <= b + 0.4 || (foot - under).length() <= ON_THE_ROAD { sel } else { ssel })
+            }
             (Some((_, sel)), None) => Some(sel),
-            (None, s) => s.map(|b| b.1),
+            (None, s) => s.map(|b| b.2),
         }
     }
 
@@ -7875,26 +8057,38 @@ mod tests {
                 // (straight down: the nearest surface is the highest one there)
                 let got = ed.pick(&mut assets, from, -DVec3::Z, Some(DVec3::new(mid.x, mid.y, mid.z)));
                 match got {
-                    None => nothing += 1,
+                    None => {
+                        nothing += 1;
+                        if report.len() < 5 {
+                            report.push(format!("{k:?} {} z{:.2} len {:.1}: nothing at all", s.file, mid.z, s.length));
+                        }
+                    }
                     Some(Sel::Spline(a, b)) => {
                         let win = doc.spline(a, b).unwrap();
                         let wc = omsi_geometry::SplineCurve::from_map(win, tile_origin(a));
-                        let hw = assets.spline(&win.file).map(|m| m.half_width as f64).unwrap_or(3.0).max(1.5);
-                        // (the same walk pick does: the sample of it the ray comes nearest)
+                        let wm = assets.spline(&win.file);
+                        let hw = wm.as_ref().map(|m| m.half_width as f64).unwrap_or(3.0).max(1.5);
+                        // (the same walk pick does: the piece of it the ray comes nearest, over
+                        // the height it is drawn to - a wall stands up from its line)
+                        let top = wm.as_ref().map(|m| m.top() as f64).unwrap_or(0.0).max(0.0);
+                        let steps = if top <= 0.3 { 1 } else { ((top / (2.0 * hw)).ceil() as usize + 1).min(6) };
                         let n = (win.length / 1.0).ceil().max(2.0) as usize;
                         let mut along = f64::MAX;
                         let mut z = mid.z;
-                        for i in 0..=n {
-                            let p = wc.point_at(win.length * i as f64 / n as f64);
-                            let rel = p - from;
-                            let a = rel.dot(-DVec3::Z);
-                            if a <= 0.0 || (rel - DVec3::Z * -a).length() > hw {
-                                continue;
+                        let mut prev = wc.point_at(0.0);
+                        for i in 1..=n {
+                            let next = wc.point_at(win.length * i as f64 / n as f64);
+                            for si in 0..steps {
+                                let lift = if steps == 1 { 0.0 } else { top * (si as f64 / (steps - 1) as f64) };
+                                let up = if lift == 0.0 { DVec3::ZERO } else { DVec3::new(0.0, 0.0, lift) };
+                                if let Some((lat, cross)) = ray_near_piece(from, -DVec3::Z, prev + up, next + up) {
+                                    if lat <= hw && cross > 0.0 && cross < along {
+                                        along = cross;
+                                        z = (prev.z + next.z) * 0.5 + lift;
+                                    }
+                                }
                             }
-                            if a < along {
-                                along = a;
-                                z = p.z;
-                            }
+                            prev = next;
                         }
                         // (the ray goes straight down, so nearer means higher)
                         if along > 60.0 + 0.5 {
@@ -8016,13 +8210,14 @@ mod tests {
         assert_eq!(got, Some(Sel::Spline((0, 0), 1)));
     }
 
-    /// A tree is drawn as two crossed cards, a sign as one plane: aimed at the middle of such
-    /// an object, the ray lies *in* the drawn faces, finds no triangle at all, and the road
-    /// behind it was picked - though the object was plainly under the cursor. The box the
-    /// model was measured with answers for it.
+    /// A tree is drawn as two crossed cards of a texture, not as a mesh: aimed at its crown, no
+    /// triangle is there to be met, and the road under it was picked instead. The box the model
+    /// was measured with is the crown's own size, so it answers for the tree - and only for a
+    /// tree: a building's box holds its courtyard, and taking it for the building took clicks
+    /// from whatever really stood under the cursor.
     #[test]
-    fn a_tree_drawn_as_crossed_cards_is_picked_through_its_box() {
-        use glam::{Vec2, Vec3};
+    fn a_tree_drawn_as_crossed_cards_is_picked_by_its_crown() {
+        use glam::Vec3;
         let mut doc = flat_map(1);
         add_spline(&mut doc, (0, 0), 1, 100.0, 100.0, 0.0, 60.0, 0, 0);
         doc.tiles.get_mut(&(0, 0)).unwrap().tile.spline_attachments.push(omsi_map::SplineAttachment {
@@ -8038,26 +8233,20 @@ mod tests {
         ed.open(doc);
         ed.set_tool(Tool::Select);
         let mut assets = Assets::new(std::env::temp_dir().join("openmapper-no-omsi"), std::env::temp_dir().join("openmapper-no-content"));
-        // (two upright quads crossing at the middle, as a tree's cards do: a ray straight down
-        // lies in both of them)
-        let quad = |a: [f32; 3], b: [f32; 3]| {
-            let (a, b) = (Vec3::from(a), Vec3::from(b));
-            (vec![a, b, Vec3::new(b.x, b.y, 5.0), Vec3::new(a.x, a.y, 5.0)], vec![0u32, 1, 2, 0, 2, 3])
+        // (a trunk of one small mesh and a crown of two crossed cards, as a tree is)
+        let trunk = omsi_geometry::MeshData {
+            positions: vec![Vec3::new(-0.2, -0.2, 0.0), Vec3::new(0.2, -0.2, 0.0), Vec3::new(0.2, 0.2, 0.0), Vec3::new(-0.2, 0.2, 0.0)],
+            normals: Vec::new(),
+            uvs: vec![],
+            ranges: Vec::new(),
+            indices: vec![0, 1, 2, 0, 2, 3],
+            one_sided: false,
         };
-        let (mut p1, mut i1) = quad([0.0, -2.0, 0.0], [0.0, 2.0, 0.0]);
-        let (mut p2, mut i2) = quad([-2.0, 0.0, 0.0], [2.0, 0.0, 0.0]);
-        let mesh = omsi_geometry::MeshData { positions: { p1.append(&mut p2); p1 }, normals: Vec::new(), uvs: vec![Vec2::ZERO; 4], ranges: Vec::new(), indices: { i2.iter_mut().for_each(|i| *i += 4); i1.append(&mut i2); i1 }, one_sided: true };
         let model = crate::assets::ObjectModel {
-            parts: vec![crate::assets::Part {
-                mesh,
-                materials: Vec::new(),
-                texts: Vec::new(),
-                freetex: Vec::new(),
-                visible: None,
-                faded: None,
-            }],
-            lo: Vec3::new(-2.0, -2.0, 0.0),
-            hi: Vec3::new(2.0, 2.0, 5.0),
+            parts: vec![crate::assets::Part { mesh: trunk, materials: Vec::new(), texts: Vec::new(), freetex: Vec::new(), visible: None, faded: None }],
+            lo: Vec3::new(-2.5, -2.5, 0.0),
+            hi: Vec3::new(2.5, 2.5, 10.0),
+            tree: Some((vec![], "tree.tga".into(), 10.0, 1.0)),
             ..Default::default()
         };
         assets.objects.insert("sceneryobjects\\tree.sco".into(), crate::assets::Slot::Ready(std::sync::Arc::new(model)));
@@ -8067,9 +8256,66 @@ mod tests {
             crate::place::row_objects(&t.spline_attachments[0], &t.splines, tile_origin((0, 0)))
         };
         let p = spots[0].pose.pos;
-        // (straight down, exactly at the crossing line of the two cards)
-        let got = ed.pick(&mut assets, DVec3::new(p.x, p.y, p.z + 30.0), -DVec3::Z, Some(DVec3::new(p.x, p.y, 0.0)));
+        // (aimed at the middle of the crown, where only the cards are drawn)
+        let crown = p + DVec3::new(0.0, 0.0, 6.0);
+        let from = crown + DVec3::new(18.0, -18.0, 18.0);
+        let got = ed.pick(&mut assets, from, (crown - from).normalize(), Some(DVec3::new(p.x, p.y, 0.0)));
         assert_eq!(got, Some(Sel::Attached((0, 0), 5)));
+    }
+
+    /// A building is what it draws, not the box it was measured with: its box holds its
+    /// courtyard, and the gap between two wings, and it is met before the faces inside it - so
+    /// taking it for the building made a building take the click from the lamp that really
+    /// stands under the cursor ("every building gives the wrong thing").
+    #[test]
+    fn a_building_is_what_it_draws_not_the_box_it_was_measured_with() {
+        use glam::Vec3;
+        let mut doc = flat_map(1);
+        add_spline(&mut doc, (0, 0), 1, 100.0, 100.0, 0.0, 200.0, 0, 0);
+        // (the lamp at (102, 100), inside the building's box, which reaches from x 70 to 110
+        // and y 80 to 120)
+        add_object(&mut doc, (0, 0), 9, 102.0, 100.0);
+        doc.tiles.get_mut(&(0, 0)).unwrap().tile.objects.push(omsi_map::MapObject { file: "Sceneryobjects\\house.sco".into(), id: 10, pos: [90.0, 100.0, 0.0], ..Default::default() });
+        let mut ed = Editor::default();
+        ed.open(doc);
+        ed.set_tool(Tool::Select);
+        let mut assets = Assets::new(std::env::temp_dir().join("openmapper-no-omsi"), std::env::temp_dir().join("openmapper-no-content"));
+        // (a lamp: a thin post of two triangles)
+        let post = omsi_geometry::MeshData {
+            positions: vec![Vec3::new(-0.1, -0.1, 0.0), Vec3::new(0.1, -0.1, 0.0), Vec3::new(0.1, 0.1, 4.0), Vec3::new(-0.1, 0.1, 4.0)],
+            normals: Vec::new(),
+            uvs: Vec::new(),
+            ranges: Vec::new(),
+            indices: vec![0, 1, 2, 0, 2, 3],
+            one_sided: false,
+        };
+        let lamp = crate::assets::ObjectModel {
+            parts: vec![crate::assets::Part { mesh: post, materials: Vec::new(), texts: Vec::new(), freetex: Vec::new(), visible: None, faded: None }],
+            lo: Vec3::new(-0.1, -0.1, 0.0),
+            hi: Vec3::new(0.1, 0.1, 4.0),
+            ..Default::default()
+        };
+        // (a building: one roof at the top of a 40 m box, the rest of the box empty air)
+        let wall = omsi_geometry::MeshData {
+            positions: vec![Vec3::new(-20.0, -20.0, 12.0), Vec3::new(20.0, -20.0, 12.0), Vec3::new(20.0, 20.0, 12.0), Vec3::new(-20.0, 20.0, 12.0)],
+            normals: Vec::new(),
+            uvs: Vec::new(),
+            ranges: Vec::new(),
+            indices: vec![0, 1, 2, 0, 2, 3],
+            one_sided: false,
+        };
+        let house = crate::assets::ObjectModel {
+            parts: vec![crate::assets::Part { mesh: wall, materials: Vec::new(), texts: Vec::new(), freetex: Vec::new(), visible: None, faded: None }],
+            lo: Vec3::new(-20.0, -20.0, 0.0),
+            hi: Vec3::new(20.0, 20.0, 12.0),
+            ..Default::default()
+        };
+        assets.objects.insert("sceneryobjects\\x.sco".into(), crate::assets::Slot::Ready(std::sync::Arc::new(lamp)));
+        assets.objects.insert("sceneryobjects\\house.sco".into(), crate::assets::Slot::Ready(std::sync::Arc::new(house)));
+        // (looking along the box, from in front of it: the lamp is the only thing drawn there.
+        // The building's box starts five metres nearer, and it used to take the click.)
+        let got = ed.pick(&mut assets, DVec3::new(102.0, 85.0, 2.0), DVec3::Y, Some(DVec3::new(102.0, 100.0, 0.0)));
+        assert_eq!(got, Some(Sel::Object((0, 0), 9)), "the building took the click from what is drawn in front of it");
     }
 
     /// A record standing on its own road is its own thing, clicked from any side: the road was
@@ -8106,6 +8352,772 @@ mod tests {
         let from = p + DVec3::new(25.0, -25.0, 25.0);
         let got = ed.pick(&mut assets, from, (p - from).normalize(), Some(DVec3::new(p.x, p.y, 0.0)));
         assert_eq!(got, Some(Sel::Attached((0, 0), 5)));
+    }
+
+    /// A click names the object the ray meets first. Checked on a real city map: aiming at the
+    /// middle of a building from above and to the side, what the pick names has to be what a
+    /// walk over every object of every tile says is met first - not a nearer one in a tile the
+    /// aim's ground point does not fall on, and not a farther one.
+    #[test]
+    fn a_click_names_the_object_whose_faces_it_meets() {
+        let _map = crate::doc::one_map();
+        let Some(omsi) = crate::install::find_omsi_root(&crate::install::Prefs::default()) else {
+            eprintln!("no OMSI 2 installation: skipped");
+            return;
+        };
+        let cfg = omsi.join("maps").join("Berlin-Spandau").join("global.cfg");
+        if !cfg.is_file() {
+            eprintln!("no Berlin-Spandau: skipped");
+            return;
+        }
+        let roots = crate::install::Roots { omsi: omsi.clone(), content: std::env::temp_dir().join("openmapper-pick-content") };
+        let doc = crate::doc::Document::load(&roots, &cfg, |_| {}).unwrap();
+        let mut assets = Assets::new(omsi, roots.content);
+        let mut ed = Editor::default();
+        ed.open(doc);
+        ed.set_tool(Tool::Select);
+        // (the objects big enough to be buildings, and the tiles they stand on)
+        let spots: Vec<(TileKey, i64)> = {
+            let d = ed.doc.as_ref().unwrap();
+            let mut v: Vec<(TileKey, i64)> = d.tiles.iter().flat_map(|(k, t)| t.tile.objects.iter().map(move |o| (*k, o.id))).collect();
+            v.sort();
+            v
+        };
+        let mut aims = 0;
+        let mut tested = 0;
+        let mut invented: Vec<String> = Vec::new();
+        for (k, id) in spots.iter().step_by(9) {
+            let ob = match ed.doc.as_ref().unwrap().object(*k, *id) {
+                Some(o) => o.clone(),
+                None => continue,
+            };
+            let Some(model) = assets.object_wait(&ob.file, 2000) else { continue };
+            if (model.hi - model.lo).truncate().length() < 8.0 || model.parts.is_empty() {
+                continue;
+            }
+            aims += 1;
+            // (from above and to the side, at the middle of what it draws)
+            let world = ed.doc.as_ref().unwrap().object_world(*k, &ob, model.abs_height);
+            let rel = crate::render::object_matrix(DVec3::ZERO, ob.rot);
+            let centre = world.as_vec3() + rel.transform_point3(model.centre());
+            let from = centre.as_dvec3() + DVec3::new(30.0, -30.0, 22.0);
+            let dir = (centre.as_dvec3() - from).normalize();
+            let g = ed.doc.as_ref().unwrap().ground(centre.truncate().as_dvec2());
+            let got = ed.pick(&mut assets, from, dir, Some(DVec3::new(centre.x as f64, centre.y as f64, g)));
+            let Some(Sel::Object(gk, gid)) = got else { continue };
+            // what the ray really meets first, over every object's own faces - a tree by the
+            // cards it is drawn as and the shape of its picture, as the pick meets it
+            let mut truth = f64::MAX;
+            let mut named = f64::INFINITY;
+            let aim = dir.as_vec3();
+            let mut dist = |assets: &mut Assets, mat: &glam::Mat4, m: &crate::assets::ObjectModel| -> Option<f64> {
+                if let Some((dirs, tex, h, r)) = m.tree.clone() {
+                    let mask = assets.tree_mask(&dirs, &tex);
+                    let cards = ray_tree(glam::Vec3::ZERO, aim, mat, h, r, mask.as_deref());
+                    let meshes = m.parts.iter().filter_map(|p| omsi_geometry::ray_mesh(glam::Vec3::ZERO, aim, &p.mesh, mat)).reduce(f32::min).map(|t| t as f64);
+                    return match (cards, meshes) {
+                        (Some(a), Some(b)) => Some(a.min(b)),
+                        (a, b) => a.or(b),
+                    };
+                }
+                (!m.parts.is_empty()).then(|| ray_model(glam::Vec3::ZERO, aim, mat, m)).flatten()
+            };
+            for (tk, t) in ed.doc.as_ref().unwrap().tiles.iter() {
+                for o in &t.tile.objects {
+                    let Some(m) = assets.object(&o.file) else { continue };
+                    let w = ed.doc.as_ref().unwrap().object_world(*tk, o, m.abs_height);
+                    let mat = crate::render::object_matrix(w - from, o.rot);
+                    let Some(d) = dist(&mut assets, &mat, &m) else { continue };
+                    if d < truth {
+                        truth = d;
+                    }
+                    if *tk == gk && o.id == gid {
+                        named = d;
+                    }
+                }
+            }
+            // (the ones hanging on others are a list of their own: an aim that ends on one is
+            // not what this checks)
+            if named.is_finite() && named > truth + 0.01 && invented.len() < 6 {
+                invented.push(format!("{} {gk:?}#{gid}: met at {named:.2} m, but {truth:.2} m is the first face on the ray", ob.file));
+            }
+            if named.is_finite() {
+                tested += 1;
+            }
+        }
+        for i in &invented {
+            eprintln!("{i}");
+        }
+        assert!(tested > 10, "aims answered by an object of the map: {tested} of {aims}");
+        assert!(invented.is_empty(), "an object answered from where nothing of it is drawn");
+    }
+
+    /// DIAGNOSIS (temporary): one click, in full.
+    ///
+    /// `OPENMAPPER_POINT` is the eye (`x,y,z`), `OPENMAPPER_AIM` the place aimed at; both in
+    /// the map's own coordinates, as the status bar shows them. Prints what the pick answers,
+    /// and everything the ray comes near on the way - each with how far along, how far to the
+    /// side, and whether it is inside its own width - so a click that answers wrongly says why.
+    #[test]
+    #[ignore = "one click on a whole map: run by hand with OPENMAPPER_POINT and OPENMAPPER_AIM"]
+    fn diag_one_click() {
+        let _map = crate::doc::one_map();
+        let map = std::env::var("OPENMAPPER_SWEEP_MAP").unwrap_or_else(|_| "London".into());
+        let parse = |v: &str| -> Option<DVec3> {
+            let n: Vec<f64> = v.split(',').filter_map(|q| q.trim().parse().ok()).collect();
+            (n.len() == 3).then(|| DVec3::new(n[0], n[1], n[2]))
+        };
+        let Some(eye) = std::env::var("OPENMAPPER_POINT").ok().and_then(|v| parse(&v)) else {
+            eprintln!("OPENMAPPER_POINT=x,y,z and OPENMAPPER_AIM=x,y,z: skipped");
+            return;
+        };
+        let Some(aim) = std::env::var("OPENMAPPER_AIM").ok().and_then(|v| parse(&v)) else {
+            eprintln!("OPENMAPPER_AIM=x,y,z: skipped");
+            return;
+        };
+        let Some(omsi) = crate::install::find_omsi_root(&crate::install::Prefs::default()) else {
+            eprintln!("no OMSI 2: skipped");
+            return;
+        };
+        let roots = crate::install::Roots { omsi: omsi.clone(), content: std::env::temp_dir().join("openmapper-pick-content") };
+        let cfg = omsi.join("maps").join(&map).join("global.cfg");
+        let doc = crate::doc::Document::load(&roots, &cfg, |_| {}).unwrap();
+        let mut assets = Assets::new(omsi, roots.content);
+        let mut ed = Editor::default();
+        ed.open(doc);
+        ed.set_tool(Tool::Select);
+
+        let dir = (aim - eye).normalize();
+        let gh = ed.ground_hit(eye, dir);
+        eprintln!("EYE {eye:?} AIM {aim:?}");
+        eprintln!("GROUND HIT {gh:?} at {:?} m along", gh.map(|q| (q - eye).length()));
+        eprintln!("PICK {:?}", ed.pick(&mut assets, eye, dir, gh));
+
+        let doc = ed.doc.as_ref().unwrap();
+        let radius = 30.0;
+        eprintln!("--- roads whose line passes within {radius} m of the aim");
+        let mut near: Vec<(f64, TileKey, i64, String, f64, f64, f64, f64)> = Vec::new();
+        for (k, t) in doc.tiles.iter() {
+            let org = tile_origin(*k);
+            for s in t.tile.splines.iter().filter(|s| !s.deleted) {
+                let c = omsi_geometry::SplineCurve::from_map(s, org);
+                let n = (s.length / 2.0).ceil().max(2.0) as usize;
+                let mut closest = f64::MAX;
+                let mut at = 0.0;
+                let mut prev = c.point_at(0.0);
+                for i in 1..=n {
+                    let next = c.point_at(s.length * i as f64 / n as f64);
+                    let q = prev + (next - prev) * 0.5;
+                    let d = (q.truncate() - aim.truncate()).length();
+                    if d < closest {
+                        closest = d;
+                        at = (i as f64 - 0.5) / n as f64 * s.length;
+                    }
+                    prev = next;
+                }
+                if closest > radius {
+                    continue;
+                }
+                let hw = assets.spline_wait(&s.file, 3000).map(|m| (m.half_width as f64).max(1.5)).unwrap_or(3.0);
+                let top = assets.spline(&s.file).map(|m| m.top() as f64).unwrap_or(0.0);
+                // (how this road is met by the aim, as the pick meets it)
+                let standing = top > 0.05;
+                let mut best: Option<(f64, f64)> = None;
+                let mut prev = c.point_at(0.0);
+                for i in 1..=n {
+                    let next = c.point_at(s.length * i as f64 / n as f64);
+                    let met = if standing { ray_wall_piece(eye, dir, prev, next, top) } else { ray_near_piece(eye, dir, prev, next) };
+                    if let Some((lat, cross)) = met {
+                        if best.map(|b| lat < b.0).unwrap_or(true) {
+                            best = Some((lat, cross));
+                        }
+                    }
+                    prev = next;
+                }
+                let (lat, cross) = best.unwrap_or((f64::MAX, f64::MAX));
+                near.push((cross, *k, s.id, s.file.clone(), hw, top, lat, closest));
+                let _ = at;
+            }
+        }
+        near.sort_by(|a, b| a.0.total_cmp(&b.0));
+        for (cross, k, id, file, hw, top, lat, closest) in near.iter() {
+            if *lat > *hw {
+                continue;
+            }
+            let real = assets.spline(file).map(|m| m.half_width as f64).unwrap_or(-1.0);
+            eprintln!("ROAD {file} {k:?}#{id}: {cross:.2} m along, {lat:.3} m to the side (picked as {hw:.2} m wide, drawn {real:.2} m, top {top:.2}); its line is {closest:.1} m from the aim");
+        }
+
+        eprintln!("--- objects whose box the ray meets");
+        let ov = glam::Vec3::ZERO;
+        let dv = dir.as_vec3();
+        let mut hits: Vec<(f64, TileKey, i64, String, f64)> = Vec::new();
+        for (k, t) in doc.tiles.iter() {
+            for ob in &t.tile.objects {
+                let Some(model) = assets.object_wait(&ob.file, 3000) else { continue };
+                let world = doc.object_world(*k, ob, model.abs_height);
+                let m = object_matrix(world - eye, ob.rot);
+                let Some(t0) = ray_object_box(ov, dv, &m, model.lo, model.hi) else { continue };
+                if (t0 as f64) > (gh.map(|q| (q - eye).length()).unwrap_or(f64::MAX)) + 2.0 {
+                    continue;
+                }
+                let hit = if let Some((dirs, tex, h, r)) = model.tree.clone() {
+                    let mask = assets.tree_mask(&dirs, &tex);
+                    ray_tree(ov, dv, &m, h, r, mask.as_deref())
+                } else {
+                    ray_model(ov, dv, &m, &model)
+                };
+                hits.push((t0 as f64, *k, ob.id, ob.file.clone(), hit.unwrap_or(f64::MAX)));
+                if let Some(h) = hit {
+                    let _ = h;
+                }
+            }
+        }
+        hits.sort_by(|a, b| a.0.total_cmp(&b.0));
+        for (t0, k, id, file, drawn) in hits.iter().take(10) {
+            eprintln!("OBJECT {file} {k:?}#{id}: box met at {t0:.2} m, drawn face at {drawn:.2} m");
+        }
+    }
+
+    /// DIAGNOSIS (temporary): the road under a tree.
+    ///
+    /// A tree is drawn as two crossed cards; its box is a square as wide as its crown, reaching
+    /// the ground, so it stood in front of the pavement, the kerb, the road and the lamps round
+    /// and under every trunk - on a map lined with trees, "most of it cannot be selected under
+    /// a tree". Every road running under a crown is aimed at from four sides: what answers must
+    /// be the road.
+    #[test]
+    #[ignore = "sweeps a whole map: run by hand with OPENMAPPER_SWEEP_MAP"]
+    fn diag_under_trees() {
+        let _map = crate::doc::one_map();
+        let map = std::env::var("OPENMAPPER_SWEEP_MAP").unwrap_or_else(|_| "London".into());
+        let Some(omsi) = crate::install::find_omsi_root(&crate::install::Prefs::default()) else {
+            eprintln!("no OMSI 2: skipped");
+            return;
+        };
+        let cfg = omsi.join("maps").join(&map).join("global.cfg");
+        if !cfg.is_file() {
+            eprintln!("no {map}: skipped");
+            return;
+        }
+        let roots = crate::install::Roots { omsi: omsi.clone(), content: std::env::temp_dir().join("openmapper-pick-content") };
+        let doc = crate::doc::Document::load(&roots, &cfg, |_| {}).unwrap();
+        let mut assets = Assets::new(omsi, roots.content);
+        let mut ed = Editor::default();
+        ed.open(doc);
+        ed.set_tool(Tool::Select);
+        let off_of = |el: f64, az: f64| {
+            let (e, a) = (el.to_radians(), az.to_radians());
+            DVec3::new(e.cos() * a.cos(), e.cos() * a.sin(), e.sin())
+        };
+
+        // (a tree is drawn as two crossed cards; its box is a square as wide as its crown
+        // reaching the ground, so it stood in front of everything round and under it. Aimed
+        // at from four sides, the road under a tree must answer as the road.)
+        let trees: Vec<(TileKey, i64, f64, f64)> = {
+            let d = ed.doc.as_ref().unwrap();
+            let mut v: Vec<(TileKey, i64, f64, f64)> = Vec::new();
+            for (k, t) in &d.tiles {
+                for ob in &t.tile.objects {
+                    let Some(m) = assets.object_wait(&ob.file, 3000) else { continue };
+                    let Some((_, _, h, r)) = &m.tree else { continue };
+                    let w = (h * r * 0.5) as f64;
+                    let p = d.object_world(*k, ob, m.abs_height);
+                    v.push((*k, ob.id, w, p.z));
+                }
+            }
+            v.sort_by(|a, b| (a.0, a.1).cmp(&(b.0, b.1)));
+            v
+        };
+        ed.hide = [false, false, false];
+        let (mut diag_sampled, mut diag_near) = (0usize, 0usize);
+        let (mut u_seen, mut u_road, mut u_tree, mut u_other, mut u_none) = (0usize, 0usize, 0usize, 0usize, 0usize);
+        let mut u_bad: Vec<String> = Vec::new();
+        for (ti, (k, id, w, _)) in trees.iter().enumerate() {
+            if ti % 37 != 0 {
+                continue;
+            }
+            diag_sampled += 1;
+            let Some(ob) = ed.doc.as_ref().unwrap().object(*k, *id).cloned() else { continue };
+            let Some(model) = assets.object(&ob.file) else { continue };
+            let origin = ed.doc.as_ref().unwrap().object_world(*k, &ob, model.abs_height);
+            // (the roads through its footprint, in this tile and the eight round it)
+            let mut near: Vec<(TileKey, i64)> = Vec::new();
+            let (tx, ty) = (k.0, k.1);
+            for dy in -1..=1 {
+                for dx in -1..=1 {
+                    let tk = (tx + dx, ty + dy);
+                    let Some(t) = ed.doc.as_ref().unwrap().tiles.get(&tk) else { continue };
+                    for s in t.tile.splines.iter().filter(|s| !s.deleted) {
+                        let c = omsi_geometry::SplineCurve::from_map(s, tile_origin(tk));
+                        let n = (s.length / 2.0).ceil().max(2.0) as usize;
+                        let hit = (0..=n).any(|i| (c.point_at(s.length * i as f64 / n as f64).truncate() - origin.truncate()).length() < *w + 1.5);
+                        if hit {
+                            near.push((tk, s.id));
+                        }
+                    }
+                }
+            }
+            diag_near += near.len();
+            if diag_sampled <= 5 {
+                eprintln!("TREE-AT {:?}#{id} w {w:.2} at {:?}: {} roads near", k, origin.truncate(), near.len());
+            }
+            for (sk, sid) in near {
+                let Some(s) = ed.doc.as_ref().unwrap().spline(sk, sid).cloned() else { continue };
+                let Some(sm) = assets.spline_wait(&s.file, 3000) else { continue };
+                if sm.is_ai_path() || s.length < 1.0 {
+                    continue;
+                }
+                let c = omsi_geometry::SplineCurve::from_map(&s, tile_origin(sk));
+                // (the piece of it that runs under the crown)
+                let n = (s.length / 1.0).ceil().max(2.0) as usize;
+                let mut under: Vec<DVec3> = Vec::new();
+                for i in 0..=n {
+                    let q = c.point_at(s.length * i as f64 / n as f64);
+                    if (q.truncate() - origin.truncate()).length() < *w * 0.9 {
+                        under.push(q);
+                    }
+                }
+                if under.is_empty() {
+                    continue;
+                }
+                u_seen += 1;
+                let mut mine = false;
+                let mut by_tree = false;
+                let mut other = false;
+                for q in under.iter().step_by((under.len() / 3).max(1)) {
+                    for (el, az) in [(40.0, 30.0), (40.0, 210.0), (20.0, 120.0), (20.0, 300.0)] {
+                        let from = *q + off_of(el, az) * 3.0;
+                        let dir = (*q - from).normalize();
+                        let gh = ed.ground_hit(from, dir);
+                        match ed.pick(&mut assets, from, dir, gh) {
+                            Some(Sel::Spline(a, b)) if a == sk && b == sid => mine = true,
+                            Some(Sel::Object(a, b)) => {
+                                let is_tree = ed.doc.as_ref().unwrap().object(a, b).and_then(|o| assets.object_wait(&o.file, 3000)).map(|m| m.tree.is_some()).unwrap_or(false);
+                                if is_tree {
+                                    by_tree = true
+                                } else {
+                                    other = true
+                                }
+                            }
+                            Some(_) => other = true,
+                            None => {}
+                        }
+                    }
+                }
+                if mine {
+                    u_road += 1;
+                } else if by_tree {
+                    u_tree += 1;
+                    if u_bad.len() < 10 {
+                        u_bad.push(format!("{} {sk:?}#{sid} at {:?} under a {:?}#{id} crown", s.file, under[0].truncate(), k));
+                    }
+                } else if other {
+                    u_other += 1;
+                } else {
+                    u_none += 1;
+                }
+            }
+        }
+        for b in &u_bad {
+            eprintln!("UNDER-TREE {b}: the tree itself was picked");
+        }
+        // (and the tree itself must still answer when its leaves are what the aim meets)
+        let (mut c_seen, mut c_ok) = (0usize, 0usize);
+        let mut c_bad: Vec<String> = Vec::new();
+        for (ti, (k, id, w, _)) in trees.iter().enumerate() {
+            if ti % 41 != 0 {
+                continue;
+            }
+            let Some(ob) = ed.doc.as_ref().unwrap().object(*k, *id).cloned() else { continue };
+            let Some(model) = assets.object_wait(&ob.file, 3000) else { continue };
+            let Some((_, _, h, r)) = model.tree.clone() else { continue };
+            let _ = (h, r);
+            let base = ed.doc.as_ref().unwrap().object_world(*k, &ob, model.abs_height);
+            let Some((_, _, hh, _)) = model.tree.clone() else { continue };
+            // (the middle of the crown, straight on and from the side)
+            let aim = base + DVec3::new(0.0, 0.0, hh as f64 * 0.6);
+            c_seen += 1;
+            let mut hit = false;
+            for (el, az) in [(5.0, 0.0), (5.0, 90.0), (25.0, 45.0)] {
+                let from = aim + off_of(el, az) * (2.0 + *w);
+                let dir = (aim - from).normalize();
+                let gh = ed.ground_hit(from, dir);
+                if matches!(ed.pick(&mut assets, from, dir, gh), Some(Sel::Object(a, b)) if a == *k && b == *id) {
+                    hit = true;
+                }
+            }
+            if hit {
+                c_ok += 1;
+            } else if c_bad.len() < 6 {
+                // (what answered instead, and whether the picture is solid where the aim met it)
+                let from = aim + off_of(5.0, 0.0) * (2.0 + *w);
+                let dir = (aim - from).normalize();
+                let gh = ed.ground_hit(from, dir);
+                let what = match ed.pick(&mut assets, from, dir, gh) {
+                    Some(Sel::Object(a, b)) => format!("object {:?}", ed.doc.as_ref().unwrap().object(a, b).map(|o| o.file.clone())),
+                    Some(s) => format!("{s:?}"),
+                    None => "nothing".into(),
+                };
+                let solid = assets.tree_mask(&model.tree.clone().unwrap().0, &model.tree.clone().unwrap().1).map(|m| m.solid(0.5, 0.4));
+                c_bad.push(format!("{:?}#{id} crown {} m: {what}, picture solid at its middle {solid:?}", k, hh));
+            }
+        }
+        for b in &c_bad {
+            eprintln!("CROWN-MISS {b}: the tree itself was not picked at its leaves");
+        }
+        eprintln!("CROWNS {map}: {c_ok} of {c_seen} trees picked when aimed at their leaves");
+        eprintln!("TREES {map}: {} with a [tree] block of their own; {diag_sampled} sampled, {diag_near} roads near a sampled trunk", trees.len());
+        {
+            let mut seen: std::collections::HashMap<String, (usize, bool, [f32; 3], [f32; 3])> = std::collections::HashMap::new();
+            let d = ed.doc.as_ref().unwrap();
+            for (k, t) in d.tiles.iter() {
+                for ob in &t.tile.objects {
+                    let f = ob.file.clone();
+                    let low = f.to_lowercase();
+                    if !(low.contains("tree") || low.contains("shrub") || low.contains("bush") || low.contains("plant")) {
+                        continue;
+                    }
+                    if seen.contains_key(&f) || seen.len() > 12 {
+                        continue;
+                    }
+                    let Some(m) = assets.object_wait(&f, 3000) else { continue };
+                    let tris: usize = m.parts.iter().map(|p| p.mesh.indices.len() / 3).sum();
+                    seen.insert(f.clone(), (tris, m.tree.is_some(), m.lo.to_array(), m.hi.to_array()));
+                    let _ = k;
+                }
+            }
+            for (f, (tris, tree, lo, hi)) in seen {
+                eprintln!("TREE-AS {f}: {tris} triangles, [tree] {tree}, lo {lo:?} hi {hi:?}");
+            }
+        }
+        eprintln!("UNDER TREES {map}: of {u_seen} roads running under a crown, {u_road} selectable through it, {u_tree} taken by the tree, {u_other} another thing, {u_none} nothing");
+    }
+
+    /// DIAGNOSIS (temporary): sweeping a whole map from several angles.
+    ///
+    /// "All of it is selectable" is only true of a view: a marking seen edge-on is a line, a
+    /// wall seen from straight above is its own plane. So every object and every road is aimed
+    /// at from six camera angles (high, eye level, low, from both sides), and what is reported is
+    /// per angle, together with the things that answer nothing from any of them.
+    #[test]
+    #[ignore = "sweeps a whole map: run by hand with OPENMAPPER_SWEEP_MAP"]
+    fn diag_map_sweep() {
+        let _map = crate::doc::one_map();
+        let map = std::env::var("OPENMAPPER_SWEEP_MAP").unwrap_or_else(|_| "London".into());
+        let Some(omsi) = crate::install::find_omsi_root(&crate::install::Prefs::default()) else {
+            eprintln!("no OMSI 2: skipped");
+            return;
+        };
+        let cfg = omsi.join("maps").join(&map).join("global.cfg");
+        if !cfg.is_file() {
+            eprintln!("no {map}: skipped");
+            return;
+        }
+        let roots = crate::install::Roots { omsi: omsi.clone(), content: std::env::temp_dir().join("openmapper-pick-content") };
+        let doc = crate::doc::Document::load(&roots, &cfg, |_| {}).unwrap();
+        let mut assets = Assets::new(omsi, roots.content);
+        let mut ed = Editor::default();
+        ed.open(doc);
+        ed.set_tool(Tool::Select);
+
+        // (elevation above the ground, azimuth: where the camera stands relative to the aim)
+        let angles: [(f64, f64, &str); 6] = [
+            (85.0, 0.0, "from above"),
+            (55.0, 30.0, "high"),
+            (35.0, 90.0, "eye level, from +y"),
+            (35.0, 200.0, "eye level, from -x/-y"),
+            (18.0, 45.0, "low, from +x/+y"),
+            (18.0, 300.0, "low, from -x/+y"),
+        ];
+        let off_of = |el: f64, az: f64| {
+            let (e, a) = (el.to_radians(), az.to_radians());
+            DVec3::new(e.cos() * a.cos(), e.cos() * a.sin(), e.sin())
+        };
+
+        // ---------------- objects
+        let objs: Vec<(TileKey, i64)> = {
+            let d = ed.doc.as_ref().unwrap();
+            let mut v: Vec<(TileKey, i64)> = d.tiles.iter().flat_map(|(k, t)| t.tile.objects.iter().map(move |o| (*k, o.id))).collect();
+            v.sort();
+            v
+        };
+        let mut o_angle = vec![(0usize, 0usize); angles.len()];
+        let (mut o_total, mut o_any) = (0usize, 0usize);
+        let mut o_dead: Vec<String> = Vec::new();
+        for (k, id) in objs.iter().step_by(52) {
+            let ob = match ed.doc.as_ref().unwrap().object(*k, *id) {
+                Some(o) => o.clone(),
+                None => continue,
+            };
+            let Some(model) = assets.object_wait(&ob.file, 3000) else { continue };
+            let world = ed.doc.as_ref().unwrap().object_world(*k, &ob, model.abs_height);
+            let mat = crate::render::object_matrix(world - world, ob.rot);
+            let mid = world + mat.transform_point3(model.centre()).as_dvec3();
+            let Some(face) = model
+                .parts
+                .iter()
+                .flat_map(|p| {
+                    let pos = &p.mesh.positions;
+                    p.mesh
+                        .indices
+                        .chunks_exact(3)
+                        .filter(|t| t.iter().all(|i| (*i as usize) < pos.len()))
+                        .map(|t| (pos[t[0] as usize] + pos[t[1] as usize] + pos[t[2] as usize]) / 3.0)
+                        .collect::<Vec<_>>()
+                })
+                .map(|f| world + mat.transform_point3(f).as_dvec3())
+                .max_by(|a, b| (*a - mid).length_squared().total_cmp(&(*b - mid).length_squared()))
+            else {
+                continue;
+            };
+            o_total += 1;
+            let g = ed.doc.as_ref().unwrap().ground(face.truncate());
+            let mut any = false;
+            for (ai, (el, az, _)) in angles.iter().enumerate() {
+                let from = face + off_of(*el, *az) * 2.5;
+                let dir = (face - from).normalize();
+                let aim = dir.as_vec3();
+                let named = ray_model(glam::Vec3::ZERO, aim, &crate::render::object_matrix(world - from, ob.rot), &model);
+                let got = ed.pick(&mut assets, from, dir, Some(DVec3::new(face.x, face.y, g)));
+                let mut near = |sel: Sel| -> Option<f64> {
+                    let d = ed.doc.as_ref().unwrap();
+                    match sel {
+                        Sel::Object(gk, gid) => {
+                            let o = d.object(gk, gid)?;
+                            let m = assets.object(&o.file)?;
+                            let w = d.object_world(gk, o, m.abs_height);
+                            ray_model(glam::Vec3::ZERO, aim, &crate::render::object_matrix(w - from, o.rot), &m)
+                        }
+                        Sel::Attached(gk, gid) => {
+                            let a = d.tiles.get(&gk)?.tile.spline_attachments.iter().find(|a| a.id == gid)?;
+                            let m = assets.object(&a.file)?;
+                            let ro = crate::selection::attachment_copies(d, gk, gid).into_iter().min_by_key(|r| r.index)?;
+                            ray_model(glam::Vec3::ZERO, aim, &ro.pose.matrix_from(from), &m)
+                        }
+                        _ => None,
+                    }
+                };
+                let good = match got {
+                    Some(Sel::Object(gk, gid)) if gk == *k && gid == *id => true,
+                    Some(other) => match (near(other), named) {
+                        (Some(a), Some(b)) => a <= b + 0.05,
+                        _ => false,
+                    },
+                    None => false,
+                };
+                o_angle[ai].0 += 1;
+                if good {
+                    o_angle[ai].1 += 1;
+                    any = true;
+                }
+            }
+            if any {
+                o_any += 1;
+            } else if o_dead.len() < 12 {
+                o_dead.push(format!("{} {:?}#{}", ob.file, k, id));
+            }
+        }
+        for a in &o_dead {
+            eprintln!("OBJ-DEAD {a} (nothing from any angle)");
+        }
+        for (i, (seen, ok)) in o_angle.iter().enumerate() {
+            eprintln!("OBJECTS {map} [{} {} deg]: {ok} of {seen} picked as themselves", angles[i].2, angles[i].0 as usize);
+        }
+        eprintln!("OBJECTS {map}: {o_any} of {o_total} selectable from at least one angle, {} never", o_total - o_any);
+
+        // ---------------- roads, with the objects put away
+        ed.hide = [true, true, false];
+        let spl: Vec<(TileKey, i64, f64, String)> = {
+            let d = ed.doc.as_ref().unwrap();
+            let mut v: Vec<(TileKey, i64, f64, String)> = d.tiles.iter().flat_map(|(k, t)| t.tile.splines.iter().filter(|s| !s.deleted).map(move |s| (*k, s.id, s.length, s.file.clone()))).collect();
+            v.sort_by(|a, b| (a.0, a.1).cmp(&(b.0, b.1)));
+            v
+        };
+        let mut s_angle = vec![(0usize, 0usize); angles.len()];
+        // (from above: a road over it, a road under it, an object, nothing)
+        let mut s_over = (0usize, 0usize, 0usize, 0usize);
+        let (mut s_total, mut s_any, mut s_buried) = (0usize, 0usize, 0usize);
+        let mut s_dead: Vec<String> = Vec::new();
+        let mut thin = (0usize, 0usize);
+        for (k, id, len, file) in spl.iter().step_by(54) {
+            if *len < 1.0 {
+                continue;
+            }
+            let Some(s) = ed.doc.as_ref().unwrap().spline(*k, *id).cloned() else { continue };
+            let Some(m) = assets.spline(file) else { continue };
+            if m.is_ai_path() {
+                continue;
+            }
+            let c = omsi_geometry::SplineCurve::from_map(&s, tile_origin(*k));
+            let p = c.point_at(len * 0.5);
+            s_total += 1;
+            let is_thin = m.half_width < 0.5;
+            if is_thin {
+                thin.0 += 1;
+            }
+            // (a road whose surface is under the ground where it stands cannot be clicked, and
+            // rightly so: a wall buried in a hillside)
+            let g = ed.doc.as_ref().unwrap().ground(p.truncate());
+            if g > p.z + 2.0 {
+                s_buried += 1;
+            }
+            let walk = |c: &omsi_geometry::SplineCurve, len: f64, from: DVec3, dir: DVec3| -> Option<f64> {
+                let n = (len / 1.0).ceil().max(2.0) as usize;
+                let mut best: Option<f64> = None;
+                let mut prev = c.point_at(0.0);
+                for i in 1..=n {
+                    let next = c.point_at(len * i as f64 / n as f64);
+                    if let Some((_, cross)) = ray_near_piece(from, dir, prev, next) {
+                        if cross > 0.0 && best.map(|b| cross < b).unwrap_or(true) {
+                            best = Some(cross);
+                        }
+                    }
+                    prev = next;
+                }
+                best
+            };
+            let mut any = false;
+            // (a user clicks somewhere along the road, not only at its middle: a fence sharing
+            // its place with a hedge for part of its length is still clickable elsewhere)
+            for frac in [0.5f64, 0.25, 0.75] {
+                let p = c.point_at(len * frac);
+                let g = ed.doc.as_ref().unwrap().ground(p.truncate());
+                for (ai, (el, az, _)) in angles.iter().enumerate() {
+                    let from = p + off_of(*el, *az) * 4.0;
+                    let dir = (p - from).normalize();
+                    // (the ground as the app finds it: marching the height map along the ray,
+                    // which is what a hover does - a point put under the aim would hide the
+                    // ground's own part in the answer)
+                    let gh = ed.ground_hit(from, dir);
+                    let got = ed.pick(&mut assets, from, dir, gh);
+                    let good = match got {
+                        Some(Sel::Spline(sk, sid)) if sk == *k && sid == *id => true,
+                        // (another road at the same place - the second line of a double line,
+                        // the joint between two pieces - is as good)
+                        Some(Sel::Spline(sk, sid)) => match (ed.doc.as_ref().unwrap().spline(sk, sid).cloned(), walk(&c, *len, from, dir)) {
+                            (Some(o), Some(b)) => walk(&omsi_geometry::SplineCurve::from_map(&o, tile_origin(sk)), o.length, from, dir).map(|a| a <= b + 0.05).unwrap_or(false),
+                            _ => false,
+                        },
+                        _ => false,
+                    };
+                    // (from straight above, a road under a bridge or a roof is not what is
+                    // seen: what answers is the surface in front of it)
+                    if frac == 0.5 && ai == 0 && !good {
+                        match got {
+                            Some(Sel::Spline(sk, sid)) => {
+                                let z = ed.doc.as_ref().unwrap().spline(sk, sid).map(|o| omsi_geometry::SplineCurve::from_map(o, tile_origin(sk)).point_at(o.length * 0.5).z).unwrap_or(p.z);
+                                if z > p.z + 0.3 {
+                                    s_over.0 += 1;
+                                } else {
+                                    s_over.1 += 1;
+                                }
+                            }
+                            Some(_) => s_over.2 += 1,
+                            None => s_over.3 += 1,
+                        }
+                    }
+                    // (the table is of the middle of the road: the places a person aims at first)
+                    if frac == 0.5 {
+                        s_angle[ai].0 += 1;
+                        if good {
+                            s_angle[ai].1 += 1;
+                        }
+                    }
+                    if good {
+                        any = true;
+                    }
+                }
+            }
+            if any {
+                s_any += 1;
+                if is_thin {
+                    thin.1 += 1;
+                }
+            } else if s_dead.len() < 12 {
+                // (what it does answer, from the high angle)
+                let from = p + off_of(55.0, 30.0) * 4.0;
+                let dir = (p - from).normalize();
+                let what = match ed.pick(&mut assets, from, dir, Some(DVec3::new(p.x, p.y, g))) {
+                    Some(Sel::Spline(sk, sid)) => {
+                        let f = ed.doc.as_ref().unwrap().spline(sk, sid).map(|s| (s.file.clone(), s.pos)).unwrap_or_default();
+                        let hw = assets.spline(&f.0).map(|m| m.half_width).unwrap_or(-1.0);
+                        format!("road {} at {:?} half width {hw}", f.0, f.1)
+                    }
+                    Some(Sel::Object(gk, gid)) => format!("object {:?}", ed.doc.as_ref().unwrap().object(gk, gid).map(|o| o.file.clone())),
+                    Some(Sel::Attached(..)) => "a record".into(),
+                    None => "nothing".into(),
+                };
+                let gd = ed.ground_hit(from, dir).map(|q| (q - from).length()).unwrap_or(f64::MAX);
+                let cross = {
+                    let n = (len / 1.0).ceil().max(2.0) as usize;
+                    let mut best = f64::MAX;
+                    let mut prev = c.point_at(0.0);
+                    for i in 1..=n {
+                        let next = c.point_at(len * i as f64 / n as f64);
+                        if let Some((lat, x)) = ray_near_piece(from, dir, prev, next) {
+                            if lat <= 1.5 && x > 0.0 && x < best {
+                                best = x;
+                            }
+                        }
+                        prev = next;
+                    }
+                    best
+                };
+                s_dead.push(format!("{file} {k:?}#{id} at {p:?} len {len:.1} hw {} (height {:.2}, ground under it {g:.2}, ray {:.2} to it, ground hit at {gd:.2}) -> {what}", m.half_width, p.z, cross));
+            }
+        }
+        for a in &s_dead {
+            eprintln!("ROAD-DEAD {a} (nothing from any angle)");
+        }
+        for (i, (seen, ok)) in s_angle.iter().enumerate() {
+            eprintln!("ROADS {map} [{} {} deg]: {ok} of {seen} picked as themselves", angles[i].2, angles[i].0 as usize);
+        }
+        eprintln!("ROADS {map}: {s_any} of {s_total} selectable from at least one angle, {} never ({s_buried} of all are under the ground where they stand)", s_total - s_any);
+        eprintln!("THIN ROADS {map}: {} of {} selectable", thin.1, thin.0);
+
+
+        // (a wall is drawn upward from its line: a person clicks the middle of the face they
+        // see, two metres up, not the line at its foot)
+        let (mut tall, mut tall_ok) = (0usize, 0usize);
+        let mut tall_bad: Vec<String> = Vec::new();
+        for (k, id, len, file) in spl.iter().step_by(54) {
+            if *len < 1.0 {
+                continue;
+            }
+            let Some(m) = assets.spline(file) else { continue };
+            if m.is_ai_path() || m.top() < 0.5 {
+                continue;
+            }
+            let Some(s) = ed.doc.as_ref().unwrap().spline(*k, *id).cloned() else { continue };
+            let c = omsi_geometry::SplineCurve::from_map(&s, tile_origin(*k));
+            tall += 1;
+            let mut any = false;
+            for frac in [0.5f64, 0.2, 0.8] {
+                let p = c.point_at(len * frac);
+                for (el, az) in [(35.0, 90.0), (35.0, 200.0), (18.0, 45.0), (18.0, 300.0), (55.0, 30.0), (-15.0, 90.0), (-15.0, 200.0), (-25.0, 45.0)] {
+                    // (the middle of the face: half its height up)
+                    let aim_at = p + DVec3::new(0.0, 0.0, m.top() as f64 * 0.5);
+                    let from = aim_at + off_of(el, az) * 4.0;
+                    let dir = (aim_at - from).normalize();
+                    let g = ed.doc.as_ref().unwrap().ground(p.truncate());
+                    let good = matches!(ed.pick(&mut assets, from, dir, Some(DVec3::new(p.x, p.y, g))), Some(Sel::Spline(sk, sid)) if sk == *k && sid == *id);
+                    if good {
+                        any = true;
+                    }
+                }
+            }
+            if any {
+                tall_ok += 1;
+            } else if tall_bad.len() < 10 {
+                tall_bad.push(format!("{file} top {}", m.top()));
+            }
+        }
+        for b in &tall_bad {
+            eprintln!("TALL-DEAD {b} (the face itself, from any angle)");
+        }
+        eprintln!("TALL ROADS {map} (drawn 0.5 m up or more): {tall_ok} of {tall} selectable by their face");
+        eprintln!("ROADS {map} from above, the {} not answered by themselves: {} under a road overhead, {} another road lower down, {} an object, {} nothing", s_over.0 + s_over.1 + s_over.2 + s_over.3, s_over.0, s_over.1, s_over.2, s_over.3);
     }
 
     /// A record's copies are picked as the record itself, never as the road they stand on.
@@ -8174,13 +9186,24 @@ mod tests {
                 let p = ro.pose.pos;
                 let g = ed.doc.as_ref().unwrap().ground(p.truncate());
                 copies += 1;
-                // (where a person would click: the middle of the object as it is drawn, from
-                // 25 m up and 25 m to the side - not its foot on the road)
+                // (where a person would click: the middle of a face the object draws, from 25 m
+                // up and 25 m to the side - not its foot on the road, and not the middle of the
+                // box it was measured with, which for a lamp post or an L-shaped shed is air)
                 // (built from the record's own place, as the pick builds it: a world coordinate
                 // is 11,000 km out and f32 there is a metre coarse)
                 let centre = {
                     let model = assets.object(file).unwrap();
-                    ro.pose.pos + ro.pose.matrix_from(ro.pose.pos).transform_point3(model.centre()).as_dvec3()
+                    let c = model.centre();
+                    let face = model
+                        .parts
+                        .iter()
+                        .flat_map(|p| {
+                            let pos = &p.mesh.positions;
+                            p.mesh.indices.chunks_exact(3).filter(|t| t.iter().all(|i| (*i as usize) < pos.len())).map(|t| (pos[t[0] as usize] + pos[t[1] as usize] + pos[t[2] as usize]) / 3.0)
+                        })
+                        .min_by(|a, b| (*a - c).length_squared().total_cmp(&(*b - c).length_squared()));
+                    let aim = face.unwrap_or(c);
+                    ro.pose.pos + ro.pose.matrix_from(ro.pose.pos).transform_point3(aim).as_dvec3()
                 };
                 let from = centre + DVec3::new(25.0, -25.0, 25.0);
                 let got = ed.pick(&mut assets, from, (centre - from).normalize(), Some(DVec3::new(p.x, p.y, g as f64)));
