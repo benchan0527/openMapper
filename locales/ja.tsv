@@ -2499,3 +2499,40 @@ a drawing is on the road	図柄が道路上にあります
 Across the roadway from its middle (right of the road's way is plus)	車道を横切る位置（中央から、道路の進行方向の右がプラス）
 Double solid	二重実線
 The line's width	線の幅
+Delete object along a road	道路に沿ったオブジェクトを削除
+Only a free object can be put on a road	道路に置けるのは自由なオブジェクトだけです
+An object hanging on another cannot go onto a road	他のオブジェクトに吊られたオブジェクトは道路に置けません
+There is no road within 30 m	30 m 以内に道路がありません
+Put on a road	道路に置く
+The object is gone	オブジェクトはありません
+It stands on no road	どの道路の上にもありません
+There is no tile there	そこにタイルはありません
+Take off the spline	道路から外す
+Beside it (right +)	その隣（右が +）
+Above the road	道路の上
+Distance between two copies; 0: one object only	二つの複製の間隔。0 なら一つのオブジェクトだけ
+How many copies stand along the road	道路に沿って並ぶ複製の数
+Detach from the spline	道路から切り離す
+It becomes a free object where it stands. A row of several copies becomes one object; an object at an absolute height keeps the height above the ground there.	その場で自由なオブジェクトになります。複数の複製の列は一つのオブジェクトになります。絶対高さのオブジェクトはその場所の地面からの高さを保ちます。
+Attach to the spline	道路につなぐ
+It stands on the nearest road and follows it (as OMSI's [splineAttachement]); its IDCode stays	いちばん近い道路の上に立ち、それに従います（OMSI の [splineAttachement] のように）。IDCode は変わりません
+OMSI 2's editor: the middle button turns, the right button held and moved zooms, a right click goes there (Shift: menu); G moves the selection, N makes a new object, Enter confirms, the tile grid is on Shift+G	OMSI 2 のエディター: 中ボタンで回転、右ボタンを押したまま動かすとズーム、右クリックでその場所へ移動（Shift: メニュー）。G で選択を移動、N でオブジェクトを作成、Enter で確定、タイルの格子は Shift+G
+openMapper's own controls: the camera as chosen under Camera, the keys as in View → Controls	openMapper 独自の操作: カメラは「カメラ」で選んだとおり、キーは「表示 → 操作」のとおり
+OMSI 2's editor	OMSI 2 のエディター
+Place a new object at the cursor	カーソルの位置に新しいオブジェクトを置く
+Confirm (finish what is being drawn)	確定（描いているものを仕上げる）
+Point at the ground where the object is to stand	オブジェクトを置く地面を指してください
+OMSI 2's editor: mouse and keys	OMSI 2 のエディター: マウスとキー
+Its keys too: G moves the selection, R turns it, N makes a new object, Enter confirms, Del deletes, the tile grid is on Shift+G	キーも同じです: G で選択を移動、R で回転、N でオブジェクトを作成、Enter で確定、Del で削除、タイルの格子は Shift+G
+Keys	キー
+openMapper's own keys	openMapper 独自のキー
+G moves the selection, R turns it, N makes a new object, Enter confirms, Del deletes, the tile grid is on Shift+G; the mouse as in OMSI 2's editor too	G で選択を移動、R で回転、N でオブジェクトを作成、Enter で確定、Del で削除、タイルの格子は Shift+G。マウスも OMSI 2 のエディターと同じ
+Blender's keys: G moves the selection, S scales it, X deletes, A selects all, Tab edits the mesh, Shift+A adds an object, Shift+D duplicates, F3 searches. W A S D are free for them: the arrows move the camera	Blender のキー: G で選択を移動、S で拡大縮小、X で削除、A で全選択、Tab でメッシュを編集、Shift+A でオブジェクトを追加、Shift+D で複製、F3 で検索。W A S D はそのために空けてあります: カメラは矢印キーで動きます
+The keys as in View → Controls	キーは「表示 → 操作」のとおり
+Blender's keys	Blender のキー
+G moves the selection, S scales it, X deletes, A selects all, Tab edits the mesh, Shift+A adds an object, Shift+D duplicates, F3 searches, Numpad 7 looks straight down. W A S D are free for them, so the arrows move the camera; the mouse as openMapper's own	G で選択を移動、S で拡大縮小、X で削除、A で全選択、Tab でメッシュを編集、Shift+A でオブジェクトを追加、Shift+D で複製、F3 で検索、Num 7 で真上から見ます。W A S D はそのために空けてあるので、カメラは矢印キーで動きます; マウスは openMapper 独自のまま
+Grab	掴む
+X / Y / Z: lock the axis, numbers: how far, Enter or a click: done, Esc: cancel	X / Y / Z: 軸を固定、数字: 距離、Enter またはクリック: 確定、Esc: キャンセル
+Preset Key Shortcut (from other applications)	ほかのアプリのショートカット
+Blender's keys: G moves the selection, Shift+S scales it, X deletes, Tab edits the mesh, Shift+A adds an object, Shift+D duplicates, F3 searches. W A S D and Q E move the camera as they always do	Blender のキー: G で選択を移動、Shift+S で拡大縮小、X で削除、Tab でメッシュを編集、Shift+A でオブジェクトを追加、Shift+D で複製、F3 で検索。W A S D と Q E はこれまでどおりカメラを動かします
+G moves the selection, Shift+S scales it, X deletes, Tab edits the mesh, Shift+A adds an object, Shift+D duplicates, F3 searches, Numpad 7 looks straight down. W A S D and Q E move the camera as they always do; the mouse as openMapper's own	G で選択を移動、Shift+S で拡大縮小、X で削除、Tab でメッシュを編集、Shift+A でオブジェクトを追加、Shift+D で複製、F3 で検索、Num 7 で真下を見ます。W A S D と Q E はこれまでどおりカメラを動かします。マウスは openMapper のまま

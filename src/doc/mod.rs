@@ -14,7 +14,7 @@ use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU64, Ordering};
 
 use glam::{DVec2, DVec3};
-use omsi_map::{GlobalCfg, GroundTex, MapObject, MapSpline, Terrain, Tile, TERRAIN_SAMPLES};
+use omsi_map::{GlobalCfg, GroundTex, MapObject, MapSpline, SplineAttachment, Terrain, Tile, TERRAIN_SAMPLES};
 
 use crate::i18n::tr;
 
@@ -123,6 +123,15 @@ impl TileDoc {
     }
 }
 
+impl Document {
+    /// A number that changes when anything on the map does: the tiles' own revisions summed
+    /// (a revision only grows, so it grows with them). Cheap enough to ask every frame,
+    /// unlike walking the map for what changed.
+    pub fn content_rev(&self) -> u64 {
+        self.tiles.values().fold(0u64, |a, t| a.wrapping_add(t.content_rev))
+    }
+}
+
 /// Mask edge in texels for a ground layer.
 /// A painting mask of `from` × `from` texels at `to` × `to`: bilinear when it grows (smooth
 /// edges), averaged when it shrinks.
@@ -173,6 +182,10 @@ pub fn mask_size(g: &GroundTex) -> usize {
 pub enum Sel {
     Object(TileKey, i64),
     Spline(TileKey, i64),
+    /// A `[splineAttachement]` record, by its IDCode: one object placed on a spline, alone or
+    /// as a row of copies. It is edited like a free object, with the road's place instead of
+    /// east/north.
+    Attached(TileKey, i64),
 }
 
 /// The map.
@@ -540,6 +553,31 @@ impl Document {
 
     pub fn spline(&self, k: TileKey, id: i64) -> Option<&MapSpline> {
         self.tiles.get(&k)?.tile.splines.iter().find(|s| s.id == id && !s.deleted)
+    }
+
+    /// A `[splineAttachement]` record by its IDCode.
+    pub fn attachment(&self, k: TileKey, id: i64) -> Option<&SplineAttachment> {
+        self.tiles.get(&k)?.tile.spline_attachments.iter().find(|a| a.id == id)
+    }
+
+    pub fn attachment_mut(&mut self, k: TileKey, id: i64) -> Option<&mut SplineAttachment> {
+        self.tiles.get_mut(&k)?.tile.spline_attachments.iter_mut().find(|a| a.id == id)
+    }
+
+    /// Take a `[splineAttachement]` record away, with whatever hangs on its objects.
+    pub fn delete_attachment(&mut self, k: TileKey, id: i64) {
+        let Some(t) = self.tiles.get_mut(&k) else { return };
+        let Some(i) = t.tile.spline_attachments.iter().position(|a| a.id == id) else { return };
+        let a = t.tile.spline_attachments.remove(i);
+        let mut gone = vec![a.id];
+        let mut j = 0;
+        while j < gone.len() {
+            let p = gone[j];
+            gone.extend(t.tile.attach_objects.iter().filter(|o| o.parent_id == Some(p)).map(|o| o.id));
+            j += 1;
+        }
+        t.tile.attach_objects.retain(|o| !gone.contains(&o.id));
+        t.touch_content();
     }
 
     /// The world position of an object (its ground height added unless `abs`).

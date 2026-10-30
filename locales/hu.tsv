@@ -2499,3 +2499,40 @@ a drawing is on the road	rajz van az úton
 Across the roadway from its middle (right of the road's way is plus)	Az úttesten át a közepétől (az út irányától jobbra plusz)
 Double solid	Dupla folytonos
 The line's width	A vonal szélessége
+Delete object along a road	Objektum törlése egy út mentén
+Only a free object can be put on a road	Útra csak szabad objektum tehető
+An object hanging on another cannot go onto a road	Egy másikra akasztott objektum nem kerülhet útra
+There is no road within 30 m	30 méteren belül nincs út
+Put on a road	Útra tenni
+The object is gone	Az objektum eltűnt
+It stands on no road	Nincs semmilyen úton
+There is no tile there	Ott nincs csempe
+Take off the spline	Le az útról
+Beside it (right +)	Mellette (jobbra +)
+Above the road	Az út fölött
+Distance between two copies; 0: one object only	Két másolat távolsága; 0: csak egy objektum
+How many copies stand along the road	Hány másolat áll az út mentén
+Detach from the spline	Leválasztás az útról
+It becomes a free object where it stands. A row of several copies becomes one object; an object at an absolute height keeps the height above the ground there.	Szabad objektummá válik ott, ahol áll. Több másolat egy sora egyetlen objektummá válik; az abszolút magasságú objektum megtartja a talaj feletti magasságát ott.
+Attach to the spline	Hozzákapcsolás az úthoz
+It stands on the nearest road and follows it (as OMSI's [splineAttachement]); its IDCode stays	A legközelebbi úton áll és követi azt (mint az OMSI [splineAttachement]-je); az IDCode-ja megmarad
+OMSI 2's editor: the middle button turns, the right button held and moved zooms, a right click goes there (Shift: menu); G moves the selection, N makes a new object, Enter confirms, the tile grid is on Shift+G	OMSI 2 szerkesztője: a középső gomb forgat, a jobb gomb nyomva és mozgatva közelít, jobb kattintás odavisz (Shift: menü); G mozgatja a kijelölést, N objektumot készít, Enter megerősít, a csempe rács Shift+G-n van
+openMapper's own controls: the camera as chosen under Camera, the keys as in View → Controls	Az openMapper saját vezérlése: a kamera a «Kamera» alatt választott szerint, a billentyűk a «Nézet → Vezérlés» szerint
+OMSI 2's editor	OMSI 2 szerkesztője
+Place a new object at the cursor	Új objektum a kurzorhoz
+Confirm (finish what is being drawn)	Megerősítés (a rajzolt dolog befejezése)
+Point at the ground where the object is to stand	Mutasd meg a talajt, ahol az objektumnak állnia kell
+OMSI 2's editor: mouse and keys	OMSI 2 szerkesztője: egér és billentyűk
+Its keys too: G moves the selection, R turns it, N makes a new object, Enter confirms, Del deletes, the tile grid is on Shift+G	A billentyűi is: G mozgatja a kijelölést, R forgatja, N objektumot készít, Enter megerősít, Del töröl, a csempe rács Shift+G-n van
+Keys	Billentyűk
+openMapper's own keys	Az openMapper saját billentyűi
+G moves the selection, R turns it, N makes a new object, Enter confirms, Del deletes, the tile grid is on Shift+G; the mouse as in OMSI 2's editor too	G mozgatja a kijelölést, R forgatja, N objektumot készít, Enter megerősít, Del töröl, a csempe rács Shift+G-n van; az egér is mint az OMSI 2 szerkesztőjében
+Blender's keys: G moves the selection, S scales it, X deletes, A selects all, Tab edits the mesh, Shift+A adds an object, Shift+D duplicates, F3 searches. W A S D are free for them: the arrows move the camera	A Blender billentyűi: G mozgatja a kijelölést, S méretezi, X töröl, A mindent kijelöl, Tab a hálót szerkeszti, Shift+A objektumot ad hozzá, Shift+D másol, F3 keres. A W A S D ezeknek szabad: a kamerát a nyilak mozgatják
+The keys as in View → Controls	A billentyűk a «Nézet → Vezérlés» szerint
+Blender's keys	A Blender billentyűi
+G moves the selection, S scales it, X deletes, A selects all, Tab edits the mesh, Shift+A adds an object, Shift+D duplicates, F3 searches, Numpad 7 looks straight down. W A S D are free for them, so the arrows move the camera; the mouse as openMapper's own	G mozgatja a kijelölést, S méretezi, X töröl, A mindent kijelöl, Tab a hálót szerkeszti, Shift+A objektumot ad hozzá, Shift+D másol, F3 keres, Num 7 felülről néz. A W A S D ezeknek szabad, ezért a kamerát a nyilak mozgatják; az egér mint az openMapperé
+Grab	Megfogás
+X / Y / Z: lock the axis, numbers: how far, Enter or a click: done, Esc: cancel	X / Y / Z: tengely rögzítése, számok: milyen messze, Enter vagy kattintás: kész, Esc: mégse
+Preset Key Shortcut (from other applications)	Billentyűkészletek más programokból
+Blender's keys: G moves the selection, Shift+S scales it, X deletes, Tab edits the mesh, Shift+A adds an object, Shift+D duplicates, F3 searches. W A S D and Q E move the camera as they always do	Blender billentyűi: G mozgatja a kijelölést, Shift+S méretezi, X töröl, Tab a hálót szerkeszti, Shift+A objektumot ad hozzá, Shift+D másol, F3 keres. W A S D és Q E a kamerát mozgatja, mint mindig
+G moves the selection, Shift+S scales it, X deletes, Tab edits the mesh, Shift+A adds an object, Shift+D duplicates, F3 searches, Numpad 7 looks straight down. W A S D and Q E move the camera as they always do; the mouse as openMapper's own	G mozgatja a kijelölést, Shift+S méretezi, X töröl, Tab a hálót szerkeszti, Shift+A objektumot ad hozzá, Shift+D másol, F3 keres, Num 7 lenéz. W A S D és Q E a kamerát mozgatja, mint mindig; az egér mint az openMapperben

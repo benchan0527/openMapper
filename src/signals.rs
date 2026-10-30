@@ -106,6 +106,10 @@ pub fn pieces_of(doc: &Document, sels: &[Sel], roots: &Roots) -> Vec<(i64, i64)>
                 Some(o) => (id, o.file.clone()),
                 None => continue,
             },
+            Sel::Attached(k, id) => match doc.attachment(k, id) {
+                Some(a) => (id, a.file.clone()),
+                None => continue,
+            },
         };
         for (i, kind) in path_kinds(&file, roots).iter().enumerate() {
             if *kind == 2 {

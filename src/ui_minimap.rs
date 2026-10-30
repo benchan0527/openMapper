@@ -40,8 +40,14 @@ pub struct Minimap {
     /// splines: as shapes they were tessellated again in every frame) and the key it was made
     /// for.
     raster: Option<(u64, egui::TextureHandle)>,
+    /// How many times the lines have changed: the picture is made again only then, not when
+    /// just the map's key changed (an object moved, but no road did).
+    lines_rev: u64,
     min: DVec2,
     max: DVec2,
+    /// When the lines were built: a thumbnail of a map of hundreds of tiles is not made
+    /// again on every frame of a drag (a thing moving changes its tile, and with it the key).
+    built: Option<std::time::Instant>,
 }
 
 fn kind_of(lib: &Library, file: &str) -> Option<Line> {
@@ -95,16 +101,29 @@ impl Minimap {
         Minimap { open: true, ..Default::default() }
     }
 
-    fn rebuild(&mut self, doc: &Document, lib: &Library) {
+    fn rebuild(&mut self, doc: &Document, lib: &Library, moving: bool) {
         let key = doc.tiles.iter().fold(doc.tiles.len() as u64, |h, (k, t)| {
             h.wrapping_mul(31).wrapping_add(t.content_rev).wrapping_add((k.0 as u64) << 20 ^ k.1 as u64)
         }) ^ (lib.assets.len() as u64) << 40;
         if key == self.key && !self.tiles.is_empty() {
             return;
         }
+        // (while things are being moved the thumbnail is left as it was, and made again once
+        // they are let go: every frame of a move of thousands drew all of the map anew)
+        if moving && !self.tiles.is_empty() {
+            return;
+        }
+        // (while something moves - a grab, a drag, models still coming in - the map changes
+        // with every frame; the thumbnail is made again a few times a second, not sixty)
+        if let Some(at) = self.built {
+            if at.elapsed() < std::time::Duration::from_millis(300) {
+                return;
+            }
+        }
+        self.built = Some(std::time::Instant::now());
         self.key = key;
         self.tiles.clear();
-        self.lines.clear();
+        let mut lines: Vec<(Line, Vec<DVec2>)> = Vec::new();
         let ts = tile_size();
         let (mut min, mut max) = (DVec2::splat(f64::MAX), DVec2::splat(f64::MIN));
         for (&k, t) in &doc.tiles {
@@ -118,7 +137,7 @@ impl Minimap {
                 // straight ones need their ends only; bends a point every ~8 m
                 let n = if s.radius == 0.0 { 1 } else { (s.length / 8.0).ceil().clamp(2.0, 32.0) as usize };
                 let pts = (0..=n).map(|i| c.point_at(s.length * i as f64 / n as f64).truncate()).collect();
-                self.lines.push((kind, pts));
+                lines.push((kind, pts));
             }
         }
         // junction plates (openMapper's and stock crossing pieces: objects roads snap to),
@@ -151,18 +170,24 @@ impl Minimap {
                     // (an end that runs into the plate: near it and heading for its middle)
                     let off = ((to.x.atan2(to.y).to_degrees() - h + 540.0).rem_euclid(360.0) - 180.0).abs();
                     if d < 35.0 && (d < 1.0 || off < 45.0) {
-                        self.lines.push((*kind, vec![*p, c]));
+                        lines.push((*kind, vec![*p, c]));
                     }
                 }
             }
         }
         // roads on top
-        self.lines.sort_by_key(|(k, _)| match k {
+        lines.sort_by_key(|(k, _)| match k {
             Line::Other => 0,
             Line::Path => 1,
             Line::Track => 2,
             Line::Road => 3,
         });
+        // (the picture is drawn again only when a line of it changed: a thing moving about
+        // changes its tile, and that would else redraw the whole thumbnail on every frame)
+        if lines != self.lines {
+            self.lines = lines;
+            self.lines_rev = self.lines_rev.wrapping_add(1);
+        }
         self.min = min;
         self.max = max;
     }
@@ -170,7 +195,7 @@ impl Minimap {
     /// What the lines' picture was made for: the map as built, where the map lies on the
     /// screen (a resized window, the larger map) and the screen's pixels a point.
     fn raster_key(&self, rect: Rect, ppp: f32) -> u64 {
-        let mut h = self.key;
+        let mut h = self.lines_rev.wrapping_mul(0x9E37_79B9_7F4A_7C15);
         for v in [rect.min.x, rect.min.y, rect.width(), rect.height(), ppp * 100.0] {
             h = h.rotate_left(7) ^ (v as i32 as u32 as u64).wrapping_mul(0x9E37_79B9_7F4A_7C15);
         }
@@ -208,11 +233,11 @@ impl Minimap {
     }
 
     /// Draws it in the view's corner; returns where to move the camera to.
-    pub fn show(&mut self, ui: &mut egui::Ui, view: Rect, doc: &Document, lib: &Library, cam: CamView) -> Option<DVec2> {
+    pub fn show(&mut self, ui: &mut egui::Ui, view: Rect, doc: &Document, lib: &Library, cam: CamView, moving: bool) -> Option<DVec2> {
         if !self.open || doc.tiles.is_empty() {
             return None;
         }
-        self.rebuild(doc, lib);
+        self.rebuild(doc, lib, moving);
         let span = (self.max - self.min).max(DVec2::splat(1.0));
         let side: f32 = if self.large { 360.0 } else { 200.0 };
         let side = side.min(view.width() * 0.45).min(view.height() * 0.6);

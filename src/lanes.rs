@@ -93,10 +93,15 @@ pub fn of_one(doc: &Document, assets: &mut Assets, sel: Sel) -> Vec<Lane> {
             Some(o) => (tile_origin(k) + DVec2::new(o.pos[0], o.pos[1]), 1.0),
             None => return Vec::new(),
         },
+        Sel::Attached(k, id) => match crate::selection::attachment_first(doc, k, id) {
+            Some(f) => (f.pose.pos.truncate(), 1.0),
+            None => return Vec::new(),
+        },
     };
     near(doc, assets, at, reach).0.into_iter().filter(|l| match sel {
         Sel::Spline(k, id) => l.spline.map(|s| (s.0, s.1)) == Some((k, id)),
         Sel::Object(k, id) => l.object == Some((k, id)),
+        Sel::Attached(..) => false,
     }).collect()
 }
 

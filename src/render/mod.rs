@@ -611,6 +611,16 @@ fn hash_of<T: std::hash::Hash>(v: &T) -> u64 {
     h.finish()
 }
 
+/// The order a selection is taken in for tinting: a thing's kind, then its tile, then its
+/// IDCode (a key of numbers, not of names made for each).
+fn sel_order(s: Sel) -> (u8, i32, i32, i64) {
+    match s {
+        Sel::Object(k, id) => (0, k.0, k.1, id),
+        Sel::Spline(k, id) => (1, k.0, k.1, id),
+        Sel::Attached(k, id) => (2, k.0, k.1, id),
+    }
+}
+
 fn spline_hash(s: &MapSpline, origin: DVec2) -> u64 {
     let nums = [s.pos[0], s.pos[1], s.pos[2], s.heading, s.length, s.radius, s.grad_start, s.grad_end, s.delta_h.unwrap_or(-1e9), s.cant_start, s.cant_end, s.skew_start, s.skew_end, s.tex_offset, origin.x, origin.y];
     let bits: Vec<u64> = nums.iter().map(|v| v.to_bits()).collect();
@@ -1529,11 +1539,14 @@ impl Renderer {
                     let rel_key = self.model_with_labels(device, &a.file.to_lowercase(), &model, &a.strings, assets);
                     let objs = crate::place::row_objects(a, &t.splines, org);
                     let first = objs.iter().map(|o| o.index).min();
+                    // (each record is a thing of its own: clicking one of its copies picks it,
+                    // and they take its tint - selected or hovered - as an object does)
+                    let own = Some(Sel::Attached(*k, a.id));
                     for ro in &objs {
                         if a.repeater.is_none() && Some(ro.index) == first {
                             parents.entry(a.id).or_insert((ro.pose, model.clone()));
                         }
-                        push_object(&mut groups, &rel_key, &model, a.strings.first(), ro.pose.matrix_from(anchor), [0.0; 4], None, extras.show_technical);
+                        push_object(&mut groups, &rel_key, &model, a.strings.first(), ro.pose.matrix_from(anchor), [0.0; 4], own, extras.show_technical);
                     }
                 }
                 // objects hanging on others (signs on posts, lamps on masts)
@@ -1584,7 +1597,10 @@ impl Renderer {
             want.push((s, SELECTED));
         }
         let mut more: Vec<Sel> = extras.selected_more.iter().copied().filter(|s| Some(*s) != extras.selected).collect();
-        more.sort_by_key(|s| format!("{s:?}"));
+        // (in a fixed order, that the same selection compares equal frame after frame: by
+        // numbers, not by a name made for each, which a selection of thousands would pay for
+        // every frame)
+        more.sort_unstable_by_key(|s| sel_order(*s));
         want.extend(more.into_iter().map(|s| (s, SELECTED)));
         if let Some(s) = extras.hover.filter(|h| Some(*h) != extras.selected && !extras.selected_more.contains(h)) {
             want.push((s, HOVERED));

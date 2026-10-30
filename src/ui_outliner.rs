@@ -103,6 +103,11 @@ impl Outliner {
             for s in t.tile.splines.iter().filter(|s| !s.deleted) {
                 root.add(&s.file, Item { sel: Sel::Spline(k, s.id), at: org + DVec2::new(s.pos[0], s.pos[1]), name: String::new() });
             }
+            // (each [splineAttachement] record is a thing of its own)
+            for a in &t.tile.spline_attachments {
+                let at = crate::selection::attachment_first(doc, k, a.id).map(|f| f.pose.pos.truncate()).unwrap_or(org);
+                root.add(&a.file, Item { sel: Sel::Attached(k, a.id), at, name: a.strings.first().cloned().unwrap_or_default() });
+            }
         }
         self.root = root;
     }
@@ -176,7 +181,7 @@ fn matching<'a>(file: &str, items: &'a [Item], name: &str, q: &str) -> Vec<&'a I
 
 fn id_of(s: Sel) -> i64 {
     match s {
-        Sel::Object(_, id) | Sel::Spline(_, id) => id,
+        Sel::Object(_, id) | Sel::Spline(_, id) | Sel::Attached(_, id) => id,
     }
 }
 
@@ -261,7 +266,7 @@ fn show_folder(ui: &mut egui::Ui, f: &Folder, path: &str, q: &str, lib: &Library
         let r = egui::CollapsingHeader::new(title).id_salt(("outliner file", file)).icon(if spline { road_icon } else { object_icon }).open(open).show(ui, |ui| {
             for it in shown.iter().take(LIST) {
                 let tile = match it.sel {
-                    Sel::Object(k, _) | Sel::Spline(k, _) => k,
+                    Sel::Object(k, _) | Sel::Spline(k, _) | Sel::Attached(k, _) => k,
                 };
                 let label = if it.name.trim().is_empty() { format!("#{}  ·  {} {},{}", id_of(it.sel), tr("tile", "тайл"), tile.0, tile.1) } else { format!("{}  ·  #{}", it.name, id_of(it.sel)) };
                 let on = selected.contains(&it.sel);

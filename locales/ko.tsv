@@ -2499,3 +2499,40 @@ a drawing is on the road	그림이 도로 위에 있습니다
 Across the roadway from its middle (right of the road's way is plus)	도로 중앙에서 차도를 가로지르는 거리(도로 진행 방향의 오른쪽이 +)
 Double solid	이중 실선
 The line's width	선 폭
+Delete object along a road	도로를 따라 오브젝트 삭제
+Only a free object can be put on a road	도로에는 자유 오브젝트만 놓을 수 있습니다
+An object hanging on another cannot go onto a road	다른 오브젝트에 매달린 오브젝트는 도로로 갈 수 없습니다
+There is no road within 30 m	30m 안에 도로가 없습니다
+Put on a road	도로에 놓기
+The object is gone	오브젝트가 사라졌습니다
+It stands on no road	어떤 도로 위에도 있지 않습니다
+There is no tile there	거기에 타일이 없습니다
+Take off the spline	도로에서 빼기
+Beside it (right +)	옆에 (오른쪽 +)
+Above the road	도로 위
+Distance between two copies; 0: one object only	두 사본 사이의 거리; 0: 오브젝트 하나만
+How many copies stand along the road	도로를 따라 놓인 사본 수
+Detach from the spline	도로에서 떼기
+It becomes a free object where it stands. A row of several copies becomes one object; an object at an absolute height keeps the height above the ground there.	있는 자리에서 자유 오브젝트가 됩니다. 여러 사본의 줄은 하나의 오브젝트가 됩니다. 절대 높이의 오브젝트는 그 자리의 지면 위 높이를 유지합니다.
+Attach to the spline	도로에 붙이기
+It stands on the nearest road and follows it (as OMSI's [splineAttachement]); its IDCode stays	가장 가까운 도로 위에 서서 그 길을 따릅니다 (OMSI의 [splineAttachement]처럼). IDCode는 그대로입니다
+OMSI 2's editor: the middle button turns, the right button held and moved zooms, a right click goes there (Shift: menu); G moves the selection, N makes a new object, Enter confirms, the tile grid is on Shift+G	OMSI 2 편집기: 가운데 버튼으로 회전, 오른쪽 버튼을 누른 채 움직이면 확대, 오른쪽 클릭으로 그곳으로 이동(Shift: 메뉴). G는 선택 이동, N은 새 오브젝트, Enter는 확인, 타일 격자는 Shift+G
+openMapper's own controls: the camera as chosen under Camera, the keys as in View → Controls	openMapper 자체 조작: 카메라는 «카메라»에서 고른 대로, 키는 «보기 → 조작»대로
+OMSI 2's editor	OMSI 2 편집기
+Place a new object at the cursor	커서 위치에 새 오브젝트 놓기
+Confirm (finish what is being drawn)	확인(그리던 것 마무리)
+Point at the ground where the object is to stand	오브젝트가 설 지면을 가리키세요
+OMSI 2's editor: mouse and keys	OMSI 2 편집기: 마우스와 키
+Its keys too: G moves the selection, R turns it, N makes a new object, Enter confirms, Del deletes, the tile grid is on Shift+G	키도 같습니다: G는 선택 이동, R은 회전, N은 새 오브젝트, Enter는 확인, Del은 삭제, 타일 격자는 Shift+G
+Keys	키
+openMapper's own keys	openMapper 자체 키
+G moves the selection, R turns it, N makes a new object, Enter confirms, Del deletes, the tile grid is on Shift+G; the mouse as in OMSI 2's editor too	G는 선택 이동, R은 회전, N은 새 오브젝트, Enter는 확인, Del은 삭제, 타일 격자는 Shift+G; 마우스도 OMSI 2 편집기처럼
+Blender's keys: G moves the selection, S scales it, X deletes, A selects all, Tab edits the mesh, Shift+A adds an object, Shift+D duplicates, F3 searches. W A S D are free for them: the arrows move the camera	Blender 키: G는 선택 이동, S는 크기 조절, X는 삭제, A는 전체 선택, Tab은 메시 편집, Shift+A는 오브젝트 추가, Shift+D는 복제, F3은 검색입니다. W A S D는 이를 위해 비워 두었습니다: 카메라는 방향키로 움직입니다
+The keys as in View → Controls	키는 «보기 → 조작»대로
+Blender's keys	Blender 키
+G moves the selection, S scales it, X deletes, A selects all, Tab edits the mesh, Shift+A adds an object, Shift+D duplicates, F3 searches, Numpad 7 looks straight down. W A S D are free for them, so the arrows move the camera; the mouse as openMapper's own	G는 선택 이동, S는 크기 조절, X는 삭제, A는 전체 선택, Tab은 메시 편집, Shift+A는 오브젝트 추가, Shift+D는 복제, F3은 검색, Num 7은 위에서 내려다봅니다. W A S D는 이를 위해 비워 두었으므로 카메라는 방향키로 움직입니다; 마우스는 openMapper 자체 방식
+Grab	잡기
+X / Y / Z: lock the axis, numbers: how far, Enter or a click: done, Esc: cancel	X / Y / Z: 축 고정, 숫자: 거리, Enter 또는 클릭: 완료, Esc: 취소
+Preset Key Shortcut (from other applications)	다른 프로그램의 단축키
+Blender's keys: G moves the selection, Shift+S scales it, X deletes, Tab edits the mesh, Shift+A adds an object, Shift+D duplicates, F3 searches. W A S D and Q E move the camera as they always do	Blender 키: G는 선택 항목 이동, Shift+S는 크기 조절, X는 삭제, Tab은 메시 편집, Shift+A는 오브젝트 추가, Shift+D는 복제, F3은 검색. W A S D와 Q E는 늘 그렇듯 카메라를 움직입니다
+G moves the selection, Shift+S scales it, X deletes, Tab edits the mesh, Shift+A adds an object, Shift+D duplicates, F3 searches, Numpad 7 looks straight down. W A S D and Q E move the camera as they always do; the mouse as openMapper's own	G는 선택 항목 이동, Shift+S는 크기 조절, X는 삭제, Tab은 메시 편집, Shift+A는 오브젝트 추가, Shift+D는 복제, F3은 검색, Num 7은 아래를 봅니다. W A S D와 Q E는 늘 그렇듯 카메라를 움직입니다. 마우스는 openMapper 그대로

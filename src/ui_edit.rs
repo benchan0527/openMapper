@@ -286,7 +286,7 @@ pub fn snap_controls(ui: &mut egui::Ui, ed: &mut Editor, room: f32) {
 /// The right panel with more than one thing selected.
 pub fn group_properties(ui: &mut egui::Ui, ed: &mut Editor, lib: &Library, actions: &mut Vec<crate::ui::Action>) {
     let sels = ed.selection();
-    let objects = sels.iter().filter(|s| matches!(s, Sel::Object(..))).count();
+    let objects = sels.iter().filter(|s| !matches!(s, Sel::Spline(..))).count();
     let splines = sels.len() - objects;
     section(ui, tr("Selection", "Выделение"));
     egui::Frame::new().inner_margin(Margin::same(8)).show(ui, |ui| {
@@ -525,6 +525,7 @@ pub fn rules_section(ui: &mut egui::Ui, ed: &mut Editor, sel: Sel) {
     let rules = match sel {
         Sel::Object(k, id) => crate::selection::any_object(doc, k, id).map(|o| o.rules.clone()),
         Sel::Spline(k, id) => doc.spline(k, id).map(|s| s.rules.clone()),
+        Sel::Attached(k, id) => doc.attachment(k, id).map(|a| a.rules.clone()),
     };
     let Some(mut rules) = rules else { return };
     let mut changed = false;
@@ -702,7 +703,9 @@ fn parallel_inner(ui: &mut egui::Ui, ed: &mut Editor, lib: &Library, k: TileKey,
     ui.label(RichText::new(tr("Left and right of the way the road runs (its arrows with AI lanes shown)", "Слева и справа по ходу дороги (её стрелки при показе полос ИИ)")).small().color(TEXT_DIM));
     ui.data_mut(|d| d.insert_temp(key, dist));
     // a track's overhead wire: a wire spline laid on it, piece for piece
-    let track = ed.selection().iter().any(|s| matches!(s, Sel::Spline(k, id) if ed.doc.as_ref().and_then(|d| d.spline(*k, *id)).and_then(|x| lib.find(&x.file)).map(|a| a.category == crate::library::Category::Tracks).unwrap_or(false)));
+    // (whether the road copied is a track, read in its tile: one look-up, not one for every
+    // spline of a selection of thousands - that was most of a frame)
+    let track = ed.doc.as_ref().and_then(|d| d.spline(k, id)).and_then(|x| lib.find(&x.file)).map(|a| a.category == crate::library::Category::Tracks).unwrap_or(false);
     if !track {
         return;
     }
@@ -1069,14 +1072,22 @@ pub fn junction_section(ui: &mut egui::Ui, ed: &mut Editor, k: TileKey, id: i64)
 /// as OMSI 2's editor links them: a signal head shows one light of its crossing's program,
 /// a stop's display its stop. The parent is picked with a click in the view.
 pub fn link_section(ui: &mut egui::Ui, ed: &mut Editor, lib: &Library, k: TileKey, id: i64, info: Option<&crate::ui::ObjInfo>, parent_lights: Option<&(String, Vec<String>)>) {
+    // (what is linked to what is read from the whole map once and kept while it does not
+    // change: this panel is drawn on every frame of a drag, and walking a map of a hundred
+    // thousand things for it was most of the frame)
+    let parent_id = ed.doc.as_ref().and_then(|d| crate::selection::any_object(d, k, id)).and_then(|o| o.var_parent);
+    let (link_parent, linked) = ed.links_of(id, parent_id);
     let Some(doc) = ed.doc.as_ref() else { return };
     let Some(me) = crate::selection::any_object(doc, k, id) else { return };
     let name_of = |file: &str| lib.find(file).map(|a| a.name.clone()).unwrap_or_else(|| file.rsplit('\\').next().unwrap_or(file).to_string());
-    let parent = me.var_parent.map(|p| (p, crate::selection::object_by_id(doc, p).map(|(pk, o)| (pk, name_of(&o.file), o.file.clone()))));
+    let parent = parent_id.map(|pid| {
+        let found = link_parent.and_then(|(pk, _)| crate::selection::any_object(doc, pk, pid).map(|o| (pk, name_of(&o.file), o.file.clone())));
+        (pid, found)
+    });
     let light: Option<usize> = me.extra.first().and_then(|l| l.trim().parse().ok());
     let head = info.map(|i| i.light_head).unwrap_or(false);
     let own_lights: &[String] = info.map(|i| i.lights.as_slice()).unwrap_or(&[]);
-    let children: Vec<(TileKey, i64, String, Option<usize>)> = crate::selection::var_children(doc, id).into_iter().map(|(ck, o)| (ck, o.id, name_of(&o.file), o.extra.first().and_then(|l| l.trim().parse().ok()))).collect();
+    let children: Vec<(TileKey, i64, String, Option<usize>)> = linked.into_iter().filter_map(|(ck, cid)| crate::selection::any_object(doc, ck, cid).map(|o| (ck, cid, name_of(&o.file), o.extra.first().and_then(|l| l.trim().parse().ok())))).collect();
     let picking = ed.link_pick == Some((k, id));
     let mut go: Option<Sel> = None;
     let mut set_parent: Option<Option<i64>> = None;

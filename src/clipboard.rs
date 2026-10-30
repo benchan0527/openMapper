@@ -105,6 +105,28 @@ pub fn copy(doc: &Document, sels: &[Sel], abs: impl Fn(&str) -> bool) -> Clip {
                 clip.objects.push(ClipObject { o: o.clone(), off, abs: a, entry });
                 parents.push((k, id));
             }
+            Sel::Attached(k, id) => {
+                // (copied as the free object it looks like, where its first copy stands)
+                let Some(a) = doc.attachment(k, id) else { continue };
+                let Some(first) = crate::selection::attachment_first(doc, k, id) else { continue };
+                let org = tile_origin(k);
+                let world = first.pose.pos;
+                let a2 = abs(&a.file);
+                let o = MapObject {
+                    file: a.file.clone(),
+                    id: a.id,
+                    pos: [world.x - org.x, world.y - org.y, if a2 { world.z } else { world.z - doc.ground(world.truncate()) }],
+                    rot: [crate::selection::attachment_world_rot(doc, k, a), a.rot[1], a.rot[2]],
+                    flag: a.strings.len() as i32,
+                    extra: a.strings.clone(),
+                    var_parent: a.var_parent,
+                    rules: a.rules.clone(),
+                    ..Default::default()
+                };
+                let off = DVec3::new(world.x - at.x, world.y - at.y, if a2 { world.z - at.z } else { 0.0 });
+                clip.objects.push(ClipObject { o, off, abs: a2, entry: None });
+                parents.push((k, id));
+            }
             Sel::Spline(k, id) => {
                 let Some(t) = doc.tiles.get(&k) else { continue };
                 let Some(idx) = t.tile.splines.iter().position(|x| x.id == id && !x.deleted) else { continue };
@@ -264,7 +286,7 @@ mod tests {
         let got = paste(&mut doc, &clip, to);
         assert_eq!(got.len(), 3);
         // fresh IDCodes, none of the old ones
-        let new_ids: Vec<i64> = got.iter().map(|s| match s { Sel::Object(_, id) | Sel::Spline(_, id) => *id }).collect();
+        let new_ids: Vec<i64> = got.iter().map(|s| match s { Sel::Object(_, id) | Sel::Spline(_, id) | Sel::Attached(_, id) => *id }).collect();
         assert!(new_ids.iter().all(|id| *id >= before), "{new_ids:?}");
         // the object stands 200 east, 50 north: over in the next tile
         let Sel::Object(k, oid) = got[0] else { panic!() };

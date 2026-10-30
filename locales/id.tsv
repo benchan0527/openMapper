@@ -2499,3 +2499,40 @@ a drawing is on the road	ada gambar di jalan
 Across the roadway from its middle (right of the road's way is plus)	Melintang badan jalan dari tengahnya (kanan arah jalan bernilai plus)
 Double solid	Ganda menerus
 The line's width	Lebar garis
+Delete object along a road	Hapus objek di sepanjang jalan
+Only a free object can be put on a road	Hanya objek bebas yang bisa diletakkan di jalan
+An object hanging on another cannot go onto a road	Objek yang menggantung pada objek lain tidak bisa masuk ke jalan
+There is no road within 30 m	Tidak ada jalan dalam 30 m
+Put on a road	Letakkan di jalan
+The object is gone	Objeknya sudah hilang
+It stands on no road	Tidak berdiri di jalan mana pun
+There is no tile there	Tidak ada petak di sana
+Take off the spline	Keluarkan dari jalan
+Beside it (right +)	Di sebelahnya (kanan +)
+Above the road	Di atas jalan
+Distance between two copies; 0: one object only	Jarak antara dua salinan; 0: hanya satu objek
+How many copies stand along the road	Berapa salinan yang berdiri di sepanjang jalan
+Detach from the spline	Lepaskan dari jalan
+It becomes a free object where it stands. A row of several copies becomes one object; an object at an absolute height keeps the height above the ground there.	Objek menjadi objek bebas di tempatnya berdiri. Satu baris beberapa salinan menjadi satu objek; objek dengan ketinggian mutlak mempertahankan ketinggian di atas tanah di sana.
+Attach to the spline	Pasang ke jalan
+It stands on the nearest road and follows it (as OMSI's [splineAttachement]); its IDCode stays	Berdiri di jalan terdekat dan mengikutinya (seperti [splineAttachement] OMSI); IDCode-nya tetap
+OMSI 2's editor: the middle button turns, the right button held and moved zooms, a right click goes there (Shift: menu); G moves the selection, N makes a new object, Enter confirms, the tile grid is on Shift+G	Editor OMSI 2: tombol tengah memutar, tombol kanan ditekan dan digeser memperbesar, klik kanan pergi ke sana (Shift: menu); G menggeser pilihan, N membuat objek, Enter mengonfirmasi, kisi petak ada di Shift+G
+openMapper's own controls: the camera as chosen under Camera, the keys as in View → Controls	Kontrol openMapper sendiri: kamera sesuai pilihan di «Kamera», tombol sesuai «Tampilan → Kontrol»
+OMSI 2's editor	Editor OMSI 2
+Place a new object at the cursor	Letakkan objek baru di kursor
+Confirm (finish what is being drawn)	Konfirmasi (selesaikan yang sedang digambar)
+Point at the ground where the object is to stand	Tunjuk tanah tempat objek akan berdiri
+OMSI 2's editor: mouse and keys	Editor OMSI 2: tetikus dan tombol
+Its keys too: G moves the selection, R turns it, N makes a new object, Enter confirms, Del deletes, the tile grid is on Shift+G	Tombolnya juga: G menggeser pilihan, R memutarnya, N membuat objek, Enter mengonfirmasi, Del menghapus, kisi petak ada di Shift+G
+Keys	Tombol
+openMapper's own keys	Tombol milik openMapper
+G moves the selection, R turns it, N makes a new object, Enter confirms, Del deletes, the tile grid is on Shift+G; the mouse as in OMSI 2's editor too	G menggeser pilihan, R memutarnya, N membuat objek, Enter mengonfirmasi, Del menghapus, kisi petak ada di Shift+G; tetikus juga seperti di editor OMSI 2
+Blender's keys: G moves the selection, S scales it, X deletes, A selects all, Tab edits the mesh, Shift+A adds an object, Shift+D duplicates, F3 searches. W A S D are free for them: the arrows move the camera	Tombol Blender: G menggeser pilihan, S mengubah ukurannya, X menghapus, A memilih semua, Tab menyunting mesh, Shift+A menambah objek, Shift+D menduplikasi, F3 mencari. W A S D bebas untuknya: kamera digerakkan panah
+The keys as in View → Controls	Tombol sesuai «Tampilan → Kontrol»
+Blender's keys	Tombol Blender
+G moves the selection, S scales it, X deletes, A selects all, Tab edits the mesh, Shift+A adds an object, Shift+D duplicates, F3 searches, Numpad 7 looks straight down. W A S D are free for them, so the arrows move the camera; the mouse as openMapper's own	G menggeser pilihan, S mengubah ukurannya, X menghapus, A memilih semua, Tab menyunting mesh, Shift+A menambah objek, Shift+D menduplikasi, F3 mencari, Num 7 melihat dari atas. W A S D bebas untuknya, jadi kamera digerakkan panah; tetikus seperti milik openMapper
+Grab	Ambil
+X / Y / Z: lock the axis, numbers: how far, Enter or a click: done, Esc: cancel	X / Y / Z: kunci sumbu, angka: seberapa jauh, Enter atau klik: selesai, Esc: batal
+Preset Key Shortcut (from other applications)	Pintasan tombol dari program lain
+Blender's keys: G moves the selection, Shift+S scales it, X deletes, Tab edits the mesh, Shift+A adds an object, Shift+D duplicates, F3 searches. W A S D and Q E move the camera as they always do	Tombol Blender: G menggeser pilihan, Shift+S mengubah ukurannya, X menghapus, Tab menyunting mesh, Shift+A menambah objek, Shift+D menggandakan, F3 mencari. W A S D dan Q E menggerakkan kamera seperti biasa
+G moves the selection, Shift+S scales it, X deletes, Tab edits the mesh, Shift+A adds an object, Shift+D duplicates, F3 searches, Numpad 7 looks straight down. W A S D and Q E move the camera as they always do; the mouse as openMapper's own	G menggeser pilihan, Shift+S mengubah ukurannya, X menghapus, Tab menyunting mesh, Shift+A menambah objek, Shift+D menggandakan, F3 mencari, Num 7 melihat ke bawah. W A S D dan Q E menggerakkan kamera seperti biasa; tetikus seperti openMapper

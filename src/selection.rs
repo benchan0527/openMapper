@@ -32,7 +32,149 @@ pub fn origin_of(doc: &Document, s: Sel) -> Option<Origin> {
             let org = tile_origin(k);
             Some(Origin { sel: s, pos: DVec2::new(org.x + sp.pos[0], org.y + sp.pos[1]), heading: sp.heading })
         }
+        Sel::Attached(k, id) => {
+            let a = doc.attachment(k, id)?;
+            let first = attachment_first(doc, k, id)?;
+            Some(Origin { sel: s, pos: first.pose.pos.truncate(), heading: a.rot[0] })
+        }
     }
+}
+
+/// A `[splineAttachement]` record of a tile, by its IDCode.
+pub fn attachment(doc: &Document, k: TileKey, id: i64) -> Option<&omsi_map::SplineAttachment> {
+    doc.attachment(k, id)
+}
+
+/// The first copy a record places (None: its road is gone, or it stands past the end).
+pub fn attachment_first(doc: &Document, k: TileKey, id: i64) -> Option<crate::place::RowObject> {
+    let t = doc.tiles.get(&k)?;
+    let a = t.tile.spline_attachments.iter().find(|a| a.id == id)?;
+    crate::place::row_objects(a, &t.tile.splines, tile_origin(k)).into_iter().min_by_key(|o| o.index)
+}
+
+/// Every copy a record places (where it is drawn, for picking).
+pub fn attachment_copies(doc: &Document, k: TileKey, id: i64) -> Vec<crate::place::RowObject> {
+    let Some(t) = doc.tiles.get(&k) else { return Vec::new() };
+    let Some(a) = t.tile.spline_attachments.iter().find(|a| a.id == id) else { return Vec::new() };
+    crate::place::row_objects(a, &t.tile.splines, tile_origin(k))
+}
+
+/// The record as a map object, standing where its first copy does, so the properties panel can
+/// treat it like any other object: `(tile, IDCode, the object, where it is on its road)`.
+pub fn attachment_view(doc: &Document, k: TileKey, id: i64) -> Option<(TileKey, i64, omsi_map::MapObject, AttInfo)> {
+    let a = attachment(doc, k, id)?;
+    let first = attachment_first(doc, k, id)?;
+    let org = tile_origin(k);
+    let p = first.pose.pos;
+    let o = omsi_map::MapObject {
+        file: a.file.clone(),
+        id: a.id,
+        // (kept relative to the tile, like any object: the height above the ground there)
+        pos: [p.x - org.x, p.y - org.y, p.z - doc.ground(p.truncate())],
+        rot: [roads::norm_deg(a.rot[0] + road_heading(doc, k, a)), a.rot[1], a.rot[2]],
+        flag: a.strings.len() as i32,
+        extra: a.strings.clone(),
+        var_parent: a.var_parent,
+        rules: a.rules.clone(),
+        ..Default::default()
+    };
+    // (where it lies on its road: distance along the chain, beside the centre line, height)
+    let along = a.offset[2];
+    Some((k, id, o, AttInfo { along, beside: a.offset[0], height: a.offset[1], interval: a.interval, range: a.range, tilt: a.tilt }))
+}
+
+/// The heading of a record's road where its first copy stands (for the object view's rotation).
+pub fn attachment_world_rot(doc: &Document, k: TileKey, a: &omsi_map::SplineAttachment) -> f64 {
+    roads::norm_deg(a.rot[0] + road_heading(doc, k, a))
+}
+
+/// The heading of the road a record lies on, where its first copy stands (0: the road is gone).
+fn road_heading(doc: &Document, k: TileKey, a: &omsi_map::SplineAttachment) -> f64 {
+    let Some(t) = doc.tiles.get(&k) else { return 0.0 };
+    let Some(s) = t.tile.splines.get(a.spline_index.max(0) as usize).filter(|s| !s.deleted) else { return 0.0 };
+    let curve = omsi_geometry::SplineCurve::from_map(s, tile_origin(k));
+    let u = (a.offset[2] - s.map_chain_offset.unwrap_or(0.0)).clamp(0.0, s.length.max(0.0));
+    curve.heading_at(u)
+}
+
+/// Where an attached object lies on its road: distance along the chain, beside the centre
+/// line (right positive), and height above the road.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct AttInfo {
+    pub along: f64,
+    pub beside: f64,
+    pub height: f64,
+    pub interval: f64,
+    pub range: f64,
+    pub tilt: bool,
+}
+
+impl AttInfo {
+    /// How many copies the record places (1 when it is a single object).
+    pub fn copies(&self) -> usize {
+        if self.interval <= 1e-6 || self.range < self.interval {
+            1
+        } else {
+            (self.range / self.interval + 1e-6).floor() as usize + 1
+        }
+    }
+}
+
+/// The point on a spline nearest `p`, as `(distance along it from its start, lateral offset to
+/// the right)`. None: the spline has no length.
+pub fn on_spline(s: &omsi_map::MapSpline, origin: DVec2, p: DVec2) -> Option<(f64, f64)> {
+    let len = s.length.max(0.0);
+    if len <= 1e-9 {
+        return None;
+    }
+    let c = omsi_geometry::SplineCurve::from_map(s, origin);
+    let n = (len.ceil() as usize).clamp(2, 2000);
+    let mut best = (f64::INFINITY, 0.0f64);
+    for i in 0..=n {
+        let at = len * i as f64 / n as f64;
+        let d = (c.point_at(at).truncate() - p).length();
+        if d < best.0 {
+            best = (d, at);
+        }
+    }
+    // (a second pass between the two nearest samples, so a long piece is not out by a millimetre)
+    let step = len / n as f64;
+    let (mut lo, mut hi) = ((best.1 - step).max(0.0), (best.1 + step).min(len));
+    for _ in 0..40 {
+        let a = lo + (hi - lo) / 3.0;
+        let b = hi - (hi - lo) / 3.0;
+        let da = (c.point_at(a).truncate() - p).length();
+        let db = (c.point_at(b).truncate() - p).length();
+        if da <= db {
+            hi = b;
+        } else {
+            lo = a;
+        }
+    }
+    let at = (lo + hi) * 0.5;
+    let q = c.point_at(at).truncate();
+    let h = c.heading_at(at);
+    let right = omsi_geometry::SplineCurve::dir(h);
+    let right = DVec2::new(right.y, -right.x);
+    Some((at, (p - q).dot(right)))
+}
+
+/// Put a record where a world point lies on its own road: its `along` (from the start of the
+/// chain) and `beside` follow the point, its height is left alone. False: the road is gone.
+pub fn move_attachment(doc: &mut Document, k: TileKey, id: i64, to: DVec2) -> bool {
+    let Some(t) = doc.tiles.get(&k) else { return false };
+    let Some(a) = t.tile.spline_attachments.iter().find(|a| a.id == id) else { return false };
+    let Some(s) = t.tile.splines.get(a.spline_index.max(0) as usize).filter(|s| !s.deleted) else { return false };
+    let Some((along, beside)) = on_spline(s, tile_origin(k), to) else { return false };
+    let chain = s.map_chain_offset.unwrap_or(0.0);
+    let (along, beside) = (chain + along, beside);
+    let t = doc.tiles.get_mut(&k).unwrap();
+    if let Some(a) = t.tile.spline_attachments.iter_mut().find(|a| a.id == id) {
+        a.offset[0] = beside;
+        a.offset[2] = along;
+    }
+    t.touch_content();
+    true
 }
 
 /// The middle of a selection (objects' positions, splines' midpoints).
@@ -40,7 +182,7 @@ pub fn centre(doc: &Document, sels: &[Sel]) -> Option<DVec2> {
     let pts: Vec<DVec2> = sels
         .iter()
         .filter_map(|s| match *s {
-            Sel::Object(..) => origin_of(doc, *s).map(|o| o.pos),
+            Sel::Object(..) | Sel::Attached(..) => origin_of(doc, *s).map(|o| o.pos),
             Sel::Spline(k, id) => doc.spline(k, id).map(|sp| omsi_geometry::SplineCurve::from_map(sp, tile_origin(k)).point_at(sp.length * 0.5).truncate()),
         })
         .collect();
@@ -61,6 +203,97 @@ pub fn touch_spline(hist: &mut History, doc: &Document, k: TileKey, id: i64) {
         for other in [s.prev_id, s.next_id] {
             if let Some((nk, _)) = doc.find_spline(other) {
                 hist.touch_tile(doc, nk);
+            }
+        }
+    }
+}
+
+/// Where the things of a move are in their tiles, read once: a move of thousands walks each
+/// tile it touches a single time, instead of walking one for every piece it carries (which is
+/// what a grab answered with seconds a frame on a map of a hundred thousand splines).
+struct Places {
+    splines: std::collections::HashMap<TileKey, std::collections::HashMap<i64, usize>>,
+    objects: std::collections::HashMap<TileKey, std::collections::HashMap<i64, usize>>,
+}
+
+/// A tile with fewer things than this is walked: a place read for it would cost more than
+/// the walk (a move of one thing is never slower for this).
+const PLACES_SMALL: usize = 32;
+
+impl Places {
+    fn new() -> Self {
+        Places { splines: std::collections::HashMap::new(), objects: std::collections::HashMap::new() }
+    }
+
+    /// Where the spline `id` is in tile `k` (None: it is not there).
+    fn spline(&mut self, doc: &Document, k: TileKey, id: i64) -> Option<usize> {
+        let t = doc.tiles.get(&k)?;
+        if t.tile.splines.len() <= PLACES_SMALL {
+            return t.tile.splines.iter().position(|s| s.id == id && !s.deleted);
+        }
+        let m = self.splines.entry(k).or_insert_with(|| {
+            let mut m = std::collections::HashMap::with_capacity(t.tile.splines.len());
+            for (i, s) in t.tile.splines.iter().enumerate() {
+                if !s.deleted {
+                    m.insert(s.id, i);
+                }
+            }
+            m
+        });
+        m.get(&id).copied()
+    }
+
+    /// Where the object `id` is in tile `k` (None: it is not there).
+    fn object(&mut self, doc: &Document, k: TileKey, id: i64) -> Option<usize> {
+        let t = doc.tiles.get(&k)?;
+        if t.tile.objects.len() <= PLACES_SMALL {
+            return t.tile.objects.iter().position(|o| o.id == id);
+        }
+        let m = self.objects.entry(k).or_insert_with(|| {
+            let mut m = std::collections::HashMap::with_capacity(t.tile.objects.len());
+            for (i, o) in t.tile.objects.iter().enumerate() {
+                m.insert(o.id, i);
+            }
+            m
+        });
+        m.get(&id).copied()
+    }
+
+    /// A tile changed shape (something was taken out of it or put in): read it again.
+    fn forget(&mut self, k: TileKey) {
+        self.splines.remove(&k);
+        self.objects.remove(&k);
+    }
+}
+
+/// Where every spline is and what it is linked to, read once: moving a chain of thousands
+/// would else look each link up across the whole map, twice for every piece of it.
+pub struct SplineWhere {
+    map: std::collections::HashMap<i64, (TileKey, i64, i64)>,
+}
+
+impl SplineWhere {
+    pub fn of(doc: &Document) -> Self {
+        let mut map = std::collections::HashMap::new();
+        for (k, t) in &doc.tiles {
+            for s in &t.tile.splines {
+                if !s.deleted {
+                    map.insert(s.id, (*k, s.prev_id, s.next_id));
+                }
+            }
+        }
+        SplineWhere { map }
+    }
+}
+
+/// `touch_spline` with the links read from `w` (the same tiles kept, a move of many paid for
+/// once).
+pub fn touch_spline_where(hist: &mut History, doc: &Document, w: &SplineWhere, k: TileKey, id: i64) {
+    hist.touch_tile(doc, k);
+    if let Some((_, prev, next)) = w.map.get(&id) {
+        for other in [*prev, *next] {
+            if let Some((nk, _, _)) = w.map.get(&other) {
+                hist.touch_tile(doc, *nk);
             }
         }
     }
@@ -122,28 +355,93 @@ pub fn place_spline_at(doc: &mut Document, k: TileKey, id: i64, to: DVec2, headi
 /// round `pivot`, then shifted by `delta`. History keeps every tile touched. Returns the
 /// selection as it is now (objects may have gone over into another tile).
 pub fn transform(doc: &mut Document, hist: &mut History, from: &[Origin], pivot: DVec2, deg: f64, delta: DVec2) -> Vec<Sel> {
+    transform_known(doc, hist, from, pivot, deg, delta, None)
+}
+
+/// `transform`, with what a spline is linked to already read (a grab reads it once, when it
+/// takes hold, and every frame of it then moves the chain without reading the map again).
+pub fn transform_known(doc: &mut Document, hist: &mut History, from: &[Origin], pivot: DVec2, deg: f64, delta: DVec2, link: Option<&SplineWhere>) -> Vec<Sel> {
     let mut out = Vec::new();
+    // (a chain of thousands would else have every link of it looked up across the whole map;
+    // a spline keeps the tile it is in, so one reading of them serves the whole move)
+    let own = (link.is_none() && from.len() > 16).then(|| SplineWhere::of(doc));
+    let where_ = link.or(own.as_ref());
+    // (and every piece of it looked up in its own tile: the tile is read once)
+    let mut places = (from.len() > 16).then(Places::new);
     for o in from {
         let to = turn_point(o.pos, pivot, deg) + delta;
         let h = o.heading + deg;
         match o.sel {
             Sel::Object(k, id) => {
                 // (the object may have gone over already: it is looked for where it is now)
-                let Some(cur) = find_object(doc, k, id) else { continue };
+                let here = places.as_mut().and_then(|p| p.object(doc, k, id));
+                let Some(cur) = (if here.is_some() { Some(k) } else { find_object(doc, k, id) }) else { continue };
                 hist.touch_tile(doc, cur);
                 let nk = tile_of(to);
                 if doc.tiles.contains_key(&nk) {
                     hist.touch_tile(doc, nk);
                 }
+                // (still over the tile it was in: it is set where it stands, the tile not walked
+                // for it - a move of thousands would pay for that walk every frame)
+                let at = match (nk == cur, here) {
+                    (true, Some(i)) => Some(i),
+                    (true, None) => places.as_mut().and_then(|p| p.object(doc, cur, id)),
+                    _ => None,
+                };
+                if let Some(i) = at {
+                    if let Some(t) = doc.tiles.get_mut(&cur) {
+                        let org = tile_origin(cur);
+                        if let Some(ob) = t.tile.objects.get_mut(i) {
+                            ob.rot[0] = roads::norm_deg(h);
+                            ob.pos[0] = to.x - org.x;
+                            ob.pos[1] = to.y - org.y;
+                        }
+                        t.touch_content();
+                    }
+                    out.push(Sel::Object(cur, id));
+                    continue;
+                }
                 if let Some(ob) = doc.object_mut(cur, id) {
                     ob.rot[0] = roads::norm_deg(h);
                 }
                 out.push(place_object_at(doc, cur, id, to).unwrap_or(Sel::Object(cur, id)));
+                // (it is in another tile now: the two read wrong)
+                if let Some(p) = places.as_mut() {
+                    p.forget(cur);
+                    p.forget(nk);
+                }
             }
             Sel::Spline(k, id) => {
-                touch_spline(hist, doc, k, id);
-                if let Some(s) = place_spline_at(doc, k, id, to, h) {
+                match where_ {
+                    Some(w) => touch_spline_where(hist, doc, w, k, id),
+                    None => touch_spline(hist, doc, k, id),
+                }
+                // (a spline stays in its tile's file: set where it is, the tile not walked)
+                let at = places.as_mut().and_then(|p| p.spline(doc, k, id));
+                let placed = at.and_then(|i| {
+                    let org = tile_origin(k);
+                    let t = doc.tiles.get_mut(&k)?;
+                    let s = t.tile.splines.get_mut(i)?;
+                    s.pos[0] = to.x - org.x;
+                    s.pos[1] = to.y - org.y;
+                    s.heading = roads::norm_deg(h);
+                    t.touch_content();
+                    Some(Sel::Spline(k, id))
+                });
+                if let Some(s) = placed {
                     out.push(s);
+                } else if let Some(s) = place_spline_at(doc, k, id, to, h) {
+                    out.push(s);
+                }
+            }
+            Sel::Attached(k, id) => {
+                // (it stays on its road: only its place along it and beside it change)
+                hist.touch_tile(doc, k);
+                if let Some(a) = doc.attachment_mut(k, id) {
+                    a.rot[0] = roads::norm_deg(h);
+                }
+                if move_attachment(doc, k, id, to) {
+                    out.push(Sel::Attached(k, id));
                 }
             }
         }
@@ -209,6 +507,10 @@ pub fn delete(doc: &mut Document, hist: &mut History, sels: &[Sel]) {
             Sel::Spline(k, id) => {
                 touch_spline(hist, doc, k, id);
                 doc.delete_spline(k, id);
+            }
+            Sel::Attached(k, id) => {
+                hist.touch_tile(doc, k);
+                doc.delete_attachment(k, id);
             }
         }
     }
@@ -363,6 +665,15 @@ pub fn in_box(doc: &Document, cam: &crate::camera::Camera, a: (f32, f32), b: (f3
                 out.push(Sel::Object(*k, o.id));
             }
         }
+        // (each [splineAttachement] record is a thing of its own: its first copy's place)
+        for a in &t.tile.spline_attachments {
+            if skip(&a.file) {
+                continue;
+            }
+            if attachment_first(doc, *k, a.id).map(|f| inside(f.pose.pos)).unwrap_or(false) {
+                out.push(Sel::Attached(*k, a.id));
+            }
+        }
         let org = tile_origin(*k);
         for s in t.tile.splines.iter().filter(|s| splines && !s.deleted) {
             let c = omsi_geometry::SplineCurve::from_map(s, org);
@@ -427,6 +738,73 @@ pub mod tests {
 
     pub fn add_spline(doc: &mut Document, k: TileKey, id: i64, x: f64, y: f64, heading: f64, length: f64, prev: i64, next: i64) {
         doc.tiles.get_mut(&k).unwrap().tile.splines.push(MapSpline { file: "Splines\\road.sli".into(), id, prev_id: prev, next_id: next, pos: [x, y, 0.0], heading, length, ..Default::default() });
+    }
+
+    /// A `[splineAttachement]` record stands where its first copy does; a move re-projects it
+    /// onto its own road, so it stays on the road and its height above it is kept.
+    #[test]
+    fn moving_an_attached_object_keeps_it_on_its_road() {
+        let mut doc = flat_map(1);
+        // (north from (100, 100): right of it is east)
+        add_spline(&mut doc, (0, 0), 1, 100.0, 100.0, 0.0, 200.0, 0, 0);
+        doc.tiles.get_mut(&(0, 0)).unwrap().tile.spline_attachments.push(omsi_map::SplineAttachment {
+            file: "Sceneryobjects\\lamp.sco".into(),
+            id: 5,
+            spline_index: 0,
+            offset: [-2.0, 1.0, 10.0],
+            interval: 20.0,
+            range: 40.0,
+            ..Default::default()
+        });
+        let s = Sel::Attached((0, 0), 5);
+        let from = origin_of(&doc, s).unwrap();
+        // (2 m left of the road, 10 m along it)
+        assert!((from.pos - DVec2::new(98.0, 110.0)).length() < 1e-6, "{:?}", from.pos);
+        let mut hist = History::default();
+        hist.begin("t");
+        let now = transform(&mut doc, &mut hist, &[from], DVec2::ZERO, 0.0, DVec2::new(107.0, 130.0) - from.pos);
+        hist.commit();
+        assert_eq!(now, vec![s]);
+        let a = doc.attachment((0, 0), 5).unwrap();
+        assert!((a.offset[2] - 30.0).abs() < 1e-6, "{:?}", a.offset);
+        assert!((a.offset[0] - 7.0).abs() < 1e-6, "{:?}", a.offset);
+        assert!((a.offset[1] - 1.0).abs() < 1e-6, "the height above the road is kept: {:?}", a.offset);
+        // every copy of the row is on the road still, 7 m to its right, 1 m above it
+        let t = &doc.tiles[&(0, 0)].tile;
+        let copies = crate::place::row_objects(&t.spline_attachments[0], &t.splines, tile_origin((0, 0)));
+        assert_eq!(copies.len(), 3);
+        for c in &copies {
+            assert!((c.pose.pos.x - 107.0).abs() < 1e-6 && (c.pose.pos.z - 1.0).abs() < 1e-6, "{:?}", c.pose.pos);
+        }
+        // (the whole move is one step)
+        hist.undo(&mut doc);
+        assert!((doc.attachment((0, 0), 5).unwrap().offset[0] + 2.0).abs() < 1e-6);
+    }
+
+    /// A move of many pieces keeps the tiles of the links they have outside it, as a move of
+    /// one does: the links are read once for the whole move (the same tiles, a move of a
+    /// chain of thousands paid for once).
+    #[test]
+    fn a_link_outside_the_move_is_found_wherever_it_is() {
+        let mut one = flat_map(2);
+        let mut many = flat_map(2);
+        for doc in [&mut one, &mut many] {
+            add_spline(doc, (0, 0), 1, 20.0, 20.0, 0.0, 100.0, 0, 2);
+            add_spline(doc, (1, 0), 2, 20.0, 20.0, 0.0, 100.0, 1, 0);
+        }
+        let mut h1 = History::default();
+        h1.begin("t");
+        touch_spline(&mut h1, &one, (0, 0), 1);
+        h1.commit();
+        let mut h2 = History::default();
+        h2.begin("t");
+        let w = SplineWhere::of(&many);
+        touch_spline_where(&mut h2, &many, &w, (0, 0), 1);
+        h2.commit();
+        let a = h1.take_changed().tiles;
+        let b = h2.take_changed().tiles;
+        assert!(a.contains(&(1, 0)), "the link's tile is kept: {a:?}");
+        assert_eq!(a, b);
     }
 
     #[test]

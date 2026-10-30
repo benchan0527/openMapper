@@ -2499,3 +2499,40 @@ a drawing is on the road	na silnici je kresba
 Across the roadway from its middle (right of the road's way is plus)	Přes vozovku od jejího středu (vpravo ve směru silnice je plus)
 Double solid	Dvojitá souvislá
 The line's width	Šířka čáry
+Delete object along a road	Smazat objekt podél silnice
+Only a free object can be put on a road	Na silnici lze umístit jen volný objekt
+An object hanging on another cannot go onto a road	Objekt zavěšený na jiném nemůže na silnici
+There is no road within 30 m	V okruhu 30 m není žádná silnice
+Put on a road	Umístit na silnici
+The object is gone	Objekt je pryč
+It stands on no road	Nestojí na žádné silnici
+There is no tile there	Není tam žádná dlaždice
+Take off the spline	Sundat ze silnice
+Beside it (right +)	Vedle (vpravo +)
+Above the road	Nad silnicí
+Distance between two copies; 0: one object only	Vzdálenost mezi dvěma kopiemi; 0: jen jeden objekt
+How many copies stand along the road	Kolik kopií stojí podél silnice
+Detach from the spline	Odpojit od silnice
+It becomes a free object where it stands. A row of several copies becomes one object; an object at an absolute height keeps the height above the ground there.	Stane se volným objektem tam, kde stojí. Řada několika kopií se stane jedním objektem; objekt s absolutní výškou si tam ponechá výšku nad zemí.
+Attach to the spline	Připojit k silnici
+It stands on the nearest road and follows it (as OMSI's [splineAttachement]); its IDCode stays	Stojí na nejbližší silnici a sleduje ji (jako [splineAttachement] v OMSI); jeho IDCode zůstává
+OMSI 2's editor: the middle button turns, the right button held and moved zooms, a right click goes there (Shift: menu); G moves the selection, N makes a new object, Enter confirms, the tile grid is on Shift+G	Editor OMSI 2: prostřední tlačítko otáčí, pravé držené a tažené přibližuje, kliknutí pravým tam přejde (Shift: nabídka); G posouvá výběr, N vytvoří objekt, Enter potvrdí, mřížka dlaždic je na Shift+G
+openMapper's own controls: the camera as chosen under Camera, the keys as in View → Controls	Vlastní ovládání openMapperu: kamera podle volby v «Kamera», klávesy jako ve «Zobrazení → Ovládání»
+OMSI 2's editor	Editor OMSI 2
+Place a new object at the cursor	Umístit nový objekt u kurzoru
+Confirm (finish what is being drawn)	Potvrdit (dokončit, co se kreslí)
+Point at the ground where the object is to stand	Ukažte na zem, kde má objekt stát
+OMSI 2's editor: mouse and keys	Editor OMSI 2: myš a klávesy
+Its keys too: G moves the selection, R turns it, N makes a new object, Enter confirms, Del deletes, the tile grid is on Shift+G	I jeho klávesy: G posouvá výběr, R jím otáčí, N vytvoří objekt, Enter potvrdí, Del maže, mřížka dlaždic je na Shift+G
+Keys	Klávesy
+openMapper's own keys	Vlastní klávesy openMapperu
+G moves the selection, R turns it, N makes a new object, Enter confirms, Del deletes, the tile grid is on Shift+G; the mouse as in OMSI 2's editor too	G posouvá výběr, R jím otáčí, N vytvoří objekt, Enter potvrdí, Del maže, mřížka dlaždic je na Shift+G; myš také jako v editoru OMSI 2
+Blender's keys: G moves the selection, S scales it, X deletes, A selects all, Tab edits the mesh, Shift+A adds an object, Shift+D duplicates, F3 searches. W A S D are free for them: the arrows move the camera	Klávesy Blenderu: G posouvá výběr, S ho škáluje, X maže, A vybere vše, Tab upravuje síť, Shift+A přidá objekt, Shift+D duplikuje, F3 hledá. W A S D jsou pro ně volné: kameru posouvají šipky
+The keys as in View → Controls	Klávesy jako ve «Zobrazení → Ovládání»
+Blender's keys	Klávesy Blenderu
+G moves the selection, S scales it, X deletes, A selects all, Tab edits the mesh, Shift+A adds an object, Shift+D duplicates, F3 searches, Numpad 7 looks straight down. W A S D are free for them, so the arrows move the camera; the mouse as openMapper's own	G posouvá výběr, S ho škáluje, X maže, A vybere vše, Tab upravuje síť, Shift+A přidá objekt, Shift+D duplikuje, F3 hledá, Num 7 se dívá shora. W A S D jsou pro ně volné, takže kameru posouvají šipky; myš jako u openMapperu
+Grab	Uchopení
+X / Y / Z: lock the axis, numbers: how far, Enter or a click: done, Esc: cancel	X / Y / Z: zamknout osu, čísla: jak daleko, Enter nebo kliknutí: hotovo, Esc: zrušit
+Preset Key Shortcut (from other applications)	Zkratky z jiných programů
+Blender's keys: G moves the selection, Shift+S scales it, X deletes, Tab edits the mesh, Shift+A adds an object, Shift+D duplicates, F3 searches. W A S D and Q E move the camera as they always do	Klávesy Blenderu: G přesouvá výběr, Shift+S mění velikost, X maže, Tab upravuje síť, Shift+A přidá objekt, Shift+D duplikuje, F3 hledá. W A S D a Q E pohybují kamerou jako vždy
+G moves the selection, Shift+S scales it, X deletes, Tab edits the mesh, Shift+A adds an object, Shift+D duplicates, F3 searches, Numpad 7 looks straight down. W A S D and Q E move the camera as they always do; the mouse as openMapper's own	G přesouvá výběr, Shift+S mění velikost, X maže, Tab upravuje síť, Shift+A přidá objekt, Shift+D duplikuje, F3 hledá, Num 7 hledí dolů. W A S D a Q E pohybují kamerou jako vždy; myš jako v openMapperu

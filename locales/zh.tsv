@@ -2392,7 +2392,7 @@ Near the end of a road or a junction there is no room for the taper at both ends
 A bay always gets a taper at both ends; where one cannot be laid nothing is changed.	停靠湾两端一定有渐缩段;放不下时不会有任何改变。
 Controls as in OMSI 2's editor: middle button turns, right button held and moved zooms, a right click goes there (Shift: menu)	操作方式与 OMSI 2 的编辑器相同：按住中键旋转，按住右键并移动可缩放，单击右键前往该处（Shift：菜单）
 Controls as chosen under Camera	操作方式按“摄像机”中的选择
-Advanced users	高级用户
+Preset Key Shortcut (from other applications)	其他应用程式的预设快捷键
 Controls as in OMSI 2's editor	操作方式与 OMSI 2 的编辑器相同
 Off by default. The middle button turns the view, the right button held and moved up and down zooms, a right click on the ground goes there (Shift + right click: the menu), the arrows move the camera, the wheel zooms	默认关闭。中键旋转视角，按住右键上下移动可缩放，在地面单击右键前往该处（Shift + 右键：菜单），方向键移动摄像机，滚轮缩放
 Bay width	停靠港湾宽度
@@ -2499,3 +2499,37 @@ a drawing is on the road	路上有一幅绘图
 Across the roadway from its middle (right of the road's way is plus)	从中线起横跨行车道（沿道路方向的右侧为正）
 Double solid	双实线
 The line's width	线宽
+Delete object along a road	删除沿道路的物体
+Only a free object can be put on a road	只有自由物体才能放上道路
+An object hanging on another cannot go onto a road	挂在另一个物体上的物体不能上道路
+There is no road within 30 m	30 米内没有道路
+Put on a road	放上道路
+The object is gone	物体已不在
+It stands on no road	它不在任何道路上
+There is no tile there	那里没有图块
+Take off the spline	从样条线分离
+Beside it (right +)	在它旁边（右为 +）
+Above the road	在道路上方
+Distance between two copies; 0: one object only	两个副本之间的距离；0：只有一个物体
+How many copies stand along the road	沿道路站着几个副本
+Detach from the spline	从样条线分离
+It becomes a free object where it stands. A row of several copies becomes one object; an object at an absolute height keeps the height above the ground there.	它在所在之处成为自由物体。几个副本排成的一行会变成一个物体；绝对高度的物体会保留当地离地高度。
+Attach to the spline	依附到样条线
+It stands on the nearest road and follows it (as OMSI's [splineAttachement]); its IDCode stays	它站在最近的道路上并跟着走（如同 OMSI 的 [splineAttachement]）；它的 IDCode 不变
+OMSI 2's editor: the middle button turns, the right button held and moved zooms, a right click goes there (Shift: menu); G moves the selection, N makes a new object, Enter confirms, the tile grid is on Shift+G	OMSI 2 编辑器：中键旋转、右键按住拖动缩放、右键点地前往（Shift：菜单）；G 移动选取、N 建立物体、Enter 确认，图块网格在 Shift+G
+openMapper's own controls: the camera as chosen under Camera, the keys as in View → Controls	openMapper 自己的操作：相机按「相机」所选，按键按「视图 → 控制」
+OMSI 2's editor	OMSI 2 编辑器
+Place a new object at the cursor	在光标处放置新物体
+Confirm (finish what is being drawn)	确认（完成正在绘制的内容）
+Point at the ground where the object is to stand	指出物体要站立的地面
+OMSI 2's editor: mouse and keys	OMSI 2 编辑器：鼠标与按键
+Its keys too: G moves the selection, R turns it, N makes a new object, Enter confirms, Del deletes, the tile grid is on Shift+G	它的按键也一样：G 移动选取、R 旋转、N 建立物体、Enter 确认、Del 删除，图块网格在 Shift+G
+Keys	按键
+openMapper's own keys	openMapper 自己的按键
+G moves the selection, R turns it, N makes a new object, Enter confirms, Del deletes, the tile grid is on Shift+G; the mouse as in OMSI 2's editor too	G 移动选取、R 旋转、N 建立物体、Enter 确认、Del 删除，图块网格在 Shift+G；鼠标也如 OMSI 2 编辑器
+Blender's keys: G moves the selection, Shift+S scales it, X deletes, Tab edits the mesh, Shift+A adds an object, Shift+D duplicates, F3 searches. W A S D and Q E move the camera as they always do	Blender 的按键：G 移动选取、Shift+S 缩放、X 删除、Tab 编辑网格、Shift+A 添加对象、Shift+D 复制、F3 搜索。W A S D 和 Q E 照常移动画面
+The keys as in View → Controls	按键按「视图 → 控制」
+Blender's keys	Blender 的按键
+G moves the selection, Shift+S scales it, X deletes, Tab edits the mesh, Shift+A adds an object, Shift+D duplicates, F3 searches, Numpad 7 looks straight down. W A S D and Q E move the camera as they always do; the mouse as openMapper's own	G 移动选取、Shift+S 缩放、X 删除、Tab 编辑网格、Shift+A 添加对象、Shift+D 复制、F3 搜索、Num 7 从上往下看。W A S D 和 Q E 照常移动画面；鼠标同 openMapper 本身
+Grab	抓取
+X / Y / Z: lock the axis, numbers: how far, Enter or a click: done, Esc: cancel	X / Y / Z：鎖定軸向，數字：距離，Enter 或點擊：完成，Esc：取消

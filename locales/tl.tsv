@@ -2499,3 +2499,40 @@ a drawing is on the road	may drowing sa kalsada
 Across the roadway from its middle (right of the road's way is plus)	Sa kabila ng daanan mula sa gitna nito (ang kanan ng direksyon ng kalsada ay plus)
 Double solid	Dobleng tuloy-tuloy
 The line's width	Lapad ng linya
+Delete object along a road	Burahin ang object sa kahabaan ng kalsada
+Only a free object can be put on a road	Malayang object lang ang mailalagay sa kalsada
+An object hanging on another cannot go onto a road	Ang object na nakasabit sa iba ay hindi makakapasok sa kalsada
+There is no road within 30 m	Walang kalsada sa loob ng 30 m
+Put on a road	Ilagay sa kalsada
+The object is gone	Wala na ang object
+It stands on no road	Wala ito sa anumang kalsada
+There is no tile there	Walang tile doon
+Take off the spline	Alisin sa kalsada
+Beside it (right +)	Sa tabi nito (kanan +)
+Above the road	Sa ibabaw ng kalsada
+Distance between two copies; 0: one object only	Layo sa pagitan ng dalawang kopya; 0: isang object lang
+How many copies stand along the road	Ilang kopya ang nakatayo sa kahabaan ng kalsada
+Detach from the spline	Ikalas mula sa kalsada
+It becomes a free object where it stands. A row of several copies becomes one object; an object at an absolute height keeps the height above the ground there.	Nagiging malayang object ito kung saan ito nakatayo. Ang isang hilera ng maraming kopya ay nagiging isang object; ang object na may ganap na taas ay pinapanatili ang taas sa ibabaw ng lupa doon.
+Attach to the spline	Ikabit sa kalsada
+It stands on the nearest road and follows it (as OMSI's [splineAttachement]); its IDCode stays	Nakatayo ito sa pinakamalapit na kalsada at sumusunod dito (tulad ng [splineAttachement] ng OMSI); nananatili ang IDCode nito
+OMSI 2's editor: the middle button turns, the right button held and moved zooms, a right click goes there (Shift: menu); G moves the selection, N makes a new object, Enter confirms, the tile grid is on Shift+G	Editor ng OMSI 2: ang gitnang buton ay umiikot, ang kanang buton na hinawakan at ginagalaw ay nag-zoom, ang right click ay pumupunta doon (Shift: menu); G ay naglilipat ng pinili, N ay gumagawa ng object, Enter ay nagpapatunay, ang grid ng tile ay nasa Shift+G
+openMapper's own controls: the camera as chosen under Camera, the keys as in View → Controls	Sariling kontrol ng openMapper: ang camera ayon sa pinili sa «Camera», ang mga key ayon sa «View → Controls»
+OMSI 2's editor	Editor ng OMSI 2
+Place a new object at the cursor	Maglagay ng bagong object sa cursor
+Confirm (finish what is being drawn)	Kumpirmahin (tapusin ang iginuguhit)
+Point at the ground where the object is to stand	Ituro ang lupa kung saan tatayo ang object
+OMSI 2's editor: mouse and keys	Editor ng OMSI 2: mouse at mga key
+Its keys too: G moves the selection, R turns it, N makes a new object, Enter confirms, Del deletes, the tile grid is on Shift+G	Pati ang mga key nito: G ay naglilipat ng pinili, R ay umiikot, N ay gumagawa ng object, Enter ay nagpapatunay, Del ay nagbubura, ang grid ng tile ay nasa Shift+G
+Keys	Mga key
+openMapper's own keys	Sariling mga key ng openMapper
+G moves the selection, R turns it, N makes a new object, Enter confirms, Del deletes, the tile grid is on Shift+G; the mouse as in OMSI 2's editor too	G ay naglilipat ng pinili, R ay umiikot, N ay gumagawa ng object, Enter ay nagpapatunay, Del ay nagbubura, ang grid ng tile ay nasa Shift+G; ang mouse din tulad sa editor ng OMSI 2
+Blender's keys: G moves the selection, S scales it, X deletes, A selects all, Tab edits the mesh, Shift+A adds an object, Shift+D duplicates, F3 searches. W A S D are free for them: the arrows move the camera	Mga key ng Blender: G ay naglilipat ng pinili, S ay nagbabago ng sukat, X ay nagbubura, A ay pumipili ng lahat, Tab ay nag-edit ng mesh, Shift+A ay nagdadagdag ng object, Shift+D ay nagdodoble, F3 ay naghahanap. Bukas ang W A S D para sa kanila: ang mga arrow ang naglilipat ng camera
+The keys as in View → Controls	Ang mga key ayon sa «View → Controls»
+Blender's keys	Mga key ng Blender
+G moves the selection, S scales it, X deletes, A selects all, Tab edits the mesh, Shift+A adds an object, Shift+D duplicates, F3 searches, Numpad 7 looks straight down. W A S D are free for them, so the arrows move the camera; the mouse as openMapper's own	G ay naglilipat ng pinili, S ay nagbabago ng sukat, X ay nagbubura, A ay pumipili ng lahat, Tab ay nag-edit ng mesh, Shift+A ay nagdadagdag ng object, Shift+D ay nagdodoble, F3 ay naghahanap, Num 7 ay tumitingin mula sa itaas. Bukas ang W A S D para sa kanila, kaya ang mga arrow ang naglilipat ng camera; ang mouse ay tulad ng sarili ng openMapper
+Grab	Hawak
+X / Y / Z: lock the axis, numbers: how far, Enter or a click: done, Esc: cancel	X / Y / Z: i-lock ang axis, numero: gaano kalayo, Enter o klik: tapos, Esc: kanselahin
+Preset Key Shortcut (from other applications)	Mga shortcut mula sa ibang programa
+Blender's keys: G moves the selection, Shift+S scales it, X deletes, Tab edits the mesh, Shift+A adds an object, Shift+D duplicates, F3 searches. W A S D and Q E move the camera as they always do	Mga key ng Blender: G naglilipat ng pinili, Shift+S nagbabago ng sukat, X nagbubura, Tab nag-e-edit ng mesh, Shift+A nagdadagdag ng bagay, Shift+D nagduduplicate, F3 naghahanap. W A S D at Q E naglilipat ng kamera gaya ng dati
+G moves the selection, Shift+S scales it, X deletes, Tab edits the mesh, Shift+A adds an object, Shift+D duplicates, F3 searches, Numpad 7 looks straight down. W A S D and Q E move the camera as they always do; the mouse as openMapper's own	G naglilipat ng pinili, Shift+S nagbabago ng sukat, X nagbubura, Tab nag-e-edit ng mesh, Shift+A nagdadagdag ng bagay, Shift+D nagduduplicate, F3 naghahanap, Num 7 tumitingin pababa. W A S D at Q E naglilipat ng kamera gaya ng dati; ang mouse gaya ng sa openMapper

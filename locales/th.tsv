@@ -2499,3 +2499,40 @@ a drawing is on the road	มีภาพวาดอยู่บนถนน
 Across the roadway from its middle (right of the road's way is plus)	ข้ามผิวถนนจากตรงกลาง (ขวาของทิศทางถนนเป็นบวก)
 Double solid	เส้นทึบคู่
 The line's width	ความกว้างของเส้น
+Delete object along a road	ลบวัตถุตามถนน
+Only a free object can be put on a road	วางบนถนนได้เฉพาะวัตถุอิสระ
+An object hanging on another cannot go onto a road	วัตถุที่แขวนอยู่กับวัตถุอื่นวางบนถนนไม่ได้
+There is no road within 30 m	ไม่มีถนนภายใน 30 ม.
+Put on a road	วางบนถนน
+The object is gone	วัตถุหายไปแล้ว
+It stands on no road	มันไม่ได้อยู่บนถนนใดเลย
+There is no tile there	ไม่มีไทล์ตรงนั้น
+Take off the spline	เอาออกจากถนน
+Beside it (right +)	ข้าง ๆ (ขวา +)
+Above the road	เหนือถนน
+Distance between two copies; 0: one object only	ระยะระหว่างสองสำเนา; 0: วัตถุเดียว
+How many copies stand along the road	จำนวนสำเนาที่เรียงตามถนน
+Detach from the spline	ถอดออกจากถนน
+It becomes a free object where it stands. A row of several copies becomes one object; an object at an absolute height keeps the height above the ground there.	มันกลายเป็นวัตถุอิสระตรงที่มันอยู่ แถวของสำเนาหลายอันกลายเป็นวัตถุเดียว วัตถุที่ใช้ความสูงสัมบูรณ์จะคงความสูงเหนือพื้นดินตรงนั้นไว้
+Attach to the spline	ผูกกับถนน
+It stands on the nearest road and follows it (as OMSI's [splineAttachement]); its IDCode stays	มันอยู่บนถนนที่ใกล้ที่สุดและตามถนนนั้น (เหมือน [splineAttachement] ของ OMSI) IDCode ของมันยังคงเดิม
+OMSI 2's editor: the middle button turns, the right button held and moved zooms, a right click goes there (Shift: menu); G moves the selection, N makes a new object, Enter confirms, the tile grid is on Shift+G	โปรแกรมแก้ไขของ OMSI 2: ปุ่มกลางหมุน ปุ่มขวากดค้างแล้วเลื่อนเพื่อซูม คลิกขวาเพื่อไปที่นั่น (Shift: เมนู); G เลื่อนสิ่งที่เลือก N สร้างวัตถุ Enter ยืนยัน ตารางไทล์อยู่ที่ Shift+G
+openMapper's own controls: the camera as chosen under Camera, the keys as in View → Controls	การควบคุมของ openMapper เอง: กล้องตามที่เลือกใน «กล้อง» ปุ่มตามใน «มุมมอง → การควบคุม»
+OMSI 2's editor	โปรแกรมแก้ไขของ OMSI 2
+Place a new object at the cursor	วางวัตถุใหม่ที่เคอร์เซอร์
+Confirm (finish what is being drawn)	ยืนยัน (ทำสิ่งที่กำลังวาดให้เสร็จ)
+Point at the ground where the object is to stand	ชี้พื้นดินที่จะวางวัตถุ
+OMSI 2's editor: mouse and keys	โปรแกรมแก้ไขของ OMSI 2: เมาส์และปุ่ม
+Its keys too: G moves the selection, R turns it, N makes a new object, Enter confirms, Del deletes, the tile grid is on Shift+G	ปุ่มของมันด้วย: G เลื่อนสิ่งที่เลือก R หมุน N สร้างวัตถุ Enter ยืนยัน Del ลบ ตารางไทล์อยู่ที่ Shift+G
+Keys	ปุ่ม
+openMapper's own keys	ปุ่มของ openMapper เอง
+G moves the selection, R turns it, N makes a new object, Enter confirms, Del deletes, the tile grid is on Shift+G; the mouse as in OMSI 2's editor too	G เลื่อนสิ่งที่เลือก R หมุน N สร้างวัตถุ Enter ยืนยัน Del ลบ ตารางไทล์อยู่ที่ Shift+G; เมาส์ก็เหมือนในโปรแกรมแก้ไขของ OMSI 2
+Blender's keys: G moves the selection, S scales it, X deletes, A selects all, Tab edits the mesh, Shift+A adds an object, Shift+D duplicates, F3 searches. W A S D are free for them: the arrows move the camera	ปุ่มของ Blender: G เลื่อนสิ่งที่เลือก S ย่อขยาย X ลบ A เลือกทั้งหมด Tab แก้ไขเมช Shift+A เพิ่มวัตถุ Shift+D ทำสำเนา F3 ค้นหา W A S D ว่างไว้ให้ปุ่มเหล่านี้: ลูกศรเลื่อนกล้อง
+The keys as in View → Controls	ปุ่มตามใน «มุมมอง → การควบคุม»
+Blender's keys	ปุ่มของ Blender
+G moves the selection, S scales it, X deletes, A selects all, Tab edits the mesh, Shift+A adds an object, Shift+D duplicates, F3 searches, Numpad 7 looks straight down. W A S D are free for them, so the arrows move the camera; the mouse as openMapper's own	G เลื่อนสิ่งที่เลือก S ย่อขยาย X ลบ A เลือกทั้งหมด Tab แก้ไขเมช Shift+A เพิ่มวัตถุ Shift+D ทำสำเนา F3 ค้นหา Num 7 มองจากด้านบน W A S D ว่างไว้ให้ปุ่มเหล่านี้ ลูกศรจึงเลื่อนกล้อง เมาส์เหมือนของ openMapper
+Grab	คว้า
+X / Y / Z: lock the axis, numbers: how far, Enter or a click: done, Esc: cancel	X / Y / Z: ล็อกแกน, ตัวเลข: ไกลเท่าไร, Enter หรือคลิก: เสร็จ, Esc: ยกเลิก
+Preset Key Shortcut (from other applications)	ปุ่มลัดจากโปรแกรมอื่น
+Blender's keys: G moves the selection, Shift+S scales it, X deletes, Tab edits the mesh, Shift+A adds an object, Shift+D duplicates, F3 searches. W A S D and Q E move the camera as they always do	ปุ่มของ Blender: G เลื่อนสิ่งที่เลือก, Shift+S ย่อขยาย, X ลบ, Tab แก้ไขเมช, Shift+A เพิ่มวัตถุ, Shift+D ทำสำเนา, F3 ค้นหา W A S D และ Q E เลื่อนกล้องเหมือนเดิม
+G moves the selection, Shift+S scales it, X deletes, Tab edits the mesh, Shift+A adds an object, Shift+D duplicates, F3 searches, Numpad 7 looks straight down. W A S D and Q E move the camera as they always do; the mouse as openMapper's own	G เลื่อนสิ่งที่เลือก, Shift+S ย่อขยาย, X ลบ, Tab แก้ไขเมช, Shift+A เพิ่มวัตถุ, Shift+D ทำสำเนา, F3 ค้นหา, Num 7 มองลง W A S D และ Q E เลื่อนกล้องเหมือนเดิม เมาส์เหมือน openMapper

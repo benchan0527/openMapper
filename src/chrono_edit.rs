@@ -350,7 +350,7 @@ pub fn by_tile(doc: &Document, sels: &[Sel]) -> Vec<(TileKey, String, Vec<Sel>)>
     let mut out: Vec<(TileKey, String, Vec<Sel>)> = Vec::new();
     for s in sels {
         let k = match *s {
-            Sel::Object(k, _) | Sel::Spline(k, _) => k,
+            Sel::Object(k, _) | Sel::Spline(k, _) | Sel::Attached(k, _) => k,
         };
         let file = doc.global.tiles.iter().find(|t| (t.x, t.y) == k).map(|t| t.file.clone()).unwrap_or_else(|| crate::doc::save::tile_file(k));
         match out.iter_mut().find(|o| o.0 == k) {

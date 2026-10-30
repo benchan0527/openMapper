@@ -2499,3 +2499,38 @@ a drawing is on the road	Eine Zeichnung liegt auf der Straße
 Across the roadway from its middle (right of the road's way is plus)	Quer über die Fahrbahn ab ihrer Mitte (rechts der Straßenrichtung ist plus)
 Double solid	Doppelt durchgezogen
 The line's width	Breite der Linie
+Delete object along a road	Objekt entlang einer Straße löschen
+Only a free object can be put on a road	Nur ein freies Objekt kann auf eine Straße gesetzt werden
+An object hanging on another cannot go onto a road	Ein Objekt, das an einem anderen hängt, kann nicht auf eine Straße
+There is no road within 30 m	In 30 m ist keine Straße
+Put on a road	Auf eine Straße setzen
+The object is gone	Das Objekt ist weg
+It stands on no road	Es steht auf keiner Straße
+There is no tile there	Dort ist keine Kachel
+Take off the spline	Von der Straße nehmen
+Beside it (right +)	Daneben (rechts +)
+Above the road	Über der Straße
+Distance between two copies; 0: one object only	Abstand zwischen zwei Kopien; 0: nur ein Objekt
+How many copies stand along the road	Wie viele Kopien entlang der Straße stehen
+Detach from the spline	Von der Straße lösen
+It becomes a free object where it stands. A row of several copies becomes one object; an object at an absolute height keeps the height above the ground there.	Es wird ein freies Objekt, wo es steht. Eine Reihe mehrerer Kopien wird ein Objekt; ein Objekt mit absoluter Höhe behält dort die Höhe über dem Boden.
+Attach to the spline	An die Straße hängen
+It stands on the nearest road and follows it (as OMSI's [splineAttachement]); its IDCode stays	Es steht auf der nächsten Straße und folgt ihr (wie OMSIs [splineAttachement]); seine IDCode bleibt
+OMSI 2's editor: the middle button turns, the right button held and moved zooms, a right click goes there (Shift: menu); G moves the selection, N makes a new object, Enter confirms, the tile grid is on Shift+G	OMSI-2-Editor: die mittlere Taste dreht, die rechte gedrückt und bewegt zoomt, ein Rechtsklick geht dorthin (Shift: Menü); G bewegt die Auswahl, N erstellt ein Objekt, Enter bestätigt, das Kachelgitter liegt auf Shift+G
+openMapper's own controls: the camera as chosen under Camera, the keys as in View → Controls	openMappers eigene Steuerung: die Kamera wie unter „Kamera“ gewählt, die Tasten wie unter „Ansicht → Steuerung“
+OMSI 2's editor	OMSI-2-Editor
+Place a new object at the cursor	Ein neues Objekt am Cursor setzen
+Confirm (finish what is being drawn)	Bestätigen (beenden, was gezeichnet wird)
+Point at the ground where the object is to stand	Auf den Boden zeigen, wo das Objekt stehen soll
+OMSI 2's editor: mouse and keys	OMSI-2-Editor: Maus und Tasten
+Its keys too: G moves the selection, R turns it, N makes a new object, Enter confirms, Del deletes, the tile grid is on Shift+G	Auch seine Tasten: G bewegt die Auswahl, R dreht sie, N erstellt ein Objekt, Enter bestätigt, Entf löscht, das Kachelgitter liegt auf Shift+G
+Keys	Tasten
+openMapper's own keys	openMappers eigene Tasten
+G moves the selection, R turns it, N makes a new object, Enter confirms, Del deletes, the tile grid is on Shift+G; the mouse as in OMSI 2's editor too	G bewegt die Auswahl, R dreht sie, N erstellt ein Objekt, Enter bestätigt, Entf löscht, das Kachelgitter liegt auf Shift+G; die Maus auch wie im OMSI-2-Editor
+The keys as in View → Controls	Die Tasten wie unter „Ansicht → Steuerung“
+Blender's keys	Blenders Tasten
+Grab	Greifen
+X / Y / Z: lock the axis, numbers: how far, Enter or a click: done, Esc: cancel	X / Y / Z: Achse sperren, Zahlen: wie weit, Enter oder Klick: fertig, Esc: abbrechen
+Preset Key Shortcut (from other applications)	Tastenkürzel aus anderen Programmen
+Blender's keys: G moves the selection, Shift+S scales it, X deletes, Tab edits the mesh, Shift+A adds an object, Shift+D duplicates, F3 searches. W A S D and Q E move the camera as they always do	Tasten wie in Blender: G verschiebt die Auswahl, Shift+S skaliert sie, X löscht, Tab bearbeitet das Mesh, Shift+A fügt ein Objekt hinzu, Shift+D dupliziert, F3 sucht. W A S D und Q E bewegen die Kamera wie immer
+G moves the selection, Shift+S scales it, X deletes, Tab edits the mesh, Shift+A adds an object, Shift+D duplicates, F3 searches, Numpad 7 looks straight down. W A S D and Q E move the camera as they always do; the mouse as openMapper's own	G verschiebt die Auswahl, Shift+S skaliert sie, X löscht, Tab bearbeitet das Mesh, Shift+A fügt ein Objekt hinzu, Shift+D dupliziert, F3 sucht, Num 7 blickt nach unten. W A S D und Q E bewegen die Kamera wie immer; die Maus wie in openMapper

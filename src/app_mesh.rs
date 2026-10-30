@@ -476,6 +476,7 @@ impl App {
         let first_name = self.ed.doc.as_ref().and_then(|d| match sels[0] {
             Sel::Object(k, id) => d.object(k, id).map(|o| o.file.clone()),
             Sel::Spline(k, id) => d.spline(k, id).map(|s| s.file.clone()),
+            Sel::Attached(k, id) => d.attachment(k, id).map(|a| a.file.clone()),
         });
         let stem = first_name.and_then(|f| f.rsplit('\\').next().map(|n| n.rsplit_once('.').map(|(s, _)| s.to_string()).unwrap_or_else(|| n.to_string()))).filter(|n| !n.is_empty() && sels.len() == 1).unwrap_or_else(|| "export".into());
         let mut dialog = rfd::FileDialog::new().set_title(tr("Export the selection", "Экспорт выделенного")).set_file_name(format!("{stem}.glb"));
@@ -500,7 +501,7 @@ impl App {
                 format = Format::XBinary;
             }
         }
-        let single_object = simple && sels.len() == 1 && matches!(sels[0], Sel::Object(..));
+        let single_object = simple && sels.len() == 1 && matches!(sels[0], Sel::Object(..) | Sel::Attached(..));
         let (Some(doc), Some(assets)) = (self.ed.doc.as_ref(), self.assets.as_mut()) else { return Ok(()) };
         // (the selection's middle is the file's origin)
         let centre = crate::selection::centre(doc, &sels).unwrap_or_default();
@@ -521,6 +522,20 @@ impl App {
                     for part in &model.parts {
                         let mesh = mesh_of(&part.mesh, &part.materials, &mut scene.materials, &mut textures);
                         scene.objects.push(ExportObject { name: o.file.rsplit('\\').next().unwrap_or("object").trim_end_matches(".sco").to_string(), mesh, transform: place });
+                    }
+                }
+                Sel::Attached(k, id) => {
+                    let Some(a) = doc.attachment(k, id) else { continue };
+                    let Some(model) = assets.object(&a.file) else {
+                        waiting += 1;
+                        continue;
+                    };
+                    let Some(first) = crate::selection::attachment_first(doc, k, id) else { continue };
+                    let rot = [crate::selection::attachment_world_rot(doc, k, a), a.rot[1], a.rot[2]];
+                    let place = if single_object { glam::Mat4::IDENTITY } else { editable::placement(first.pose.pos - origin, rot).as_mat4() };
+                    for part in &model.parts {
+                        let mesh = mesh_of(&part.mesh, &part.materials, &mut scene.materials, &mut textures);
+                        scene.objects.push(ExportObject { name: a.file.rsplit('\\').next().unwrap_or("object").trim_end_matches(".sco").to_string(), mesh, transform: place });
                     }
                 }
                 Sel::Spline(k, id) => {
