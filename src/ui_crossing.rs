@@ -57,11 +57,27 @@ pub struct CrossingPaths {
     /// The file this window writes is already a copy the editor made (so it writes in place).
     copied: bool,
     message: Option<(String, bool)>,
+    /// The page shown: the paths, or the traffic light program (as OMSI's two editors).
+    tab: Tab,
+    /// The light and the phase picked in the light program, and the block edge being dragged.
+    light: Option<usize>,
+    phase: Option<usize>,
+    edge: Option<(usize, usize)>,
+    /// Pixels a second takes on the timeline.
+    sec_px: f32,
+    /// Whether the timeline follows the window's width (the whole cycle in view).
+    sec_fit: bool,
     /// Crossing objects of the map, to pick from when nothing is selected.
     candidates: Vec<((i32, i32), i64, String)>,
     /// The room the drawing side was given, so a test can say it is not squeezed out.
     #[cfg(test)]
     last_canvas: Vec2,
+    /// Where the timeline was drawn, so a test can click a block in it.
+    #[cfg(test)]
+    last_timeline: Option<egui::Rect>,
+    /// Where the window itself was drawn, so a test can say its body is not collapsed.
+    #[cfg(test)]
+    last_window: Option<egui::Rect>,
 }
 
 impl Default for CrossingPaths {
@@ -83,9 +99,19 @@ impl Default for CrossingPaths {
             fit: true,
             copied: false,
             message: None,
+            tab: Tab::Paths,
+            light: None,
+            phase: None,
+            edge: None,
+            sec_px: 14.0,
+            sec_fit: true,
             candidates: Vec::new(),
             #[cfg(test)]
             last_canvas: Vec2::ZERO,
+            #[cfg(test)]
+            last_timeline: None,
+            #[cfg(test)]
+            last_window: None,
         }
     }
 }
@@ -139,7 +165,49 @@ fn aspect_name(state: i32) -> &'static str {
     }
 }
 
-const ASPECTS: [i32; 6] = [0, 3, 6, 8, 9, 12];
+/// The state's colour, as the crossing editor's timeline shows it.
+fn aspect_color(state: i32) -> Color32 {
+    match state {
+        0..=2 => Color32::from_rgb(198, 56, 56),
+        3..=5 => Color32::from_rgb(210, 146, 52),
+        6 | 7 => Color32::from_rgb(62, 150, 74),
+        8 => Color32::from_rgb(142, 168, 58),
+        9..=11 => Color32::from_rgb(206, 192, 62),
+        _ => Color32::from_rgb(70, 72, 70),
+    }
+}
+
+/// The state as the game's own table writes it (`R` red, `Ro` red and yellow, `G` green,
+/// `G+Y` green and yellow, `Y` yellow, `A` off, `B` blinking and `+A` with an arrow).
+fn aspect_symbol(state: i32) -> &'static str {
+    match state {
+        0 => "R",
+        1 => "R+B",
+        2 => "R+P",
+        3 => "Ro",
+        4 => "Ro+B",
+        5 => "Ro+P",
+        6 => "G",
+        7 => "G+B",
+        8 => "G+Y",
+        9 => "Y",
+        10 => "Y+B",
+        11 => "Y+P",
+        _ => "A",
+    }
+}
+
+/// Which page of the window is shown.
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum Tab {
+    Paths,
+    Lights,
+}
+
+/// The timeline's room: what the row names take on the left, and the second marks on top.
+const GUTTER: f32 = 118.0;
+const HEAD: f32 = 18.0;
+const ROW_H: f32 = 19.0;
 
 fn unsaved_text() -> &'static str {
     tr("There are unsaved changes here: Save or Revert first", "Здесь есть несохранённые правки: сначала сохраните или отмените их")
@@ -185,12 +253,29 @@ impl CrossingPaths {
         }
     }
 
+    /// Which page the window shows when it opens (checks of the light program's page).
+    pub fn open_page(&mut self, lights: bool) {
+        self.tab = if lights { Tab::Lights } else { Tab::Paths };
+    }
+
+    /// Whether a crossing is open (a check run says so before it asks for the map's list).
+    pub fn has_sheet(&self) -> bool {
+        self.sheet.is_some()
+    }
+
+    /// Open the first crossing of the map's own list (a check run, with no one to pick one).
+    pub fn open_first_candidate(&mut self, ed: &mut Editor, roots: &Roots) -> bool {
+        let Some((k, id)) = self.candidates.first().map(|(k, id, _)| (*k, *id)) else { return false };
+        self.open_on(ed, roots, k, id)
+    }
+
     /// Read the object's `.sco` for editing. False (and a message) when it has no paths.
     fn open_on(&mut self, ed: &Editor, roots: &Roots, k: (i32, i32), id: i64) -> bool {
         let Some(doc) = ed.doc.as_ref() else { return false };
         let Some(o) = doc.object(k, id) else { return false };
         let rel = o.file.clone();
         if let Some(why) = crossing_edit::why_not(roots, &rel) {
+            log::info!("crossing editor: {rel} cannot be edited: {why}");
             self.message = Some((format!("{}: {}", &rel, why), true));
             self.sheet = None;
             return false;
@@ -213,6 +298,7 @@ impl CrossingPaths {
                 true
             }
             Err(e) => {
+                log::info!("crossing editor: {rel} cannot be read: {e}");
                 self.message = Some((e.to_string(), true));
                 self.sheet = None;
                 false
@@ -238,37 +324,50 @@ impl CrossingPaths {
         } else {
             ed.crossing_draft = None;
         }
-        let screen = ctx.content_rect().size();
-        let size = Vec2::new((screen.x * 0.86).clamp(820.0, 1500.0), (screen.y * 0.86).clamp(540.0, 1000.0));
-        egui::Window::new(icons::labelled(Icon::Route, tr("Crossing paths", "Пути перекрёстка")))
+        let screen = ctx.content_rect();
+        let size = Vec2::new(1000.0, 660.0);
+        // (in the middle of the screen, as the crossing editor's own window is)
+        let pos = screen.center() - size * 0.5;
+        let mut save = false;
+        let mut revert = false;
+        let mut assets = assets;
+        // (each page named as the crossing editor's own window names it)
+        let title = match self.tab {
+            Tab::Paths => icons::labelled(Icon::Route, tr("Crossing paths", "Пути перекрёстка")),
+            Tab::Lights => icons::labelled(Icon::Traffic, tr("Traffic lights", "Светофоры")),
+        };
+        let shown = egui::Window::new(title)
             .id(egui::Id::new("crossing paths window"))
             .open(&mut open)
+            .default_pos(pos)
             .default_size(size)
-            .min_size(Vec2::new(760.0, 480.0))
+            .min_size(Vec2::new(880.0, 540.0))
             .resizable(true)
             .show(ctx, |ui| {
                 // (a scroll area takes the layout of the ui it is made in, so each half gets
                 // its own top-down layout: put straight into the row below, the left side
                 // would lay its labels out sideways and push the view off the window)
-                let body = Vec2::new(ui.available_width().max(740.0), ui.available_height().max(430.0));
+                ui.spacing_mut().item_spacing = Vec2::new(4.0, 3.0);
+                let body = Vec2::new(ui.available_width().max(800.0), ui.available_height().max(440.0));
                 ui.set_min_size(body);
-                let (left, rest) = (310.0f32, (body.x - 322.0).max(400.0));
-                ui.horizontal_top(|ui| {
-                    ui.allocate_ui_with_layout(Vec2::new(left, body.y), egui::Layout::top_down(egui::Align::Min), |ui| {
-                        egui::ScrollArea::vertical().id_salt("crossing side").auto_shrink([false, false]).show(ui, |ui| {
-                            ui.vertical(|ui| {
-                                ui.set_width(left - 18.0);
-                                self.side(ui, ed, roots);
-                            });
-                        });
-                    });
-                    ui.separator();
-                    ui.allocate_ui_with_layout(Vec2::new(rest, body.y), egui::Layout::top_down(egui::Align::Min), |ui| {
-                        self.toolbar(ui, ed, roots, assets);
-                        self.canvas(ui);
-                    });
-                });
+                let Some(mut sheet) = self.sheet.take() else {
+                    self.no_target(ui, ed, roots);
+                    return;
+                };
+                self.head(ui, &sheet, &mut save, &mut revert);                ui.separator();
+                let body = Vec2::new(ui.available_width().max(800.0), ui.available_height().max(400.0));
+                match self.tab {
+                    Tab::Paths => self.paths_body(ui, ed, &mut sheet, body),
+                    Tab::Lights => self.lights_body(ui, ed, &mut sheet, body),
+                }
+                self.sheet = Some(sheet);
             });
+        #[cfg(test)]
+        if let Some(s) = &shown {
+            self.last_window = Some(s.response.rect);
+        }
+        #[cfg(not(test))]
+        let _ = &shown;
         // (closed with edits in it: they are not dropped without a word)
         if !open && self.unsaved() {
             open = true;
@@ -278,16 +377,93 @@ impl CrossingPaths {
         if !self.open {
             ed.crossing_draft = None;
         }
+        if revert {
+            if let Some(sheet) = self.sheet.as_mut() {
+                sheet.crossing = self.seen.clone();
+            }
+            self.drag = None;
+            self.edge = None;
+            self.message = Some((tr("Back to how it was opened", "Обратно к состоянию при открытии").into(), false));
+        }
+        if save {
+            if let (Some(roots), Some(assets)) = (roots, assets.as_deref_mut()) {
+                self.save(ed, roots, assets);
+            }
+        }
     }
 
-    /// The left side: the paths, and the one picked.
-    fn side(&mut self, ui: &mut egui::Ui, ed: &mut Editor, roots: Option<&Roots>) {
-        let Some(mut sheet) = self.sheet.take() else {
-            self.no_target(ui, ed, roots);
-            return;
-        };
-        self.sheet_ui(ui, ed, &mut sheet);
-        self.sheet = Some(sheet);
+    /// Above both pages: what is open, the two pages, and saving - as the crossing editor's
+    /// own title bar carries them.
+    fn head(&mut self, ui: &mut egui::Ui, sheet: &Sheet, save: &mut bool, revert: &mut bool) {
+        let name = std::path::Path::new(&self.rel.replace('\\', "/")).file_stem().map(|s| s.to_string_lossy().to_string()).unwrap_or_else(|| self.rel.clone());
+        let copied = self.copied;
+        ui.horizontal(|ui| {
+            ui.label(RichText::new(name).strong());
+            ui.label(RichText::new(if copied { tr("openMapper's copy", "Копия openMapper") } else { tr("in its own file (a copy is made on saving)", "в своём файле (копия делается при сохранении)") }).small().color(DIM));
+            ui.separator();
+            let paths = format!("{} ({})", tr("Paths", "Пути"), sheet.crossing.paths.len());
+            let lights = format!("{} ({})", tr("Traffic lights", "Светофоры"), sheet.crossing.lights.len());
+            if ui.selectable_label(self.tab == Tab::Paths, paths).clicked() {
+                self.tab = Tab::Paths;
+            }
+            if ui.selectable_label(self.tab == Tab::Lights, lights).clicked() {
+                self.tab = Tab::Lights;
+            }
+            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                let label = if copied { tr("Save", "Сохранить") } else { tr("Save as a copy", "Сохранить копию") };
+                let hint = if copied {
+                    tr("Write the paths into openMapper's copy of the object", "Записать пути в копию объекта openMapper")
+                } else {
+                    tr("The object's folder is copied into openMapper's, the paths written there, and the map's object pointed at it: the original file is not touched", "Папка объекта копируется в openMapper, пути пишутся туда, объект карты начинает ссылаться на неё: исходный файл не трогается")
+                };
+                *save = ui.button(icons::labelled(Icon::Save, label)).on_hover_text(hint).clicked();
+                *revert = ui.button(icons::labelled(Icon::Undo, tr("Revert", "Отменить"))).on_hover_text(tr("Back to how the object was when it was opened (the file is not touched)", "Обратно к тому, каким объект был при открытии (файл не трогается)")).clicked();
+            });
+        });
+        if let Some((msg, bad)) = &self.message {
+            ui.label(RichText::new(msg).small().color(if *bad { BAD } else { GOOD }));
+        }
+    }
+
+    /// The paths page: the list and its numbers on the left, the crossing drawn on the right.
+    fn paths_body(&mut self, ui: &mut egui::Ui, ed: &mut Editor, sheet: &mut Sheet, body: Vec2) {
+        let (left, rest) = (320.0f32, (body.x - 334.0).max(400.0));
+        ui.horizontal_top(|ui| {
+            ui.allocate_ui_with_layout(Vec2::new(left, body.y), egui::Layout::top_down(egui::Align::Min), |ui| {
+                egui::ScrollArea::vertical().id_salt("crossing side").auto_shrink([false, false]).show(ui, |ui| {
+                    ui.vertical(|ui| {
+                        ui.set_width(left - 18.0);
+                        self.paths_side(ui, ed, sheet);
+                    });
+                });
+            });
+            ui.separator();
+            ui.allocate_ui_with_layout(Vec2::new(rest, body.y), egui::Layout::top_down(egui::Align::Min), |ui| {
+                self.view_bar(ui);
+                self.canvas_ui(ui, sheet);
+            });
+        });
+    }
+
+    /// The light page: the program on the left, its timeline on the right - the crossing
+    /// editor's traffic light window.
+    fn lights_body(&mut self, ui: &mut egui::Ui, _ed: &mut Editor, sheet: &mut Sheet, body: Vec2) {
+        let (left, rest) = (352.0f32, (body.x - 366.0).max(400.0));
+        let side = left - 20.0;
+        ui.horizontal_top(|ui| {
+            ui.allocate_ui_with_layout(Vec2::new(left, body.y), egui::Layout::top_down(egui::Align::Min), |ui| {
+                ui.set_max_width(side);
+                // (a scroll area so a long request-loop or light list is never out of reach)
+                egui::ScrollArea::vertical().id_salt("crossing lights side").auto_shrink([false, false]).show(ui, |ui| {
+                    ui.set_max_width(side);
+                    self.lights_side(ui, sheet, side);
+                });
+            });
+            ui.separator();
+            ui.allocate_ui_with_layout(Vec2::new(rest, body.y), egui::Layout::top_down(egui::Align::Min), |ui| {
+                self.timeline_ui(ui, sheet);
+            });
+        });
     }
 
     fn no_target(&mut self, ui: &mut egui::Ui, ed: &mut Editor, roots: Option<&Roots>) {
@@ -314,17 +490,11 @@ impl CrossingPaths {
         }
     }
 
-    fn sheet_ui(&mut self, ui: &mut egui::Ui, ed: &mut Editor, sheet: &mut Sheet) {
+    /// The paths page's left side: the list, and the numbers of the one picked.
+    fn paths_side(&mut self, ui: &mut egui::Ui, ed: &mut Editor, sheet: &mut Sheet) {
         let Some(Sel::Object(..)) = self.target else { return };
-        ui.add_space(4.0);
-        let name = std::path::Path::new(&self.rel.replace('\\', "/")).file_stem().map(|s| s.to_string_lossy().to_string()).unwrap_or_else(|| self.rel.clone());
-        ui.label(RichText::new(name).strong());
-        ui.label(RichText::new(if self.copied { tr("openMapper's copy", "Копия openMapper") } else { tr("in its own file (a copy is made on saving)", "в своём файле (копия делается при сохранении)") }).small().color(DIM));
-        ui.add_space(4.0);
-
         let mut changed = false;
         // ---- the paths
-        ui.separator();
         ui.horizontal(|ui| {
             ui.label(RichText::new(format!("{} ({})", tr("Paths", "Пути"), sheet.crossing.paths.len())).strong());
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
@@ -511,122 +681,6 @@ impl CrossingPaths {
             }
         }
 
-        // ---- the traffic lights
-        ui.separator();
-        egui::CollapsingHeader::new(RichText::new(format!("{} ({})", tr("Traffic lights", "Светофоры"), sheet.crossing.lights.len())).strong()).id_salt("crossing lights").default_open(false).show(ui, |ui| {
-            let mut cycle = sheet.crossing.cycle.unwrap_or(0.0) > 0.0;
-            ui.horizontal(|ui| {
-                if ui.checkbox(&mut cycle, tr("Cycle", "Цикл")).on_hover_text(tr("`[traffic_lights_group]`: the seconds of one run. Unset, the longest light's phases add up to it", "`[traffic_lights_group]`: секунды одного круга. Если не задан — сумма фаз самой длинной программы")).changed() {
-                    sheet.crossing.cycle = if cycle { Some(sheet.crossing.phases_sum().max(1.0)) } else { None };
-                    changed = true;
-                }
-                if let Some(c) = sheet.crossing.cycle.as_mut() {
-                    changed |= ui.add(egui::DragValue::new(c).speed(0.5).range(1.0..=600.0).suffix(" s")).changed();
-                }
-            });
-            let sum = sheet.crossing.phases_sum();
-            let len = sheet.crossing.cycle_len();
-            if (sum - len).abs() > 0.5 {
-                ui.label(RichText::new(tr("The phases do not add up to the cycle: the last one holds to its end", "Фазы не складываются в цикл: последняя длится до его конца")).small().color(DIM));
-            }
-            let mut gone = None;
-            for (n, l) in sheet.crossing.lights.iter_mut().enumerate() {
-                egui::CollapsingHeader::new(RichText::new(format!("#{n} {}", if l.name.trim().is_empty() { tr("(no name)", "(без имени)") } else { l.name.trim() })).small()).id_salt(("crossing light", n)).default_open(false).show(ui, |ui| {
-                    changed |= ui.add(egui::TextEdit::singleline(&mut l.name).desired_width(160.0)).changed();
-                    let mut ad = l.approach_dist.unwrap_or(0.0);
-                    let mut on = l.approach_dist.is_some();
-                    ui.horizontal(|ui| {
-                        if ui.checkbox(&mut on, tr("Detector", "Детектор")).on_hover_text(tr("`[approachdist]`: how far before the stop line a vehicle registers a request", "`[approachdist]`: за сколько метров до стоп-линии машина запрашивает")).changed() {
-                            l.approach_dist = if on { Some(if ad > 0.0 { ad } else { 10.0 }) } else { None };
-                            ad = l.approach_dist.unwrap_or(0.0);
-                            changed = true;
-                        }
-                        if l.approach_dist.is_some() && ui.add(egui::DragValue::new(&mut ad).speed(0.2).range(0.0..=200.0).suffix(" m")).changed() {
-                            l.approach_dist = Some(ad.max(0.0));
-                            changed = true;
-                        }
-                    });
-                    let mut phase_gone = None;
-                    for (q, ph) in l.phases.iter_mut().enumerate() {
-                        ui.horizontal(|ui| {
-                            let mut st = ph.state;
-                            egui::ComboBox::from_id_salt(("crossing phase", n, q)).selected_text(format!("{st}: {}", aspect_name(st))).width(130.0).show_ui(ui, |ui| {
-                                for a in ASPECTS {
-                                    ui.selectable_value(&mut st, a, format!("{a}: {}", aspect_name(a)));
-                                }
-                            });
-                            if st != ph.state {
-                                ph.state = st;
-                                changed = true;
-                            }
-                            changed |= ui.add(egui::DragValue::new(&mut ph.duration).speed(0.2).range(0.0..=600.0).suffix(" s")).changed();
-                            if ui.small_button(icons::labelled(Icon::Delete, "")).clicked() {
-                                phase_gone = Some(q);
-                            }
-                        });
-                    }
-                    if let Some(q) = phase_gone {
-                        l.phases.remove(q);
-                        changed = true;
-                    }
-                    if ui.button(icons::labelled(Icon::Add, tr("A phase", "Фаза"))).clicked() {
-                        l.phases.push(omsi_scenery::TrafficLightPhase { state: 0, duration: 10.0 });
-                        changed = true;
-                    }
-                    if ui.small_button(icons::labelled(Icon::Delete, tr("Remove this light", "Удалить этот светофор"))).clicked() {
-                        gone = Some(n);
-                    }
-                });
-            }
-            if let Some(n) = gone {
-                sheet.crossing.remove_light(n);
-                changed = true;
-            }
-            if ui.button(icons::labelled(Icon::Add, tr("A light", "Светофор"))).clicked() {
-                sheet.crossing.lights.push(omsi_scenery::TrafficLight { name: format!("Light {}", sheet.crossing.lights.len() + 1), phases: vec![omsi_scenery::TrafficLightPhase { state: 0, duration: 20.0 }, omsi_scenery::TrafficLightPhase { state: 6, duration: 20.0 }], approach_dist: None });
-                changed = true;
-            }
-            if sheet.crossing.lights.is_empty() {
-                ui.label(RichText::new(tr("A crossing with lights needs the signal heads on the map: the game only runs a program that heads are linked to", "Перекрёстку со светофором нужны головки на карте: игра запускает программу, только если к ней привязаны головки")).small().color(DIM));
-            }
-            // the request loops, as the numbers they are
-            egui::CollapsingHeader::new(RichText::new(format!("{} ({})", tr("Request loops", "Петли запроса"), sheet.crossing.stops.len() + sheet.crossing.jumps.len())).small()).id_salt("crossing stops").default_open(false).show(ui, |ui| {
-                let mut stop_gone = None;
-                for (n, s) in sheet.crossing.stops.iter_mut().enumerate() {
-                    ui.horizontal(|ui| {
-                        ui.label(RichText::new(tr("stop", "стоп")).small().color(DIM));
-                        changed |= ui.add(egui::DragValue::new(&mut s[0]).speed(0.2).prefix("L")).changed();
-                        changed |= ui.add(egui::DragValue::new(&mut s[1]).speed(0.2).suffix(" s")).changed();
-                        changed |= ui.add(egui::DragValue::new(&mut s[2]).range(0.0..=1.0).speed(0.1).prefix("req ")).changed();
-                        if ui.small_button(icons::labelled(Icon::Delete, "")).clicked() {
-                            stop_gone = Some(n);
-                        }
-                    });
-                }
-                if let Some(n) = stop_gone {
-                    sheet.crossing.stops.remove(n);
-                    changed = true;
-                }
-                let mut jump_gone = None;
-                for (n, j) in sheet.crossing.jumps.iter_mut().enumerate() {
-                    ui.horizontal(|ui| {
-                        ui.label(RichText::new(tr("jump", "переход")).small().color(DIM));
-                        changed |= ui.add(egui::DragValue::new(&mut j[0]).speed(0.2).prefix("L")).changed();
-                        changed |= ui.add(egui::DragValue::new(&mut j[1]).speed(0.2).suffix(" s")).changed();
-                        changed |= ui.add(egui::DragValue::new(&mut j[2]).range(0.0..=1.0).speed(0.1).prefix("req ")).changed();
-                        changed |= ui.add(egui::DragValue::new(&mut j[3]).speed(0.2).prefix("→ ").suffix(" s")).changed();
-                        if ui.small_button(icons::labelled(Icon::Delete, "")).clicked() {
-                            jump_gone = Some(n);
-                        }
-                    });
-                }
-                if let Some(n) = jump_gone {
-                    sheet.crossing.jumps.remove(n);
-                    changed = true;
-                }
-            });
-        });
-
         // ---- the spline helpers
         ui.separator();
         let mut helper_gone = None;
@@ -681,21 +735,9 @@ impl CrossingPaths {
         }
     }
 
-    /// Above the view: save, revert, the zoom.
-    fn toolbar(&mut self, ui: &mut egui::Ui, ed: &mut Editor, roots: Option<&Roots>, mut assets: Option<&mut Assets>) {
-        let has = self.sheet.is_some();
-        let mut save = false;
-        let mut revert = false;
+    /// Above the drawing: the zoom.
+    fn view_bar(&mut self, ui: &mut egui::Ui) {
         ui.horizontal(|ui| {
-            let label = if self.copied { tr("Save", "Сохранить") } else { tr("Save as a copy", "Сохранить копию") };
-            let hint = if self.copied {
-                tr("Write the paths into openMapper's copy of the object", "Записать пути в копию объекта openMapper")
-            } else {
-                tr("The object's folder is copied into openMapper's, the paths written there, and the map's object pointed at it: the original file is not touched", "Папка объекта копируется в openMapper, пути пишутся туда, объект карты начинает ссылаться на неё: исходный файл не трогается")
-            };
-            save = ui.add_enabled(has, egui::Button::new(icons::labelled(Icon::Save, label))).on_hover_text(hint).clicked();
-            revert = ui.add_enabled(has, egui::Button::new(icons::labelled(Icon::Undo, tr("Revert", "Отменить")))).on_hover_text(tr("Back to how the object was when it was opened (the file is not touched)", "Обратно к тому, каким объект был при открытии (файл не трогается)")).clicked();
-            ui.separator();
             if ui.button("−").on_hover_text(tr("Zoom out", "Отдалить")).clicked() {
                 self.scale = (self.scale / 1.35).clamp(0.6, 400.0);
             }
@@ -705,25 +747,342 @@ impl CrossingPaths {
             if ui.button(tr("Fit", "Вписать")).on_hover_text(tr("The whole crossing in view", "Весь перекрёсток в окне")).clicked() {
                 self.fit = true;
             }
+            ui.label(RichText::new(tr("Drag an end to move it. Ctrl snaps it to another path's end. Wheel zooms, right or middle drag pans", "Тяните конец, чтобы сдвинуть его. Ctrl притягивает к концу другого пути. Колесо — масштаб, правая/средняя кнопка — сдвиг")).small().color(DIM));
         });
-        ui.label(RichText::new(tr("Drag an end to move it. Ctrl snaps it to another path's end. Wheel zooms, right or middle drag pans", "Тяните конец, чтобы сдвинуть его. Ctrl притягивает к концу другого пути. Колесо — масштаб, правая/средняя кнопка — сдвиг")).small().color(DIM));
-        if let Some((msg, bad)) = self.message.clone() {
-            ui.label(RichText::new(msg).small().color(if bad { BAD } else { GOOD }));
+    }
+
+    /// The light page's left side: which light, which of its phases, what that phase shows,
+    /// the detector and the request loops - as the crossing editor's traffic light window.
+    fn lights_side(&mut self, ui: &mut egui::Ui, sheet: &mut Sheet, width: f32) {
+        if self.light.is_some_and(|l| l >= sheet.crossing.lights.len()) {
+            self.light = None;
+            self.phase = None;
         }
-        if revert {
-            if let Some(sheet) = self.sheet.as_mut() {
-                sheet.crossing = self.seen.clone();
+        if self.light.is_none() && !sheet.crossing.lights.is_empty() {
+            self.light = Some(0);
+        }
+        let count = sheet.crossing.lights.len();
+
+        // ---- which light, its name and the cycle it runs in (the window's own top box)
+        egui::Frame::group(ui.style()).show(ui, |ui| {
+            ui.set_min_width(width - 12.0);
+            ui.horizontal(|ui| {
+                ui.label(RichText::new(tr("Traffic light", "Светофор")).strong());
+                let shown = self.light.map(|i| i + 1).unwrap_or(0);
+                ui.label(RichText::new(format!("{shown} / {count}")).monospace().small().color(DIM));
+                if ui.add_enabled(self.light.is_some_and(|i| i > 0), egui::Button::new("<").small()).clicked() {
+                    self.light = self.light.map(|i| i - 1);
+                    self.phase = Some(0);
+                }
+                if ui.add_enabled(self.light.is_some_and(|i| i + 1 < count), egui::Button::new(">").small()).clicked() {
+                    self.light = self.light.map(|i| i + 1);
+                    self.phase = Some(0);
+                }
+                if ui.small_button(icons::labelled(Icon::Add, "")).on_hover_text(tr("A light", "Светофор")).clicked() {
+                    self.light = Some(sheet.crossing.add_light());
+                    self.phase = Some(0);
+                }
+                if ui.add_enabled(self.light.is_some(), egui::Button::new(icons::labelled(Icon::Delete, "")).small()).on_hover_text(tr("Remove this light", "Удалить этот светофор")).clicked() {
+                    if let Some(i) = self.light {
+                        sheet.crossing.remove_light(i);
+                        self.light = if sheet.crossing.lights.is_empty() { None } else { Some(i.min(sheet.crossing.lights.len() - 1)) };
+                        self.phase = Some(0);
+                    }
+                }
+            });
+            if let Some(i) = self.light {
+                ui.horizontal(|ui| {
+                    ui.label(RichText::new(tr("Name", "Имя")).small().color(DIM));
+                    ui.add(egui::TextEdit::singleline(&mut sheet.crossing.lights[i].name).desired_width(ui.available_width()));
+                });
+                ui.horizontal(|ui| {
+                    let mut on = sheet.crossing.has_cycle();
+                    if ui.checkbox(&mut on, tr("Cycle", "Цикл")).on_hover_text(tr("`[traffic_lights_group]`: the seconds of one run. Unset, the longest light's phases add up to it", "`[traffic_lights_group]`: секунды одного круга. Если не задан — сумма фаз самой длинной программы")).changed() {
+                        sheet.crossing.cycle = if on { Some(sheet.crossing.phases_sum().max(1.0)) } else { None };
+                    }
+                    let len = sheet.crossing.cycle_len();
+                    if let Some(c) = sheet.crossing.cycle.as_mut() {
+                        ui.add(egui::DragValue::new(c).speed(0.5).range(1.0..=600.0).suffix(" s"));
+                    } else {
+                        ui.label(RichText::new(format!("{len:.0} s")).monospace().small().color(DIM));
+                    }
+                });
+            } else if count == 0 {
+                ui.label(RichText::new(tr("A crossing with lights needs the signal heads on the map: the game only runs a program that heads are linked to", "Перекрёстку со светофором нужны головки на карте: игра запускает программу, только если к ней привязаны головки")).small().color(DIM));
             }
-            self.drag = None;
-            self.message = Some((tr("Back to how it was opened", "Обратно к состоянию при открытии").into(), false));
+        });
+
+        // ---- the phase and what it shows (the window's "Traffic Light Phase" box)
+        ui.add_space(3.0);
+        if let Some(i) = self.light {
+            let n = sheet.crossing.lights[i].phases.len();
+            if self.phase.is_some_and(|p| p >= n) {
+                self.phase = if n > 0 { Some(n - 1) } else { None };
+            }
+            if self.phase.is_none() && n > 0 {
+                self.phase = Some(0);
+            }
+            egui::Frame::group(ui.style()).show(ui, |ui| {
+                ui.set_min_width(width - 12.0);
+                ui.horizontal(|ui| {
+                    ui.label(RichText::new(tr("Phase", "Фаза")).strong());
+                    ui.label(RichText::new(format!("{} / {n}", self.phase.map(|p| p + 1).unwrap_or(0))).monospace().small().color(DIM));
+                    if ui.add_enabled(self.phase.is_some_and(|p| p > 0), egui::Button::new("<").small()).clicked() {
+                        self.phase = self.phase.map(|p| p - 1);
+                    }
+                    if ui.add_enabled(self.phase.is_some_and(|p| p + 1 < n), egui::Button::new(">").small()).clicked() {
+                        self.phase = self.phase.map(|p| p + 1);
+                    }
+                    if ui.small_button(icons::labelled(Icon::Add, "")).on_hover_text(tr("A phase", "Фаза")).clicked() {
+                        let at = self.phase.map(|p| p + 1).unwrap_or(n);
+                        self.phase = sheet.crossing.insert_phase(i, at);
+                    }
+                    if ui.add_enabled(self.phase.is_some(), egui::Button::new(icons::labelled(Icon::Delete, "")).small()).on_hover_text(tr("Delete", "Удалить")).clicked() {
+                        if let Some(p) = self.phase {
+                            sheet.crossing.remove_phase(i, p);
+                            let n = sheet.crossing.lights[i].phases.len();
+                            self.phase = if n == 0 { None } else { Some(p.min(n - 1)) };
+                        }
+                    }
+                });
+                if let Some(p) = self.phase {
+                    let mut state = sheet.crossing.lights[i].phases[p].state;
+                    // (the states laid out three to a row, as the crossing editor's own list)
+                    egui::Grid::new("crossing aspects").num_columns(3).spacing([8.0, 0.0]).max_col_width(width / 3.0 - 12.0).show(ui, |ui| {
+                        for code in 0..=12 {
+                            let label = RichText::new(format!("{code} {}", aspect_symbol(code))).small().color(aspect_color(code));
+                            ui.radio_value(&mut state, code, label).on_hover_text(format!("{} ({})", aspect_name(code), aspect_symbol(code)));
+                            if code % 3 == 2 {
+                                ui.end_row();
+                            }
+                        }
+                    });
+                    if state != sheet.crossing.lights[i].phases[p].state {
+                        sheet.crossing.lights[i].phases[p].state = state;
+                    }
+                    let mut det = sheet.crossing.lights[i].approach_dist;
+                    let mut on = det.is_some();
+                    ui.horizontal(|ui| {
+                        ui.label(RichText::new(tr("Duration", "Длительность")).small().color(DIM));
+                        ui.add(egui::DragValue::new(&mut sheet.crossing.lights[i].phases[p].duration).speed(0.2).range(0.0..=900.0).suffix(" s"));
+                        ui.separator();
+                        if ui.checkbox(&mut on, tr("Detector", "Мелдер")).on_hover_text(tr("`[approachdist]`: how far before the stop line a vehicle registers a request", "`[approachdist]`: за сколько метров до стоп-линии машина запрашивает")).changed() {
+                            det = if on { Some(det.unwrap_or(10.0).max(0.0)) } else { None };
+                        }
+                        if let Some(d) = det.as_mut() {
+                            ui.add(egui::DragValue::new(d).speed(0.2).range(0.0..=200.0).suffix(" m"));
+                        }
+                    });
+                    sheet.crossing.lights[i].approach_dist = det;
+                    let sum = sheet.crossing.phases_sum();
+                    let len = sheet.crossing.cycle_len();
+                    if (sum - len).abs() > 0.5 {
+                        ui.label(RichText::new(tr("The phases do not add up to the cycle: the last one holds to its end", "Фазы не складываются в цикл: последняя длится до его конца")).small().color(DIM));
+                    }
+                }
+            });
         }
-        if save {
-            if let Some(roots) = roots {
-                if let Some(assets) = assets.as_deref_mut() {
-                    self.save(ed, roots, assets);
+
+        // ---- the lights of the crossing, as the window's own list
+        ui.add_space(3.0);
+        egui::ScrollArea::vertical().id_salt("crossing light list").max_height(96.0).auto_shrink([false, true]).show(ui, |ui| {
+            for (k, l) in sheet.crossing.lights.iter().enumerate() {
+                let name = if l.name.trim().is_empty() { tr("(no name)", "(без имени)") } else { l.name.trim() };
+                let color = l.phases.first().map(|p| aspect_color(p.state)).unwrap_or(DIM);
+                if ui.selectable_label(self.light == Some(k), RichText::new(format!("{k}: {name}")).color(color)).clicked() {
+                    self.light = Some(k);
+                    self.phase = Some(0);
                 }
             }
+        });
+
+        // ---- the request loops, as the numbers they are
+        egui::CollapsingHeader::new(RichText::new(format!("{} ({})", tr("Request loops", "Петли запроса"), sheet.crossing.stops.len() + sheet.crossing.jumps.len())).small()).id_salt("crossing stops").default_open(false).show(ui, |ui| {
+            let mut stop_gone = None;
+            for (n, s) in sheet.crossing.stops.iter_mut().enumerate() {
+                ui.horizontal(|ui| {
+                    ui.label(RichText::new(tr("stop", "стоп")).small().color(DIM));
+                    ui.add(egui::DragValue::new(&mut s[0]).speed(0.2).prefix("L"));
+                    ui.add(egui::DragValue::new(&mut s[1]).speed(0.2).suffix(" s"));
+                    ui.add(egui::DragValue::new(&mut s[2]).range(0.0..=1.0).speed(0.1).prefix("req "));
+                    if ui.small_button(icons::labelled(Icon::Delete, "")).clicked() {
+                        stop_gone = Some(n);
+                    }
+                });
+            }
+            if let Some(n) = stop_gone {
+                sheet.crossing.stops.remove(n);
+            }
+            let mut jump_gone = None;
+            for (n, j) in sheet.crossing.jumps.iter_mut().enumerate() {
+                ui.horizontal(|ui| {
+                    ui.label(RichText::new(tr("jump", "переход")).small().color(DIM));
+                    ui.add(egui::DragValue::new(&mut j[0]).speed(0.2).prefix("L"));
+                    ui.add(egui::DragValue::new(&mut j[1]).speed(0.2).suffix(" s"));
+                    ui.add(egui::DragValue::new(&mut j[2]).range(0.0..=1.0).speed(0.1).prefix("req "));
+                    ui.add(egui::DragValue::new(&mut j[3]).speed(0.2).prefix("→ ").suffix(" s"));
+                    if ui.small_button(icons::labelled(Icon::Delete, "")).clicked() {
+                        jump_gone = Some(n);
+                    }
+                });
+            }
+            if let Some(n) = jump_gone {
+                sheet.crossing.jumps.remove(n);
+            }
+        });
+    }
+
+    /// The light program's timeline: a row per light, a column per second, each phase a block
+    /// of its colour, the phase's number written in it - the traffic light window's grid.
+    fn timeline_ui(&mut self, ui: &mut egui::Ui, sheet: &mut Sheet) {
+        let cycle = sheet.crossing.cycle_len();
+        ui.horizontal(|ui| {
+            ui.label(RichText::new(tr("Timeline", "Временная диаграмма")).strong());
+            ui.label(RichText::new(format!("{cycle:.0} s")).monospace().small().color(DIM));
+            if ui.small_button("−").on_hover_text(tr("Zoom out", "Отдалить")).clicked() {
+                self.sec_px = (self.sec_px / 1.25).clamp(3.0, 80.0);
+                self.sec_fit = false;
+            }
+            if ui.small_button("+").on_hover_text(tr("Zoom in", "Приблизить")).clicked() {
+                self.sec_px = (self.sec_px * 1.25).clamp(3.0, 80.0);
+                self.sec_fit = false;
+            }
+            if ui.small_button(tr("Fit", "Вписать")).on_hover_text(tr("The whole cycle across the width (as the traffic light window has it)", "Весь цикл по ширине (как в окне светофора)")).clicked() {
+                self.sec_fit = true;
+            }
+        });
+        // (a second per pixel width the whole cycle fits in, until the zoom is used: the
+        // window shows the program end to end, as OMSI's own does)
+        if self.sec_fit && cycle > 0.0 {
+            let room = (ui.available_width() - GUTTER - 24.0).max(120.0);
+            self.sec_px = (room / cycle).clamp(2.0, 40.0);
         }
+        ui.label(RichText::new(tr("Click a block to edit that phase; drag its right edge to change how long it lasts", "Нажмите на блок, чтобы править эту фазу; потяните его правый край, чтобы изменить её длительность")).small().color(DIM));
+
+        let rows = sheet.crossing.lights.len();
+        let size = Vec2::new((GUTTER + cycle * self.sec_px + 18.0).max(ui.available_width()), HEAD + rows.max(1) as f32 * ROW_H + 2.0);
+        egui::ScrollArea::both().id_salt("crossing timeline").auto_shrink([false, false]).show(ui, |ui| {
+            let (rect, resp) = ui.allocate_exact_size(size, Sense::click_and_drag());
+            #[cfg(test)]
+            {
+                self.last_timeline = Some(rect);
+            }
+            let p = ui.painter_at(rect);
+            let x = |t: f32| rect.left() + GUTTER + t * self.sec_px;
+            let top = rect.top() + HEAD;
+            p.rect_filled(rect, egui::CornerRadius::ZERO, Color32::from_rgb(26, 28, 26));
+            p.rect_filled(egui::Rect::from_min_max(rect.min, Pos2::new(rect.right(), top)), egui::CornerRadius::ZERO, Color32::from_rgb(38, 41, 38));
+
+            // the seconds: a line each, a number every five
+            let tick = if self.sec_px >= 9.0 { 1.0 } else if self.sec_px >= 4.5 { 2.0 } else { 5.0 };
+            let mut t = 0.0f32;
+            while t <= cycle + 0.01 {
+                let major = (t % 5.0).abs() < 1e-3;
+                let xa = x(t);
+                p.line_segment([Pos2::new(xa, rect.top()), Pos2::new(xa, rect.bottom())], Stroke::new(1.0, Color32::from_white_alpha(if major { 42 } else { 14 })));
+                if major && self.sec_px >= 7.0 || (t % 10.0).abs() < 1e-3 {
+                    p.text(Pos2::new(xa + 2.0, rect.top() + 2.0), egui::Align2::LEFT_TOP, format!("{t:.0}"), egui::FontId::monospace(9.0), DIM);
+                }
+                t += tick;
+            }
+
+            // the lights, one row each
+            let segs = sheet.crossing.timeline();
+            for i in 0..rows {
+                let y0 = top + i as f32 * ROW_H;
+                let row = egui::Rect::from_min_max(Pos2::new(rect.left(), y0), Pos2::new(rect.right(), y0 + ROW_H));
+                if i % 2 == 1 {
+                    p.rect_filled(row, egui::CornerRadius::ZERO, Color32::from_white_alpha(6));
+                }
+                if self.light == Some(i) {
+                    p.rect_filled(egui::Rect::from_min_max(row.min, Pos2::new(rect.left() + GUTTER, row.bottom())), egui::CornerRadius::ZERO, Color32::from_rgb(46, 54, 48));
+                }
+                p.line_segment([Pos2::new(rect.left(), row.bottom()), Pos2::new(rect.right(), row.bottom())], Stroke::new(1.0, Color32::from_white_alpha(18)));
+                let l = &sheet.crossing.lights[i];
+                let name = if l.name.trim().is_empty() { "-" } else { l.name.trim() };
+                p.text(Pos2::new(rect.left() + 5.0, y0 + ROW_H / 2.0), egui::Align2::LEFT_CENTER, format!("{i}  {name}"), egui::FontId::monospace(9.0), if self.light == Some(i) { HANDLE } else { DIM });
+                p.line_segment([Pos2::new(rect.left() + GUTTER, y0), Pos2::new(rect.left() + GUTTER, y0 + ROW_H)], Stroke::new(1.0, Color32::from_white_alpha(28)));
+                for s in segs.iter().filter(|s| s.light == i) {
+                    let block = egui::Rect::from_min_max(
+                        Pos2::new(x(s.start), y0 + 1.0),
+                        Pos2::new(x(s.end).max(x(s.start) + 1.0), y0 + ROW_H - 1.0),
+                    );
+                    let fill = aspect_color(s.state);
+                    p.rect_filled(block, egui::CornerRadius::ZERO, fill);
+                    if s.own_end < s.end - 0.001 {
+                        // (the last phase holds to the cycle's end: that tail is paler)
+                        p.rect_filled(egui::Rect::from_min_max(Pos2::new(x(s.own_end), block.top()), block.max), egui::CornerRadius::ZERO, fill.gamma_multiply(0.55));
+                    }
+                    let on = self.light == Some(i) && self.phase == Some(s.phase);
+                    if on {
+                        p.rect_stroke(block, egui::CornerRadius::ZERO, Stroke::new(1.4, HANDLE), egui::StrokeKind::Inside);
+                    }
+                    if block.width() >= 13.0 {
+                        p.text(block.center(), egui::Align2::CENTER_CENTER, s.phase.to_string(), egui::FontId::monospace(9.0), Color32::from_black_alpha(190));
+                    }
+                }
+            }
+            p.rect_stroke(rect, egui::CornerRadius::ZERO, Stroke::new(1.0, Color32::from_white_alpha(30)), egui::StrokeKind::Inside);
+
+            // ---- the mouse
+            let time_at = |pos: Pos2| ((pos.x - rect.left() - GUTTER) / self.sec_px).clamp(0.0, cycle);
+            let row_at = |pos: Pos2| -> Option<usize> {
+                if pos.y < top {
+                    return None;
+                }
+                let i = ((pos.y - top) / ROW_H).floor() as usize;
+                (i < rows).then_some(i)
+            };
+            let edge_near = |pos: Pos2| -> Option<(usize, usize)> {
+                let i = row_at(pos)?;
+                let near = segs.iter().find(|s| s.light == i && (x(s.end) - pos.x).abs() <= 4.0)?;
+                Some((i, near.phase))
+            };
+            if resp.hovered() && resp.hover_pos().and_then(edge_near).is_some() {
+                ui.ctx().set_cursor_icon(egui::CursorIcon::ResizeHorizontal);
+            }
+            if resp.drag_started_by(egui::PointerButton::Primary) {
+                self.edge = None;
+                // (where the press went down: by the time a drag starts the pointer has moved)
+                let origin = ui.input(|i| i.pointer.press_origin()).or(resp.interact_pointer_pos());
+                if let Some(pos) = origin {
+                    if let Some(i) = row_at(pos) {
+                        if pos.x < rect.left() + GUTTER {
+                            self.light = Some(i);
+                            self.phase = Some(0);
+                        } else if let Some((l, ph)) = edge_near(pos) {
+                            // (on a block's edge: that phase is the one being dragged)
+                            self.light = Some(l);
+                            self.phase = Some(ph);
+                            self.edge = Some((l, ph));
+                        } else if let Some(ph) = sheet.crossing.phase_at(i, time_at(pos)) {
+                            self.light = Some(i);
+                            self.phase = Some(ph);
+                        }
+                    }
+                }
+            }
+            if resp.dragged_by(egui::PointerButton::Primary) {
+                if let (Some((l, ph)), Some(pos)) = (self.edge, resp.interact_pointer_pos()) {
+                    sheet.crossing.resize_phase(l, ph, time_at(pos));
+                }
+            }
+            if resp.drag_stopped_by(egui::PointerButton::Primary) {
+                self.edge = None;
+            }
+            if resp.clicked() {
+                if let Some(pos) = resp.interact_pointer_pos() {
+                    if let Some(i) = row_at(pos) {
+                        self.light = Some(i);
+                        if pos.x < rect.left() + GUTTER {
+                            self.phase = Some(0);
+                        } else if let Some(ph) = sheet.crossing.phase_at(i, time_at(pos)) {
+                            self.phase = Some(ph);
+                        }
+                    }
+                }
+            }
+        });
     }
 
     fn save(&mut self, ed: &mut Editor, roots: &Roots, assets: &mut Assets) {
@@ -810,17 +1169,6 @@ impl CrossingPaths {
         let s = (size.x as f64 / span.x).min(size.y as f64 / span.y);
         self.centre = centre;
         self.scale = (s as f32).clamp(0.6, 400.0);
-    }
-
-    fn canvas(&mut self, ui: &mut egui::Ui) {
-        let Some(mut sheet) = self.sheet.take() else {
-            ui.centered_and_justified(|ui| {
-                ui.label(RichText::new(tr("Nothing to edit yet", "Пока нечего править")).color(DIM));
-            });
-            return;
-        };
-        self.canvas_ui(ui, &mut sheet);
-        self.sheet = Some(sheet);
     }
 
     fn canvas_ui(&mut self, ui: &mut egui::Ui, sheet: &mut Sheet) {
@@ -1112,32 +1460,161 @@ Main
     /// the window looked like: one row of paths and nothing else).
     #[test]
     fn the_window_puts_the_drawing_beside_the_properties() {
-        let mut w = CrossingPaths { open: true, ..Default::default() };
-        w.target = Some(Sel::Object((0, 0), 1));
-        w.rel = "Sceneryobjects\\Test\\Kreuzung.sco".into();
-        w.selected = Some(0);
-        w.sheet = Some(crate::crossing_edit::Sheet::parse(SCO));
+        let mut w = opened(Tab::Paths);
         let mut ed = Editor::default();
-        let lib = Library::default();
-        let mut actions = Vec::new();
-        let ctx = egui::Context::default();
-        ctx.set_fonts(icons::fonts());
-        let input = egui::RawInput {
-            screen_rect: Some(egui::Rect::from_min_size(egui::Pos2::ZERO, egui::vec2(1400.0, 900.0))),
-            ..Default::default()
-        };
-        // (two frames: the first one settles the window's size)
-        for _ in 0..2 {
-            let _ = ctx.run_ui(input.clone(), |ui| {
-                let ctx = ui.ctx().clone();
-                w.window(&ctx, &mut ed, &lib, None, None, &mut actions);
-            });
-        }
+        let ctx = context();
+        run(&ctx, &mut w, &mut ed, vec![], 0.0);
+        run(&ctx, &mut w, &mut ed, vec![], 0.1);
         let canvas = w.last_canvas;
         assert!(canvas.x > 400.0, "the drawing got {canvas:?}: the properties are laid out beside it");
         assert!(canvas.y > 300.0, "the drawing got {canvas:?}");
         // and the map is shown the paths as the window has them
         let draft = ed.crossing_draft.as_ref().expect("the map shows the draft");
         assert_eq!(draft.2.len(), 3);
+    }
+
+    fn context() -> egui::Context {
+        let ctx = egui::Context::default();
+        ctx.set_fonts(icons::fonts());
+        ctx
+    }
+
+    /// With nothing open the window still shows the picker, whole: a window collapsed to its
+    /// title bar would be a blank grey strip.
+    #[test]
+    fn the_window_asks_for_a_crossing_when_none_is_open() {
+        let mut w = CrossingPaths { open: true, ..Default::default() };
+        let mut ed = Editor::default();
+        let ctx = context();
+        run(&ctx, &mut w, &mut ed, vec![], 0.0);
+        run(&ctx, &mut w, &mut ed, vec![], 0.1);
+        let rect = w.last_window.expect("the window is drawn");
+        assert!(rect.height() > 200.0, "the window's body is collapsed: {rect:?}");
+        assert!(rect.width() > 400.0, "the window is {rect:?}");
+    }
+
+    fn opened(tab: Tab) -> CrossingPaths {
+        let mut w = CrossingPaths { open: true, ..Default::default() };
+        w.target = Some(Sel::Object((0, 0), 1));
+        w.rel = "Sceneryobjects\\Test\\Kreuzung.sco".into();
+        w.selected = Some(0);
+        w.sheet = Some(crate::crossing_edit::Sheet::parse(SCO));
+        w.tab = tab;
+        w
+    }
+
+    fn run(ctx: &egui::Context, w: &mut CrossingPaths, ed: &mut Editor, events: Vec<egui::Event>, time: f64) {
+        let lib = Library::default();
+        let mut actions = Vec::new();
+        let input = egui::RawInput {
+            screen_rect: Some(egui::Rect::from_min_size(egui::Pos2::ZERO, egui::vec2(1400.0, 900.0))),
+            time: Some(time),
+            events,
+            ..Default::default()
+        };
+        let _ = ctx.run_ui(input, |ui| {
+            let ctx = ui.ctx().clone();
+            w.window(&ctx, ed, &lib, None, None, &mut actions);
+        });
+    }
+
+    fn press(pos: Pos2, pressed: bool) -> egui::Event {
+        egui::Event::PointerButton { pos, button: egui::PointerButton::Primary, pressed, modifiers: egui::Modifiers::default() }
+    }
+
+    /// The light page gives the timeline the room beside the program, and draws the phases
+    /// the file has: red for 30 s, then green to the end of the cycle.
+    #[test]
+    fn the_lights_page_lays_the_timeline_beside_the_program() {
+        let mut w = opened(Tab::Lights);
+        let mut ed = Editor::default();
+        let ctx = context();
+        run(&ctx, &mut w, &mut ed, vec![], 0.0);
+        run(&ctx, &mut w, &mut ed, vec![], 0.1);
+        let rect = w.last_timeline.expect("the timeline is drawn");
+        assert!(rect.width() > 300.0, "the timeline got {rect:?}");
+        assert!(rect.left() > 330.0, "the program keeps the left side: {rect:?}");
+        assert!(rect.height() >= HEAD + ROW_H, "a row per light: {rect:?}");
+        // the crossing is picked when the page is opened, and its first phase with it
+        let sheet = w.sheet.as_ref().unwrap();
+        assert_eq!(sheet.crossing.lights.len(), 1);
+        assert_eq!(w.light, Some(0));
+        assert_eq!(w.phase, Some(0));
+        // the cycle's 60 s are on the timeline
+        assert!(rect.width() >= GUTTER + 60.0 * w.sec_px - 1.0, "{rect:?}");
+    }
+
+    /// A longer cycle still shows end to end: the timeline takes the window's width on its own,
+    /// as the traffic light window's does.
+    #[test]
+    fn a_longer_cycle_still_fits_the_width() {
+        let mut w = opened(Tab::Lights);
+        let mut ed = Editor::default();
+        let ctx = context();
+        {
+            let c = &mut w.sheet.as_mut().unwrap().crossing;
+            c.cycle = Some(240.0);
+            for p in &mut c.lights[0].phases {
+                p.duration *= 4.0;
+            }
+        }
+        run(&ctx, &mut w, &mut ed, vec![], 0.0);
+        run(&ctx, &mut w, &mut ed, vec![], 0.1);
+        let rect = w.last_timeline.expect("the timeline is drawn");
+        let cycle = w.sheet.as_ref().unwrap().crossing.cycle_len();
+        assert!(cycle >= 230.0, "the cycle grew to {cycle} s");
+        assert!(
+            GUTTER + cycle * w.sec_px <= rect.width() + 1.0,
+            "{cycle} s at {} px/s does not fit {rect:?}",
+            w.sec_px
+        );
+    }
+
+    /// Clicking a block picks its light and its phase, as the numbers on the left edit them.
+    #[test]
+    fn clicking_a_block_picks_that_phase() {
+        let mut w = opened(Tab::Lights);
+        let mut ed = Editor::default();
+        let ctx = context();
+        run(&ctx, &mut w, &mut ed, vec![], 0.0);
+        run(&ctx, &mut w, &mut ed, vec![], 0.1);
+        let rect = w.last_timeline.expect("the timeline is drawn");
+        // (the second phase runs from 30 s to 55 s)
+        let at = Pos2::new(rect.left() + GUTTER + 40.0 * w.sec_px, rect.top() + HEAD + ROW_H * 0.5);
+        run(&ctx, &mut w, &mut ed, vec![egui::Event::PointerMoved(at), press(at, true)], 0.2);
+        run(&ctx, &mut w, &mut ed, vec![press(at, false)], 0.3);
+        assert_eq!(w.light, Some(0));
+        assert_eq!(w.phase, Some(1), "the block at 40 s is the green phase");
+        // and the phase of the first block is picked by clicking further left
+        let at = Pos2::new(rect.left() + GUTTER + 10.0 * w.sec_px, rect.top() + HEAD + ROW_H * 0.5);
+        run(&ctx, &mut w, &mut ed, vec![egui::Event::PointerMoved(at), press(at, true)], 0.4);
+        run(&ctx, &mut w, &mut ed, vec![press(at, false)], 0.5);
+        assert_eq!(w.phase, Some(0), "the block at 10 s is the red phase");
+    }
+
+    /// Dragging the right edge of a block changes that phase's duration, and the ones after it
+    /// move along; the file is what it says afterwards.
+    #[test]
+    fn dragging_a_blocks_edge_changes_its_duration() {
+        let mut w = opened(Tab::Lights);
+        let mut ed = Editor::default();
+        let ctx = context();
+        run(&ctx, &mut w, &mut ed, vec![], 0.0);
+        run(&ctx, &mut w, &mut ed, vec![], 0.1);
+        let rect = w.last_timeline.expect("the timeline is drawn");
+        let y = rect.top() + HEAD + ROW_H * 0.5;
+        let from = Pos2::new(rect.left() + GUTTER + 30.0 * w.sec_px, y);
+        let to = Pos2::new(rect.left() + GUTTER + 20.0 * w.sec_px, y);
+        run(&ctx, &mut w, &mut ed, vec![egui::Event::PointerMoved(from), press(from, true)], 0.2);
+        run(&ctx, &mut w, &mut ed, vec![egui::Event::PointerMoved(to)], 0.3);
+        run(&ctx, &mut w, &mut ed, vec![press(to, false)], 0.4);
+        let sheet = w.sheet.as_ref().unwrap();
+        assert_eq!(sheet.crossing.lights[0].phases[0].duration, 20.0);
+        assert_eq!(sheet.crossing.lights[0].phases[1].duration, 25.0, "the green phase keeps its own");
+        assert_eq!(w.edge, None, "the drag has ended");
+        // the second phase now starts at 20 s, and still holds to the cycle's end
+        let segs = sheet.crossing.segments(0);
+        assert_eq!(segs[1].start, 20.0);
+        assert_eq!(segs[1].end, 60.0);
     }
 }

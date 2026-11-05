@@ -2703,3 +2703,10 @@ what was written does not read back the same	a beírt adat nem ugyanúgy olvasha
 its paths are in a file of their own (`[paths]`), which this editor does not read	az útvonalai külön fájlban vannak (`[paths]`), amelyet ez a szerkesztő nem olvas
 it has no path	nincs útvonala
 jump	ugrás
+Phase	Fázis
+Traffic light phase	Jelzőlámpa-fázis
+Duration	Időtartam
+Timeline	Idővonal
+Click a block to edit that phase; drag its right edge to change how long it lasts	Kattints egy blokkra a fázis szerkesztéséhez; húzd a jobb szélét az időtartam megváltoztatásához
+Traffic light	Jelzőlámpa
+The whole cycle across the width (as the traffic light window has it)	A teljes ciklus a szélességben (mint a jelzőlámpa ablakában)

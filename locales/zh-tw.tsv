@@ -2700,3 +2700,10 @@ what was written does not read back the same	寫入的內容讀回後不一致
 its paths are in a file of their own (`[paths]`), which this editor does not read	其路徑位於獨立檔案（`[paths]`），此編輯器不會讀取
 it has no path	它沒有路徑
 jump	跳轉
+Phase	相位
+Traffic light phase	紅綠燈相位
+Duration	持續時間
+Timeline	時間軸
+Click a block to edit that phase; drag its right edge to change how long it lasts	點擊區塊可編輯該相位；拖曳右緣可改變持續時間
+Traffic light	號誌燈
+The whole cycle across the width (as the traffic light window has it)	整個週期橫向鋪滿（與號誌燈視窗相同）

@@ -2703,3 +2703,10 @@ what was written does not read back the same	o que foi escrito não se lê da me
 its paths are in a file of their own (`[paths]`), which this editor does not read	os seus caminhos estão num ficheiro próprio (`[paths]`), que este editor não lê
 it has no path	não tem caminhos
 jump	salto
+Phase	Fase
+Traffic light phase	Fase do semáforo
+Duration	Duração
+Timeline	Linha temporal
+Click a block to edit that phase; drag its right edge to change how long it lasts	Clique num bloco para editar essa fase; arraste a margem direita para alterar a duração
+Traffic light	Semáforo
+The whole cycle across the width (as the traffic light window has it)	Todo o ciclo na largura (como na janela do semáforo)

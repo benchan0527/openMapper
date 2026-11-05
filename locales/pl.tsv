@@ -2703,3 +2703,10 @@ what was written does not read back the same	zapisane dane nie odczytują się t
 its paths are in a file of their own (`[paths]`), which this editor does not read	jego ścieżki są w osobnym pliku (`[paths]`), którego ten edytor nie czyta
 it has no path	nie ma ścieżek
 jump	skok
+Phase	Faza
+Traffic light phase	Faza sygnalizacji
+Duration	Czas trwania
+Timeline	Oś czasu
+Click a block to edit that phase; drag its right edge to change how long it lasts	Kliknij blok, aby edytować tę fazę; przeciągnij jego prawą krawędź, aby zmienić czas trwania
+Traffic light	Sygnalizator
+The whole cycle across the width (as the traffic light window has it)	Cały cykl na szerokość (jak w oknie sygnalizatora)

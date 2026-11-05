@@ -2703,3 +2703,10 @@ what was written does not read back the same	hindi pareho ang nabasa sa naisulat
 its paths are in a file of their own (`[paths]`), which this editor does not read	nasa sariling file (`[paths]`) ang mga path nito, na hindi binabasa ng editor na ito
 it has no path	wala itong path
 jump	talon
+Phase	Yugto
+Traffic light phase	Yugto ng ilaw trapiko
+Duration	Tagal
+Timeline	Timeline
+Click a block to edit that phase; drag its right edge to change how long it lasts	I-click ang bloke para i-edit ang yugtong iyon; hilahin ang kanang gilid para baguhin ang tagal nito
+Traffic light	Traffic light
+The whole cycle across the width (as the traffic light window has it)	Ang buong cycle sa lapad (tulad sa traffic light window)

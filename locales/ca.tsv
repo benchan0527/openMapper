@@ -2703,3 +2703,10 @@ what was written does not read back the same	el que s'ha escrit no es llegeix ig
 its paths are in a file of their own (`[paths]`), which this editor does not read	els seus camins són en un fitxer propi (`[paths]`), que aquest editor no llegeix
 it has no path	no té cap camí
 jump	salt
+Phase	Fase
+Traffic light phase	Fase del semàfor
+Duration	Durada
+Timeline	Línia de temps
+Click a block to edit that phase; drag its right edge to change how long it lasts	Feu clic en un bloc per editar aquesta fase; arrossegueu-ne la vora dreta per canviar-ne la durada
+Traffic light	Semàfor
+The whole cycle across the width (as the traffic light window has it)	Tot el cicle a l'amplada (com a la finestra del semàfor)

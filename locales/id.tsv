@@ -2703,3 +2703,10 @@ what was written does not read back the same	yang ditulis tidak terbaca sama
 its paths are in a file of their own (`[paths]`), which this editor does not read	jalurnya ada di berkas tersendiri (`[paths]`), yang tidak dibaca editor ini
 it has no path	tidak punya jalur
 jump	lompat
+Phase	Fase
+Traffic light phase	Fase lampu lalu lintas
+Duration	Durasi
+Timeline	Garis waktu
+Click a block to edit that phase; drag its right edge to change how long it lasts	Klik blok untuk mengedit fase itu; seret tepi kanannya untuk mengubah durasinya
+Traffic light	Lampu lalu lintas
+The whole cycle across the width (as the traffic light window has it)	Seluruh siklus selebar (seperti di jendela lampu lalu lintas)

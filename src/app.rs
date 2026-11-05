@@ -831,7 +831,27 @@ impl App {
             if let [x, y] = v[..] {
                 let z = self.ed.doc.as_ref().map(|d| d.ground(DVec2::new(x, y))).unwrap_or(0.0);
                 let placed = self.add_map_object_at(&rel, DVec3::new(x, y, z));
+                if let Some(sel) = placed {
+                    self.ed.select(Some(sel));
+                }
                 log::info!("put: {} placed", placed.is_some());
+            }
+        }
+        // OPENMAPPER_CROSSING=paths|lights: the crossing editor open on the selected object,
+        // or on the first crossing of the map's list (checks of the window without a person
+        // at the screen)
+        if let Ok(page) = std::env::var("OPENMAPPER_CROSSING") {
+            if let Some(roots) = self.roots.clone() {
+                while self.lib.scanning {
+                    self.lib.poll();
+                    std::thread::sleep(std::time::Duration::from_millis(20));
+                }
+                self.crossing.open_page(page.eq_ignore_ascii_case("lights"));
+                self.crossing.request(&mut self.ed, &roots, &self.lib);
+                if !self.crossing.has_sheet() {
+                    self.crossing.open_first_candidate(&mut self.ed, &roots);
+                }
+                log::info!("crossing editor: {page}, window {}, a crossing: {}, selected {:?}", self.crossing.open, self.crossing.has_sheet(), self.ed.selected);
             }
         }
         // OPENMAPPER_AUTOPAINT=<layer>: the Paint tool's rule by slope and height applied to that layer

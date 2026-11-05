@@ -2703,3 +2703,10 @@ what was written does not read back the same	जो लिखा गया व�
 its paths are in a file of their own (`[paths]`), which this editor does not read	इसके पथ अलग फ़ाइल (`[paths]`) में हैं, जिसे यह संपादक नहीं पढ़ता
 it has no path	इसमें कोई पथ नहीं है
 jump	छलांग
+Phase	चरण
+Traffic light phase	ट्रैफ़िक लाइट चरण
+Duration	अवधि
+Timeline	समयरेखा
+Click a block to edit that phase; drag its right edge to change how long it lasts	उस चरण को संपादित करने के लिए किसी ब्लॉक पर क्लिक करें; उसकी अवधि बदलने के लिए उसके दाहिने किनारे को खींचें
+Traffic light	ट्रैफ़िक लाइट
+The whole cycle across the width (as the traffic light window has it)	पूरा चक्र चौड़ाई में (जैसा ट्रैफ़िक लाइट विंडो में)

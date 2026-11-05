@@ -2703,3 +2703,10 @@ what was written does not read back the same	жазылған дерек сол 
 its paths are in a file of their own (`[paths]`), which this editor does not read	оның жолдары бөлек файлда (`[paths]`), бұл редактор оны оқымайды
 it has no path	оның жолдары жоқ
 jump	өту
+Phase	Фаза
+Traffic light phase	Бағдаршам фазасы
+Duration	Ұзақтығы
+Timeline	Уақыт шкаласы
+Click a block to edit that phase; drag its right edge to change how long it lasts	Сол фазаны өңдеу үшін блокты басыңыз; ұзақтығын өзгерту үшін оның оң жақ шетін сүйреңіз
+Traffic light	Бағдаршам
+The whole cycle across the width (as the traffic light window has it)	Бүкіл цикл ені бойынша (бағдаршам терезесіндегідей)

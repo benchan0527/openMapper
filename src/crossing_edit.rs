@@ -485,6 +485,111 @@ impl Crossing {
             _ => self.phases_sum().max(1.0),
         }
     }
+
+    /// Whether the file states the cycle itself (`[traffic_lights_group]`), rather than
+    /// leaving it to the longest light's phases.
+    pub fn has_cycle(&self) -> bool {
+        matches!(self.cycle, Some(c) if c > 0.0)
+    }
+
+    /// Where phase `phase` of light `light` starts: the phases before it laid end to end.
+    pub fn phase_start(&self, light: usize, phase: usize) -> f32 {
+        self.lights.get(light).map(|l| l.phases.iter().take(phase).map(|p| p.duration.max(0.0)).sum()).unwrap_or(0.0)
+    }
+
+    /// The phases of light `light` as they run over the cycle - what a timeline draws. A phase
+    /// of no length takes no room; the last one holds to the cycle's end when the phases are
+    /// shorter than it; what runs past the cycle is cut off.
+    pub fn segments(&self, light: usize) -> Vec<Segment> {
+        let len = self.cycle_len();
+        let Some(l) = self.lights.get(light) else { return Vec::new() };
+        let mut out = Vec::new();
+        let mut t = 0.0f32;
+        for (i, ph) in l.phases.iter().enumerate() {
+            if t >= len {
+                break;
+            }
+            let last = i + 1 == l.phases.len();
+            let own = t + ph.duration.max(0.0);
+            let end = if last { own.max(len) } else { own }.min(len);
+            if end > t {
+                out.push(Segment { light, phase: i, start: t, own_end: own.min(end), end, state: ph.state });
+            }
+            t = end;
+        }
+        out
+    }
+
+    /// Every light's phases, one light's after another.
+    pub fn timeline(&self) -> Vec<Segment> {
+        (0..self.lights.len()).flat_map(|l| self.segments(l)).collect()
+    }
+
+    /// The phase of light `light` showing at `t` seconds into the cycle.
+    pub fn phase_at(&self, light: usize, t: f32) -> Option<usize> {
+        self.segments(light).into_iter().find(|s| t >= s.start && t < s.end).map(|s| s.phase)
+    }
+
+    /// Make phase `phase` of light `light` end at `end` seconds into the cycle, the way its
+    /// block is dragged in a timeline. Rounded to whole seconds, never before its own start
+    /// and - when the file states the cycle - never past the cycle's end.
+    pub fn resize_phase(&mut self, light: usize, phase: usize, end: f32) -> bool {
+        let stated = self.has_cycle();
+        let cycle = self.cycle_len();
+        let start = self.phase_start(light, phase);
+        let Some(l) = self.lights.get_mut(light) else { return false };
+        if phase >= l.phases.len() {
+            return false;
+        }
+        let want = (end - start).round().max(0.0);
+        let want = if stated { want.min((cycle - start).max(0.0).round()) } else { want };
+        if (l.phases[phase].duration - want).abs() < 1e-6 {
+            return false;
+        }
+        l.phases[phase].duration = want;
+        true
+    }
+
+    /// A new light: red for half its run, green for the other half. Its index.
+    pub fn add_light(&mut self) -> usize {
+        self.lights.push(TrafficLight {
+            name: format!("Light {}", self.lights.len() + 1),
+            phases: vec![TrafficLightPhase { state: 0, duration: 20.0 }, TrafficLightPhase { state: 6, duration: 20.0 }],
+            approach_dist: None,
+        });
+        self.lights.len() - 1
+    }
+
+    /// A new red phase in light `light`, before phase `at` (at its end when `at` is past it).
+    pub fn insert_phase(&mut self, light: usize, at: usize) -> Option<usize> {
+        let l = self.lights.get_mut(light)?;
+        let at = at.min(l.phases.len());
+        l.phases.insert(at, TrafficLightPhase { state: 0, duration: 10.0 });
+        Some(at)
+    }
+
+    /// Remove phase `phase` of light `light`.
+    pub fn remove_phase(&mut self, light: usize, phase: usize) -> bool {
+        let Some(l) = self.lights.get_mut(light) else { return false };
+        if phase >= l.phases.len() {
+            return false;
+        }
+        l.phases.remove(phase);
+        true
+    }
+}
+
+/// One run of a light's program on a timeline: phase `phase` of light `light`, from `start`
+/// to `end` seconds into the cycle.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct Segment {
+    pub light: usize,
+    pub phase: usize,
+    pub start: f32,
+    /// Where the phase's own duration ends (the last one may hold past it).
+    pub own_end: f32,
+    pub end: f32,
+    pub state: i32,
 }
 
 /// An object's `.sco` opened for editing: the parts this editor owns, and the rest of the

@@ -2703,3 +2703,10 @@ what was written does not read back the same	zapsaná data se nenačítají stej
 its paths are in a file of their own (`[paths]`), which this editor does not read	jeho cesty jsou ve vlastním souboru (`[paths]`), který tento editor nečte
 it has no path	nemá žádnou cestu
 jump	skok
+Phase	Fáze
+Traffic light phase	Fáze semaforu
+Duration	Trvání
+Timeline	Časová os
+Click a block to edit that phase; drag its right edge to change how long it lasts	Kliknutím na blok upravíte tuto fázi; přetažením jeho pravého okraje změníte její trvání
+Traffic light	Semafor
+The whole cycle across the width (as the traffic light window has it)	Celý cyklus na šířku (jako v okně semaforu)

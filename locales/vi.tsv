@@ -2703,3 +2703,10 @@ what was written does not read back the same	nội dung đã ghi đọc lại kh
 its paths are in a file of their own (`[paths]`), which this editor does not read	các đường của nó nằm trong tệp riêng (`[paths]`), trình chỉnh sửa này không đọc
 it has no path	nó không có đường nào
 jump	nhảy
+Phase	Pha
+Traffic light phase	Pha đèn giao thông
+Duration	Thời lượng
+Timeline	Dòng thời gian
+Click a block to edit that phase; drag its right edge to change how long it lasts	Nhấp vào một khối để sửa pha đó; kéo cạnh phải của nó để đổi thời lượng
+Traffic light	Đèn giao thông
+The whole cycle across the width (as the traffic light window has it)	Cả chu kỳ theo chiều ngang (như trong cửa sổ đèn giao thông)

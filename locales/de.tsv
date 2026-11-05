@@ -2701,3 +2701,10 @@ what was written does not read back the same	das Geschriebene liest sich nicht g
 its paths are in a file of their own (`[paths]`), which this editor does not read	seine Pfade liegen in einer eigenen Datei (`[paths]`), die dieser Editor nicht liest
 it has no path	es hat keinen Pfad
 jump	Sprung
+Phase	Phase
+Traffic light phase	Ampelphase
+Duration	Dauer
+Timeline	Zeitachse
+Click a block to edit that phase; drag its right edge to change how long it lasts	Auf einen Block klicken, um diese Phase zu bearbeiten; am rechten Rand ziehen, um ihre Dauer zu ändern
+Traffic light	Ampel
+The whole cycle across the width (as the traffic light window has it)	Der ganze Umlauf über die Breite (wie im Ampelfenster)

@@ -2703,3 +2703,10 @@ what was written does not read back the same	det som skrevs läses inte tillbaka
 its paths are in a file of their own (`[paths]`), which this editor does not read	dess vägar finns i en egen fil (`[paths]`), som den här redigeraren inte läser
 it has no path	den har ingen väg
 jump	hopp
+Phase	Fas
+Traffic light phase	Trafikljusfas
+Duration	Varaktighet
+Timeline	Tidslinje
+Click a block to edit that phase; drag its right edge to change how long it lasts	Klicka på ett block för att redigera fasen; dra i dess högerkant för att ändra varaktigheten
+Traffic light	Trafikljus
+The whole cycle across the width (as the traffic light window has it)	Hela cykeln över bredden (som i trafikljusfönstret)

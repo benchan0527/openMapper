@@ -2700,3 +2700,10 @@ what was written does not read back the same	写入的内容读回后不一致
 its paths are in a file of their own (`[paths]`), which this editor does not read	其路径位于单独文件（`[paths]`），此编辑器不会读取
 it has no path	它没有路径
 jump	跳转
+Phase	相位
+Traffic light phase	红绿灯相位
+Duration	持续时间
+Timeline	时间轴
+Click a block to edit that phase; drag its right edge to change how long it lasts	点击区块可编辑该相位；拖动右边缘可改变持续时间
+Traffic light	信号灯
+The whole cycle across the width (as the traffic light window has it)	整个周期横向铺满（与信号灯窗口相同）

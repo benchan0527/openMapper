@@ -2703,3 +2703,10 @@ what was written does not read back the same	쓴 내용이 같게 다시 읽히�
 its paths are in a file of their own (`[paths]`), which this editor does not read	경로가 별도 파일(`[paths]`)에 있어 이 편집기가 읽지 않습니다
 it has no path	경로가 없습니다
 jump	점프
+Phase	단계
+Traffic light phase	신호등 단계
+Duration	지속 시간
+Timeline	타임라인
+Click a block to edit that phase; drag its right edge to change how long it lasts	블록을 클릭하면 해당 단계를 편집할 수 있고, 오른쪽 가장자리를 끌면 지속 시간이 바뀝니다
+Traffic light	신호등
+The whole cycle across the width (as the traffic light window has it)	전체 주기를 너비에 (신호등 창에서처럼)

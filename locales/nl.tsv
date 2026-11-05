@@ -2703,3 +2703,10 @@ what was written does not read back the same	wat is geschreven leest niet hetzel
 its paths are in a file of their own (`[paths]`), which this editor does not read	de paden staan in een eigen bestand (`[paths]`), dat deze editor niet leest
 it has no path	het heeft geen pad
 jump	sprong
+Phase	Fase
+Traffic light phase	Verkeerslichtfase
+Duration	Duur
+Timeline	Tijdlijn
+Click a block to edit that phase; drag its right edge to change how long it lasts	Klik op een blok om die fase te bewerken; sleep de rechterrand om de duur te wijzigen
+Traffic light	Verkeerslicht
+The whole cycle across the width (as the traffic light window has it)	De hele cyclus over de breedte (zoals in het verkeerslichtvenster)

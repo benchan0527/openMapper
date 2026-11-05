@@ -2703,3 +2703,10 @@ what was written does not read back the same	yazılan aynı şekilde geri okunmu
 its paths are in a file of their own (`[paths]`), which this editor does not read	yolları kendi dosyasındadır (`[paths]`), bu düzenleyici onu okumaz
 it has no path	yolu yok
 jump	atlama
+Phase	Evre
+Traffic light phase	Trafik lambası evresi
+Duration	Süre
+Timeline	Zaman çizelgesi
+Click a block to edit that phase; drag its right edge to change how long it lasts	O evreyi düzenlemek için bir bloğa tıklayın; süresini değiştirmek için sağ kenarını sürükleyin
+Traffic light	Trafik lambası
+The whole cycle across the width (as the traffic light window has it)	Tüm çevrim genişlik boyunca (trafik lambası penceresindeki gibi)

@@ -2703,3 +2703,10 @@ what was written does not read back the same	書き込んだ内容が同じよ�
 its paths are in a file of their own (`[paths]`), which this editor does not read	パスは別ファイル (`[paths]`) にあり、このエディターでは読み込めません
 it has no path	パスがありません
 jump	ジャンプ
+Phase	フェーズ
+Traffic light phase	信号機のフェーズ
+Duration	表示時間
+Timeline	タイムライン
+Click a block to edit that phase; drag its right edge to change how long it lasts	ブロックをクリックするとそのフェーズを編集できます。右端をドラッグすると表示時間を変更できます
+Traffic light	信号機
+The whole cycle across the width (as the traffic light window has it)	サイクル全体を横幅に（信号機ウィンドウと同じ）

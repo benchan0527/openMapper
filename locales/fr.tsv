@@ -2701,3 +2701,10 @@ what was written does not read back the same	ce qui a été écrit ne se relit p
 its paths are in a file of their own (`[paths]`), which this editor does not read	ses chemins sont dans un fichier à part (`[paths]`), que cet éditeur ne lit pas
 it has no path	il n'a aucun chemin
 jump	saut
+Phase	Phase
+Traffic light phase	Phase du feu
+Duration	Durée
+Timeline	Chronologie
+Click a block to edit that phase; drag its right edge to change how long it lasts	Cliquez sur un bloc pour modifier cette phase ; faites glisser son bord droit pour changer sa durée
+Traffic light	Feu
+The whole cycle across the width (as the traffic light window has it)	Tout le cycle sur la largeur (comme dans la fenêtre du feu)

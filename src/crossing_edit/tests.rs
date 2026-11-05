@@ -452,3 +452,153 @@ fn small_numbers_and_foreign_names_are_kept() {
     let bytes = encode_like("Светофор", b"plain ascii");
     assert_eq!(omsi_cfg::decode_text(&bytes), "Светофор");
 }
+
+// ---------------------------------------------------------------- the timeline
+
+/// A crossing with one light, its phases as `(state, seconds)`.
+fn lit(cycle: Option<f32>, phases: &[(i32, f32)]) -> Crossing {
+    let mut c = Crossing::default();
+    c.cycle = cycle;
+    c.lights.push(omsi_scenery::TrafficLight {
+        name: "Main".into(),
+        phases: phases.iter().map(|&(state, duration)| omsi_scenery::TrafficLightPhase { state, duration }).collect(),
+        approach_dist: None,
+    });
+    c
+}
+
+#[test]
+fn the_phases_lie_one_after_another_over_the_cycle() {
+    let c = lit(Some(60.0), &[(0, 30.0), (3, 5.0), (6, 20.0), (9, 5.0)]);
+    let s = c.segments(0);
+    assert_eq!(s.len(), 4);
+    assert_eq!(s.iter().map(|q| (q.start, q.end)).collect::<Vec<_>>(), vec![(0.0, 30.0), (30.0, 35.0), (35.0, 55.0), (55.0, 60.0)]);
+    assert_eq!(s.iter().map(|q| q.phase).collect::<Vec<_>>(), vec![0, 1, 2, 3]);
+    assert_eq!(s.iter().map(|q| q.state).collect::<Vec<_>>(), vec![0, 3, 6, 9]);
+    // nothing is held: each one ends with its own seconds
+    assert!(s.iter().all(|q| q.own_end == q.end));
+}
+
+#[test]
+fn the_last_phase_holds_to_the_cycles_end_when_the_phases_are_shorter() {
+    let c = lit(Some(60.0), &[(0, 30.0), (6, 20.0)]);
+    let s = c.segments(0);
+    assert_eq!(s[s.len() - 1].start, 30.0);
+    assert_eq!(s[s.len() - 1].own_end, 50.0);
+    assert_eq!(s[s.len() - 1].end, 60.0, "the last one runs to the cycle's end");
+}
+
+#[test]
+fn a_cycle_shorter_than_the_phases_cuts_them() {
+    let c = lit(Some(30.0), &[(0, 20.0), (6, 30.0)]);
+    let s = c.segments(0);
+    assert_eq!(s.len(), 2);
+    assert_eq!((s[1].start, s[1].end), (20.0, 30.0), "cut at the cycle's end");
+    // a phase that would start past the cycle is not on it at all
+    let c = lit(Some(30.0), &[(0, 40.0), (6, 10.0)]);
+    assert_eq!(c.segments(0).len(), 1);
+    assert_eq!(c.segments(0)[0].end, 30.0);
+}
+
+#[test]
+fn a_phase_of_no_length_takes_no_room_on_the_timeline() {
+    let c = lit(Some(30.0), &[(0, 10.0), (3, 0.0), (6, 10.0)]);
+    let s = c.segments(0);
+    assert_eq!(s.len(), 2);
+    assert_eq!(s.iter().map(|q| q.phase).collect::<Vec<_>>(), vec![0, 2]);
+    assert_eq!((s[1].start, s[1].end), (10.0, 30.0));
+    // its phase is still in the file, and still picked in the list
+    assert_eq!(c.lights[0].phases.len(), 3);
+}
+
+#[test]
+fn a_second_of_the_cycle_finds_the_phase_showing_then() {
+    let c = lit(Some(60.0), &[(0, 30.0), (3, 5.0), (6, 20.0), (9, 5.0)]);
+    assert_eq!(c.phase_at(0, 0.0), Some(0));
+    assert_eq!(c.phase_at(0, 29.99), Some(0));
+    assert_eq!(c.phase_at(0, 30.0), Some(1), "the boundary belongs to the phase it starts");
+    assert_eq!(c.phase_at(0, 34.9), Some(1));
+    assert_eq!(c.phase_at(0, 35.0), Some(2));
+    assert_eq!(c.phase_at(0, 59.9), Some(3));
+    assert_eq!(c.phase_at(0, 60.0), None, "the cycle has ended");
+    assert_eq!(c.phase_at(0, -1.0), None);
+    // a light that is not there has nothing
+    assert_eq!(c.phase_at(4, 1.0), None);
+}
+
+#[test]
+fn dragging_an_edge_changes_that_phases_duration_and_the_rest_follows() {
+    let mut c = lit(None, &[(0, 20.0), (6, 20.0)]);
+    assert_eq!(c.cycle_len(), 40.0);
+    assert!(c.resize_phase(0, 0, 30.0));
+    assert_eq!(c.lights[0].phases[0].duration, 30.0);
+    assert_eq!(c.lights[0].phases[1].duration, 20.0, "the other phase keeps its own");
+    assert_eq!(c.cycle_len(), 50.0, "without a stated cycle, the cycle is the sum");
+    assert_eq!(c.segments(0)[1].start, 30.0);
+    // and back the other way, to a whole second
+    assert!(c.resize_phase(0, 0, 12.4));
+    assert_eq!(c.lights[0].phases[0].duration, 12.0);
+}
+
+#[test]
+fn a_stated_cycle_keeps_the_drag_inside_it() {
+    let mut c = lit(Some(60.0), &[(0, 30.0), (6, 20.0)]);
+    assert!(c.resize_phase(0, 0, 200.0));
+    assert_eq!(c.lights[0].phases[0].duration, 60.0, "as far as the cycle goes");
+    // the last phase can be dragged shorter, and then holds to the cycle's end
+    let mut c = lit(Some(60.0), &[(0, 30.0), (6, 20.0)]);
+    assert!(c.resize_phase(0, 1, 40.0));
+    assert_eq!(c.lights[0].phases[1].duration, 10.0, "40 s into the cycle, and it starts at 30");
+    let s = c.segments(0);
+    assert_eq!(s[s.len() - 1].end, 60.0);
+    assert_eq!(s[s.len() - 1].own_end, 40.0, "the rest of the cycle is held");
+}
+
+#[test]
+fn dragging_before_a_phases_own_start_leaves_it_at_nothing() {
+    let mut c = lit(None, &[(0, 20.0), (6, 20.0)]);
+    assert!(c.resize_phase(0, 1, 5.0));
+    assert_eq!(c.lights[0].phases[1].duration, 0.0);
+    assert_eq!(c.segments(0).len(), 1, "a phase of no length has no block");
+    // a drag that changes nothing says so
+    assert!(!c.resize_phase(0, 1, 5.0));
+    assert!(!c.resize_phase(0, 9, 5.0), "no such phase");
+    assert!(!c.resize_phase(7, 0, 5.0), "no such light");
+}
+
+#[test]
+fn phases_and_lights_are_added_and_removed_at_the_picked_place() {
+    let mut c = lit(Some(60.0), &[(0, 30.0), (6, 20.0)]);
+    assert_eq!(c.insert_phase(0, 1), Some(1));
+    assert_eq!(c.lights[0].phases.len(), 3);
+    assert_eq!(c.lights[0].phases[1].state, 0);
+    assert_eq!(c.lights[0].phases[1].duration, 10.0);
+    assert!(c.remove_phase(0, 1));
+    assert_eq!(c.lights[0].phases.len(), 2);
+    assert!(!c.remove_phase(0, 5));
+    let n = c.add_light();
+    assert_eq!(n, 1);
+    assert_eq!(c.lights[1].name, "Light 2");
+    assert_eq!(c.lights[1].phases.len(), 2);
+    assert_eq!(c.lights[1].phases[0].state, 0, "it starts on red");
+    assert_eq!(c.lights[1].phases[1].state, 6, "and goes green");
+}
+
+#[test]
+fn the_timeline_lists_every_light_one_after_another() {
+    let mut c = lit(Some(20.0), &[(0, 10.0), (6, 10.0)]);
+    c.lights.push(omsi_scenery::TrafficLight {
+        name: "Side".into(),
+        phases: vec![
+            omsi_scenery::TrafficLightPhase { state: 0, duration: 10.0 },
+            omsi_scenery::TrafficLightPhase { state: 6, duration: 10.0 },
+        ],
+        approach_dist: None,
+    });
+    let t = c.timeline();
+    assert_eq!(t.len(), 4);
+    assert_eq!(t.iter().map(|s| s.light).collect::<Vec<_>>(), vec![0, 0, 1, 1]);
+    assert_eq!(t.iter().map(|s| s.phase).collect::<Vec<_>>(), vec![0, 1, 0, 1]);
+    // each light's run starts again at nought
+    assert_eq!((t[2].start, t[2].end), (0.0, 10.0));
+}

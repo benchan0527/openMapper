@@ -2703,3 +2703,10 @@ what was written does not read back the same	запісанае чытаецца
 its paths are in a file of their own (`[paths]`), which this editor does not read	яго шляхі ў асобным файле (`[paths]`), які гэты рэдактар не чытае
 it has no path	у яго няма шляхоў
 jump	пераход
+Phase	Фаза
+Traffic light phase	Фаза святлафора
+Duration	Працягласць
+Timeline	Часовая дыяграма
+Click a block to edit that phase; drag its right edge to change how long it lasts	Націсніце на блок, каб правіць гэтую фазу; пацягніце яго правы край, каб змяніць яе працягласць
+Traffic light	Святлофор
+The whole cycle across the width (as the traffic light window has it)	Увесь цыкл па шырыні (як у акне святлафора)

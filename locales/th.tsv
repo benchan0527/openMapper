@@ -2703,3 +2703,10 @@ what was written does not read back the same	สิ่งที่เขีย�
 its paths are in a file of their own (`[paths]`), which this editor does not read	เส้นทางของมันอยู่ในไฟล์แยก (`[paths]`) ซึ่งตัวแก้ไขนี้ไม่อ่าน
 it has no path	ไม่มีเส้นทาง
 jump	ข้าม
+Phase	เฟส
+Traffic light phase	เฟสไฟจราจร
+Duration	ระยะเวลา
+Timeline	ไทม์ไลน์
+Click a block to edit that phase; drag its right edge to change how long it lasts	คลิกบล็อกเพื่อแก้ไขเฟสนั้น ลากขอบขวาเพื่อเปลี่ยนระยะเวลา
+Traffic light	ไฟจราจร
+The whole cycle across the width (as the traffic light window has it)	ทั้งรอบตามความกว้าง (เหมือนในหน้าต่างไฟจราจร)
