@@ -59,6 +59,9 @@ pub struct CrossingPaths {
     message: Option<(String, bool)>,
     /// Crossing objects of the map, to pick from when nothing is selected.
     candidates: Vec<((i32, i32), i64, String)>,
+    /// The room the drawing side was given, so a test can say it is not squeezed out.
+    #[cfg(test)]
+    last_canvas: Vec2,
 }
 
 impl Default for CrossingPaths {
@@ -81,6 +84,8 @@ impl Default for CrossingPaths {
             copied: false,
             message: None,
             candidates: Vec::new(),
+            #[cfg(test)]
+            last_canvas: Vec2::ZERO,
         }
     }
 }
@@ -236,18 +241,29 @@ impl CrossingPaths {
         let screen = ctx.content_rect().size();
         let size = Vec2::new((screen.x * 0.86).clamp(820.0, 1500.0), (screen.y * 0.86).clamp(540.0, 1000.0));
         egui::Window::new(icons::labelled(Icon::Route, tr("Crossing paths", "Пути перекрёстка")))
+            .id(egui::Id::new("crossing paths window"))
             .open(&mut open)
             .default_size(size)
             .min_size(Vec2::new(760.0, 480.0))
             .resizable(true)
             .show(ctx, |ui| {
+                // (a scroll area takes the layout of the ui it is made in, so each half gets
+                // its own top-down layout: put straight into the row below, the left side
+                // would lay its labels out sideways and push the view off the window)
+                let body = Vec2::new(ui.available_width().max(740.0), ui.available_height().max(430.0));
+                ui.set_min_size(body);
+                let (left, rest) = (310.0f32, (body.x - 322.0).max(400.0));
                 ui.horizontal_top(|ui| {
-                    egui::ScrollArea::vertical().id_salt("crossing side").auto_shrink([false, false]).max_width(320.0).show(ui, |ui| {
-                        ui.set_width(304.0);
-                        self.side(ui, ed, roots);
+                    ui.allocate_ui_with_layout(Vec2::new(left, body.y), egui::Layout::top_down(egui::Align::Min), |ui| {
+                        egui::ScrollArea::vertical().id_salt("crossing side").auto_shrink([false, false]).show(ui, |ui| {
+                            ui.vertical(|ui| {
+                                ui.set_width(left - 18.0);
+                                self.side(ui, ed, roots);
+                            });
+                        });
                     });
                     ui.separator();
-                    ui.vertical(|ui| {
+                    ui.allocate_ui_with_layout(Vec2::new(rest, body.y), egui::Layout::top_down(egui::Align::Min), |ui| {
                         self.toolbar(ui, ed, roots, assets);
                         self.canvas(ui);
                     });
@@ -809,6 +825,10 @@ impl CrossingPaths {
 
     fn canvas_ui(&mut self, ui: &mut egui::Ui, sheet: &mut Sheet) {
         let size = Vec2::new(ui.available_width().max(320.0), ui.available_height().max(320.0));
+        #[cfg(test)]
+        {
+            self.last_canvas = size;
+        }
         let (rect, resp) = ui.allocate_exact_size(size, Sense::click_and_drag());
         if self.fit {
             self.fit = false;
@@ -1013,5 +1033,111 @@ impl CrossingPaths {
                 painter.circle_stroke(to_screen(at), 9.0, Stroke::new(1.6, PICKED));
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// A crossing with a few paths, so the left side has a list to lay out.
+    const SCO: &str = "\
+[friendlyname]
+Kreuzung
+
+[mesh]
+Kreuzung.o3d
+
+[path]
+-6.5
+-12
+0.1
+90
+0
+12
+0
+0
+0
+3.5
+0
+3
+
+[path]
+6.5
+-12
+0.1
+90
+0
+12
+0
+0
+0
+3.5
+0
+2
+
+[path]
+0
+0
+0
+0
+0
+10
+0
+0
+0
+3.5
+2
+0
+
+[use_traffic_light]
+0
+
+[traffic_lights_group]
+60
+
+[traffic_light]
+Main
+[phase]
+0
+30
+[phase]
+6
+25
+";
+
+    /// The window gives the properties the left third and the drawing the rest: a scroll area
+    /// takes the layout it is made in, so laid straight into the row it would put the whole
+    /// path list sideways in one line and push the drawing out of the window (which is what
+    /// the window looked like: one row of paths and nothing else).
+    #[test]
+    fn the_window_puts_the_drawing_beside_the_properties() {
+        let mut w = CrossingPaths { open: true, ..Default::default() };
+        w.target = Some(Sel::Object((0, 0), 1));
+        w.rel = "Sceneryobjects\\Test\\Kreuzung.sco".into();
+        w.selected = Some(0);
+        w.sheet = Some(crate::crossing_edit::Sheet::parse(SCO));
+        let mut ed = Editor::default();
+        let lib = Library::default();
+        let mut actions = Vec::new();
+        let ctx = egui::Context::default();
+        ctx.set_fonts(icons::fonts());
+        let input = egui::RawInput {
+            screen_rect: Some(egui::Rect::from_min_size(egui::Pos2::ZERO, egui::vec2(1400.0, 900.0))),
+            ..Default::default()
+        };
+        // (two frames: the first one settles the window's size)
+        for _ in 0..2 {
+            let _ = ctx.run_ui(input.clone(), |ui| {
+                let ctx = ui.ctx().clone();
+                w.window(&ctx, &mut ed, &lib, None, None, &mut actions);
+            });
+        }
+        let canvas = w.last_canvas;
+        assert!(canvas.x > 400.0, "the drawing got {canvas:?}: the properties are laid out beside it");
+        assert!(canvas.y > 300.0, "the drawing got {canvas:?}");
+        // and the map is shown the paths as the window has them
+        let draft = ed.crossing_draft.as_ref().expect("the map shows the draft");
+        assert_eq!(draft.2.len(), 3);
     }
 }
